@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AttendanceRegister } from '../components/AttendanceRegister';
 import { useApp } from '../context/AppContext';
 import { 
   GraduationCap, 
@@ -14,7 +15,7 @@ import {
 
 export const TeacherView: React.FC = () => {
   const { doubts } = useApp();
-  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments'>('heatmap');
+  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance'>('attendance');
   const [remedialPackCreated, setRemedialPackCreated] = useState(false);
 
   // Mock Heatmap Data for Class 7 CBSE Mathematics (Wireframe 03 / Diagram 28)
@@ -88,7 +89,7 @@ export const TeacherView: React.FC = () => {
           className={activeTab === 'heatmap' ? 'btn btn-teal' : 'ghost'}
           onClick={() => setActiveTab('heatmap')}
         >
-          Class Mastery Heatmap (Diagram 28)
+          Class Mastery Heatmap
         </button>
         <button
           type="button"
@@ -111,7 +112,10 @@ export const TeacherView: React.FC = () => {
         >
           Create Assignment
         </button>
+        <button type="button" className={activeTab === 'attendance' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('attendance')}>Daily Attendance</button>
       </div>
+
+      {activeTab === 'attendance' && <AttendanceRegister />}
 
       {/* HEATMAP TAB (Wireframe 03 / Diagram 28) */}
       {activeTab === 'heatmap' && (

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { DEMO_ATTENDANCE_BATCHES, getStudentAttendanceSummary, readDemoAttendance } from '../data/attendanceDemo';
 import { SlidersHorizontal, Upload, FileSpreadsheet, DollarSign, Cpu, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const AdminView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'import' | 'finance' | 'ai_gov'>('import');
+  const [activeTab, setActiveTab] = useState<'import' | 'finance' | 'ai_gov' | 'attendance'>('import');
   const [importProcessed, setImportProcessed] = useState(false);
 
   const handleSimulateImport = () => {
@@ -67,7 +68,28 @@ export const AdminView: React.FC = () => {
         >
           AI Cost & Governance (Diagram 72)
         </button>
+        <button type="button" className={activeTab === 'attendance' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('attendance')}>Attendance Overview</button>
       </div>
+
+
+      {activeTab === 'attendance' && (
+        <div className="b">
+          <div className="h2">Student Attendance Overview <span className="chip chip-teal">DEMO · This browser</span></div>
+          <p className="t-muted">Illustrative batch rosters. Real attendance needs server storage and role-based access before launch.</p>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead><tr><th style={{ padding: 12 }}>Batch</th><th style={{ padding: 12 }}>Student</th><th style={{ padding: 12 }}>Sessions recorded</th><th style={{ padding: 12 }}>Attendance</th></tr></thead>
+              <tbody>{DEMO_ATTENDANCE_BATCHES.flatMap(batch => batch.students.map(student => {
+                const summary = getStudentAttendanceSummary(readDemoAttendance(), student.id);
+                return <tr key={batch.id + student.id} style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
+                  <td style={{ padding: 12 }}>{batch.name}</td><td style={{ padding: 12 }}>{student.name}</td>
+                  <td style={{ padding: 12 }}>{summary.recorded}</td><td style={{ padding: 12 }}>{summary.percent === null ? 'No records' : summary.percent + '%'}</td>
+                </tr>;
+              }))}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* BULK IMPORT TAB (Wireframe 65 / Diagram 21) */}
       {activeTab === 'import' && (
