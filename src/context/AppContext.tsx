@@ -1,11 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserRole, ParentUser, ChildProfile, Chapter, MistakeNotebookItem, DoubtItem, SafeguardingCase, TechnicalCourse } from '../types';
+import { UserRole, ParentUser, ChildProfile, Chapter, MistakeNotebookItem, DoubtItem, SafeguardingCase, TechnicalCourse, AuthUser } from '../types';
 import { INITIAL_PARENT, INITIAL_CHAPTERS, INITIAL_MISTAKES, INITIAL_DOUBTS, INITIAL_SAFEGUARDING, INITIAL_TECH_COURSES } from '../data/mockData';
 
 interface AppContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
+  currentUser: AuthUser | null;
+  setCurrentUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
+  authToken: string | null;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  logout: () => Promise<void>;
   parent: ParentUser;
+  setParent: React.Dispatch<React.SetStateAction<ParentUser>>;
   activeChild: ChildProfile;
   setActiveChildId: (id: string) => void;
   isChildModeLocked: boolean;
@@ -36,12 +43,16 @@ interface AppContextType {
   grantParentConsent: (studentId: string) => void;
   payOutstandingFee: () => void;
   updateScreenTime: (minutes: number) => void;
+  showPublicPortal: boolean;
+  setShowPublicPortal: (show: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [role, setRole] = useState<UserRole>('student');
+  const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('vayentra_token'));
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [parent, setParent] = useState<ParentUser>(() => {
     const saved = localStorage.getItem('vayentra_parent');
     return saved ? JSON.parse(saved) : INITIAL_PARENT;
@@ -73,7 +84,151 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isDyslexicFont, setIsDyslexicFont] = useState<boolean>(false);
   const [isLargeText, setIsLargeText] = useState<boolean>(false);
   const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
-  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
+  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(() => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return true;
+    }
+    return false;
+  });
+  const [showPublicPortal, setShowPublicPortal] = useState<boolean>(true);
+
+  // Synchronize with genuine browser online / offline network state
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOnline = () => setIsOfflineMode(false);
+    const handleOffline = () => setIsOfflineMode(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Hydrate session on startup if token is stored
+  useEffect(() => {
+    const token = localStorage.getItem('vayentra_token');
+    if (token) {
+      fetch('/api/v1/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Session invalid');
+          return res.json();
+        })
+        .then(data => {
+          if (data.user) {
+            setCurrentUser(data.user);
+            setRole(data.user.role);
+            if (data.guardian && data.children) {
+              setParent(prev => ({
+                ...prev,
+                id: data.guardian.id,
+                name: data.user.name,
+                email: data.user.email,
+                subscriptionStatus: data.guardian.subscription_status,
+                planName: data.guardian.plan_name,
+                children: data.children.map((c: any) => ({
+                  id: c.id,
+                  name: c.name,
+                  avatar: c.avatar || '🦊',
+                  grade: c.grade || 7,
+                  board: c.board || 'CBSE',
+                  medium: c.medium || 'English',
+                  pin: c.child_pin || '0000',
+                  dailyTimeLimitMins: c.daily_time_limit_mins || 45,
+                  minutesUsedToday: c.minutes_used_today || 0,
+                  bedtimeLock: c.bedtime_lock || '21:30',
+                  hasParentConsent: Boolean(c.has_consent),
+                  consentTimestamp: c.consent_timestamp,
+                  streakDays: c.streak_days || 1,
+                  starsEarned: c.stars_earned || 10,
+                  points: c.points || 250
+                }))
+              }));
+            }
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('vayentra_token');
+          setAuthToken(null);
+          setCurrentUser(null);
+        });
+    }
+  }, []);
+
+  const login = async (email: string, password: string): Promise<AuthUser> => {
+    const res = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Login failed.');
+    }
+
+    localStorage.setItem('vayentra_token', data.token);
+    setAuthToken(data.token);
+    setCurrentUser(data.user);
+    setRole(data.user.role);
+
+    if (data.guardian && data.children) {
+      const updatedParent: ParentUser = {
+        id: data.guardian.id,
+        name: data.user.name,
+        mobile: data.user.mobile || '+91 98450 12345',
+        email: data.user.email,
+        parentPin: data.guardian.parent_pin || '1234',
+        subscriptionStatus: data.guardian.subscription_status || 'Active',
+        planName: data.guardian.plan_name || 'Annual Gurukula Pro + AI Tutor',
+        renewalDate: data.guardian.renewal_date || '2027-04-10',
+        outstandingFee: data.guardian.outstanding_fee || 0,
+        activeChildId: data.children[0]?.id || 'stu-001',
+        children: data.children.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          avatar: c.avatar || '🦊',
+          grade: c.grade || 7,
+          board: c.board || 'CBSE',
+          medium: c.medium || 'English',
+          pin: c.child_pin || '0000',
+          dailyTimeLimitMins: c.daily_time_limit_mins || 45,
+          minutesUsedToday: c.minutes_used_today || 0,
+          bedtimeLock: c.bedtime_lock || '21:30',
+          hasParentConsent: Boolean(c.has_consent),
+          consentTimestamp: c.consent_timestamp,
+          streakDays: c.streak_days || 1,
+          starsEarned: c.stars_earned || 10,
+          points: c.points || 250
+        }))
+      };
+      setParent(updatedParent);
+      localStorage.setItem('vayentra_parent', JSON.stringify(updatedParent));
+    }
+
+    setShowPublicPortal(false);
+    return data.user;
+  };
+
+  const logout = async () => {
+    const token = localStorage.getItem('vayentra_token');
+    if (token) {
+      try {
+        await fetch('/api/v1/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (e) {}
+    }
+    localStorage.removeItem('vayentra_token');
+    setAuthToken(null);
+    setCurrentUser(null);
+    setRole('student');
+    setShowPublicPortal(true);
+  };
 
   // Sync to localStorage
   useEffect(() => {
@@ -301,7 +456,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         role,
         setRole,
+        currentUser,
+        setCurrentUser,
+        authToken,
+        isAuthenticated: Boolean(currentUser && authToken),
+        login,
+        logout,
         parent,
+        setParent,
         activeChild,
         setActiveChildId,
         isChildModeLocked,
@@ -331,7 +493,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         techCourses: INITIAL_TECH_COURSES,
         grantParentConsent,
         payOutstandingFee,
-        updateScreenTime
+        updateScreenTime,
+        showPublicPortal,
+        setShowPublicPortal
       }}
     >
       {children}

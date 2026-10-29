@@ -36,7 +36,7 @@ export const SafeguardingView: React.FC = () => {
               Safeguarding Officer Vault (Restricted Access)
             </div>
             <div style={{ color: '#ffcdd2', fontSize: '13px' }}>
-              Legal Escrow & Child Protection Dossier • Mandatory 24h Triage SLA (FR-SAF-01)
+              Legal Escrow & Child Protection Dossier • Mandatory 24h Triage SLA
             </div>
           </div>
         </div>

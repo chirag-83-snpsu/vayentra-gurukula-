@@ -1,0 +1,901 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import bcrypt from 'bcryptjs';
+import { db } from './database.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DB_PATH = path.join(__dirname, 'vayentra.sqlite');
+
+export function runMigrations() {
+  console.log('[Vayentra DB] Running database migrations...');
+
+  db.exec('BEGIN TRANSACTION;');
+  try {
+    // 1. Ensure migrations tracking table exists
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS migrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+
+    // 2. Migration 001: Staff & Verified Accounts with bcrypt passwords
+    const applied001 = db.prepare('SELECT id FROM migrations WHERE name = ?').get('001_auth_staff_accounts');
+    if (!applied001) {
+      console.log('[Vayentra DB] Applying migration 001_auth_staff_accounts...');
+
+      // Ensure password_hash column exists on users
+      const tableInfo = db.prepare('PRAGMA table_info(users)').all();
+      const hasPasswordHash = tableInfo.some(col => col.name === 'password_hash');
+      if (!hasPasswordHash) {
+        db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT;');
+      }
+
+      const defaultPassword = 'Gurukula@2026';
+      const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+
+      // Seed / Update Staff and Family Accounts
+      const accounts = [
+        {
+          id: 'usr-admin-01',
+          email: 'admin@vayentra.org',
+          name: 'Principal S. Ramaswamy',
+          role: 'admin',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'
+        },
+        {
+          id: 'usr-teacher-01',
+          email: 'teacher@vayentra.org',
+          name: 'Ananya Sharma, M.Sc.',
+          role: 'teacher',
+          avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150'
+        },
+        {
+          id: 'usr-safeguarding-01',
+          email: 'safeguarding@vayentra.org',
+          name: 'Dr. Kavitha Rao',
+          role: 'safeguarding',
+          avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150'
+        },
+        {
+          id: 'usr-reviewer-01',
+          email: 'reviewer@vayentra.org',
+          name: 'Prof. K. Narayana',
+          role: 'reviewer',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'
+        },
+        {
+          id: 'usr-guardian-01',
+          email: 'guardian@vayentra.org',
+          name: 'Venkatesh Prasad',
+          role: 'parent',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
+        },
+        {
+          id: 'usr-student-01',
+          email: 'student@vayentra.org',
+          name: 'Aarav Varma',
+          role: 'student',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'
+        }
+      ];
+
+      const upsertUser = db.prepare(`
+        INSERT INTO users (id, email, name, role, avatar, password_hash)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(email) DO UPDATE SET
+          name = excluded.name,
+          role = excluded.role,
+          avatar = excluded.avatar,
+          password_hash = excluded.password_hash
+      `);
+
+      for (const acc of accounts) {
+        upsertUser.run(acc.id, acc.email, acc.name, acc.role, acc.avatar, passwordHash);
+      }
+
+      // Ensure Guardian record exists for guardian@vayentra.org
+      const guardianUser = db.prepare('SELECT id FROM users WHERE email = ?').get('guardian@vayentra.org');
+      if (guardianUser) {
+        const guardianExists = db.prepare('SELECT id FROM guardians WHERE user_id = ?').get(guardianUser.id);
+        if (!guardianExists) {
+          db.prepare(`
+            INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, renewal_date, outstanding_fee, emergency_phone)
+            VALUES (?, ?, '1234', 'Active', 'Annual Gurukula Pro + AI Tutor', '2027-04-10', 0.0, '+91 98450 99999')
+          `).run('par-001', guardianUser.id);
+        }
+      }
+
+      // Ensure Student record exists for student
+      const guardian = db.prepare('SELECT id FROM guardians WHERE user_id = ?').get(guardianUser?.id || 'usr-guardian-01');
+      if (guardian) {
+        const studentExists = db.prepare('SELECT id FROM students WHERE id = ?').get('stu-001');
+        if (!studentExists) {
+          db.prepare(`
+            INSERT INTO students (
+              id, guardian_id, name, avatar, grade, board, medium, school_name,
+              child_pin, daily_time_limit_mins, minutes_used_today, bedtime_lock,
+              has_consent, consent_timestamp, streak_days, stars_earned, points
+            ) VALUES (?, ?, 'Aarav Varma', '🦊', 7, 'CBSE', 'English', 'Vayentra Gurukula Academy', '0000', 45, 22, '21:30', 1, datetime('now'), 5, 42, 1250)
+          `).run('stu-001', guardian.id);
+        }
+      }
+
+      db.prepare('INSERT INTO migrations (name) VALUES (?)').run('001_auth_staff_accounts');
+      console.log('[Vayentra DB] Migration 001_auth_staff_accounts completed successfully.');
+    }
+
+    // 3. Migration 002: Student Enrollment & Batch Management (Phase 2)
+    const applied002 = db.prepare('SELECT id FROM migrations WHERE name = ?').get('002_student_enrollment_batch_management');
+    if (!applied002) {
+      console.log('[Vayentra DB] Applying migration 002_student_enrollment_batch_management...');
+
+      // Backup-safe: Create a copy of the database before running DDL
+      if (fs.existsSync(DB_PATH)) {
+        try {
+          const backupFile = path.join(__dirname, `vayentra.sqlite.backup-mig002-${Date.now()}`);
+          fs.copyFileSync(DB_PATH, backupFile);
+          console.log(`[Vayentra DB] Pre-migration backup safely created at: ${backupFile}`);
+        } catch (backupErr) {
+          console.warn('[Vayentra DB] Note: Pre-migration backup warning:', backupErr.message);
+        }
+      }
+
+      // 3.1 Extend students table with status, enrollment_number, dob, notes
+      const studentCols = db.prepare('PRAGMA table_info(students)').all().map(c => c.name);
+      if (!studentCols.includes('status')) {
+        db.exec("ALTER TABLE students ADD COLUMN status TEXT NOT NULL DEFAULT 'active';");
+      }
+      if (!studentCols.includes('enrollment_number')) {
+        db.exec("ALTER TABLE students ADD COLUMN enrollment_number TEXT;");
+      }
+      if (!studentCols.includes('dob')) {
+        db.exec("ALTER TABLE students ADD COLUMN dob TEXT;");
+      }
+      if (!studentCols.includes('notes')) {
+        db.exec("ALTER TABLE students ADD COLUMN notes TEXT;");
+      }
+
+      // Assign unique institutional enrollment numbers to existing students without one
+      const existingStudents = db.prepare("SELECT id FROM students WHERE enrollment_number IS NULL OR enrollment_number = ''").all();
+      const updateEnr = db.prepare("UPDATE students SET enrollment_number = ? WHERE id = ?");
+      existingStudents.forEach((st, idx) => {
+        const enrNum = `VG-2026-${String(idx + 1).padStart(4, '0')}`;
+        updateEnr.run(enrNum, st.id);
+      });
+
+      // Create index on enrollment_number
+      db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_students_enrollment_number ON students(enrollment_number);");
+
+      // 3.2 Create teachers table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS teachers (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL UNIQUE,
+          qualification TEXT NOT NULL,
+          specialization TEXT NOT NULL,
+          phone TEXT,
+          status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'on_leave')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+      `);
+
+      // Seed teacher profile for teacher@vayentra.org
+      const teacherUser = db.prepare("SELECT id FROM users WHERE email = 'teacher@vayentra.org'").get();
+      if (teacherUser) {
+        const existingTeacher = db.prepare("SELECT id FROM teachers WHERE user_id = ?").get(teacherUser.id);
+        if (!existingTeacher) {
+          db.prepare(`
+            INSERT INTO teachers (id, user_id, qualification, specialization, phone, status)
+            VALUES (?, ?, 'M.Sc. Mathematics, B.Ed.', 'Mathematics & Mental Maths', '+91 98450 77777', 'active')
+          `).run('tch-001', teacherUser.id);
+        }
+      }
+
+      // 3.3 Create batches table with constraints
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS batches (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          grade INTEGER NOT NULL CHECK (grade >= 1 AND grade <= 10),
+          board TEXT NOT NULL CHECK (board IN ('CBSE', 'STATE_KARNATAKA', 'ICSE')),
+          subject TEXT NOT NULL,
+          teacher_id TEXT,
+          max_capacity INTEGER NOT NULL DEFAULT 30,
+          status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived', 'completed')),
+          start_time TEXT NOT NULL,
+          end_time TEXT NOT NULL,
+          days_of_week_json TEXT NOT NULL DEFAULT '["MON","WED","FRI"]',
+          room TEXT DEFAULT 'Room Gurukula-1',
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
+        );
+      `);
+
+      // 3.4 Create batch_enrollments table with composite unique constraint
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS batch_enrollments (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL,
+          batch_id TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'transferred', 'dropped', 'completed')),
+          enrolled_at TEXT NOT NULL DEFAULT (datetime('now')),
+          transferred_to_batch_id TEXT,
+          notes TEXT,
+          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+          FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE,
+          FOREIGN KEY (transferred_to_batch_id) REFERENCES batches(id) ON DELETE SET NULL,
+          UNIQUE(student_id, batch_id)
+        );
+      `);
+
+      // Seed initial batches
+      const initialBatches = [
+        {
+          id: 'batch-7a-cbse-math',
+          name: 'Class 7-A · CBSE Mathematics',
+          grade: 7,
+          board: 'CBSE',
+          subject: 'Mathematics',
+          teacher_id: 'tch-001',
+          max_capacity: 30,
+          start_time: '17:30',
+          end_time: '18:30',
+          days_of_week_json: '["MON","WED","FRI"]',
+          room: 'Gurukula Ramanujan Hall'
+        },
+        {
+          id: 'batch-7b-cbse-sci',
+          name: 'Class 7-B · CBSE Science & Physics',
+          grade: 7,
+          board: 'CBSE',
+          subject: 'Science',
+          teacher_id: 'tch-001',
+          max_capacity: 25,
+          start_time: '18:45',
+          end_time: '19:45',
+          days_of_week_json: '["MON","WED","FRI"]',
+          room: 'Gurukula C.V. Raman Lab'
+        },
+        {
+          id: 'batch-10-cbse-math',
+          name: 'Class 10-A · CBSE Board Exam Preparation',
+          grade: 10,
+          board: 'CBSE',
+          subject: 'Mathematics',
+          teacher_id: 'tch-001',
+          max_capacity: 30,
+          start_time: '16:30',
+          end_time: '17:30',
+          days_of_week_json: '["TUE","THU","SAT"]',
+          room: 'Gurukula Aryabhata Room'
+        },
+        {
+          id: 'batch-8-kstate-math',
+          name: 'Class 8 · Karnataka State Board Maths & Science',
+          grade: 8,
+          board: 'STATE_KARNATAKA',
+          subject: 'Mathematics',
+          teacher_id: 'tch-001',
+          max_capacity: 30,
+          start_time: '18:00',
+          end_time: '19:00',
+          days_of_week_json: '["TUE","THU","SAT"]',
+          room: 'Gurukula Visvesvaraya Hall'
+        }
+      ];
+
+      const insertBatch = db.prepare(`
+        INSERT OR IGNORE INTO batches (id, name, grade, board, subject, teacher_id, max_capacity, start_time, end_time, days_of_week_json, room)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      for (const b of initialBatches) {
+        insertBatch.run(b.id, b.name, b.grade, b.board, b.subject, b.teacher_id, b.max_capacity, b.start_time, b.end_time, b.days_of_week_json, b.room);
+      }
+
+      // Seed student enrollment for stu-001 in batch-7a-cbse-math and batch-7b-cbse-sci (multi-batch enrollment without duplicate student)
+      const stu001 = db.prepare("SELECT id FROM students WHERE id = 'stu-001'").get();
+      if (stu001) {
+        const insertEnr = db.prepare(`
+          INSERT OR IGNORE INTO batch_enrollments (id, student_id, batch_id, status, notes)
+          VALUES (?, ?, ?, 'active', ?)
+        `);
+        insertEnr.run('enr-stu001-batch7a', 'stu-001', 'batch-7a-cbse-math', 'Core Mathematics Tuition');
+        insertEnr.run('enr-stu001-batch7b', 'stu-001', 'batch-7b-cbse-sci', 'Science & Lab Fundamentals');
+      }
+
+      db.prepare('INSERT INTO migrations (name) VALUES (?)').run('002_student_enrollment_batch_management');
+      console.log('[Vayentra DB] Migration 002_student_enrollment_batch_management completed successfully.');
+    }
+
+    // 4. Migration 003: Persistent Student Attendance System (Phase 3)
+    const applied003 = db.prepare('SELECT id FROM migrations WHERE name = ?').get('003_persistent_student_attendance');
+    if (!applied003) {
+      console.log('[Vayentra DB] Applying migration 003_persistent_student_attendance...');
+
+      // Backup-safe: Create a copy of the database before running Phase 3 DDL
+      if (fs.existsSync(DB_PATH)) {
+        try {
+          const backupFile = path.join(__dirname, `vayentra.sqlite.backup-mig003-${Date.now()}`);
+          fs.copyFileSync(DB_PATH, backupFile);
+          console.log(`[Vayentra DB] Pre-migration backup safely created at: ${backupFile}`);
+        } catch (backupErr) {
+          console.warn('[Vayentra DB] Note: Pre-migration backup warning:', backupErr.message);
+        }
+      }
+
+      // 4.1 Create batch_sessions table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS batch_sessions (
+          id TEXT PRIMARY KEY,
+          batch_id TEXT NOT NULL REFERENCES batches(id) ON DELETE CASCADE,
+          session_date TEXT NOT NULL,
+          start_time TEXT NOT NULL,
+          end_time TEXT NOT NULL,
+          topic TEXT,
+          status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('scheduled', 'completed', 'cancelled')),
+          teacher_id TEXT REFERENCES teachers(id) ON DELETE SET NULL,
+          notes TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(batch_id, session_date, start_time)
+        );
+        CREATE INDEX IF NOT EXISTS idx_batch_sessions_batch_date ON batch_sessions(batch_id, session_date);
+        CREATE INDEX IF NOT EXISTS idx_batch_sessions_date ON batch_sessions(session_date);
+      `);
+
+      // 4.2 Create attendance_records table with composite unique constraint (duplicate protection)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS attendance_records (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL REFERENCES batch_sessions(id) ON DELETE CASCADE,
+          batch_id TEXT NOT NULL REFERENCES batches(id) ON DELETE CASCADE,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          status TEXT NOT NULL CHECK (status IN ('present', 'absent', 'late', 'excused')),
+          marked_by_user_id TEXT NOT NULL REFERENCES users(id),
+          remarks TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(session_id, student_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_attendance_records_student ON attendance_records(student_id);
+        CREATE INDEX IF NOT EXISTS idx_attendance_records_batch ON attendance_records(batch_id);
+        CREATE INDEX IF NOT EXISTS idx_attendance_records_session ON attendance_records(session_id);
+      `);
+
+      // 4.3 Create attendance_audit_logs table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS attendance_audit_logs (
+          id TEXT PRIMARY KEY,
+          attendance_record_id TEXT NOT NULL,
+          session_id TEXT NOT NULL,
+          student_id TEXT NOT NULL,
+          previous_status TEXT,
+          new_status TEXT NOT NULL,
+          changed_by_user_id TEXT NOT NULL REFERENCES users(id),
+          change_reason TEXT,
+          timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_attendance_audit_logs_session ON attendance_audit_logs(session_id);
+        CREATE INDEX IF NOT EXISTS idx_attendance_audit_logs_student ON attendance_audit_logs(student_id);
+      `);
+
+      // 4.4 Ensure full class cohort for Class 7-A (matching prototype students)
+      const guardian = db.prepare("SELECT id FROM guardians LIMIT 1").get();
+      const guardianId = guardian ? guardian.id : 'par-001';
+
+      const sampleClassmates = [
+        { id: 'stu-diya', name: 'Diya Patel', grade: 7, board: 'CBSE', enrollment_number: 'VG-2026-0101' },
+        { id: 'stu-kavya', name: 'Kavya Rao', grade: 7, board: 'CBSE', enrollment_number: 'VG-2026-0102' },
+        { id: 'stu-rohan', name: 'Rohan Sharma', grade: 7, board: 'CBSE', enrollment_number: 'VG-2026-0103' },
+        { id: 'stu-zoya', name: 'Zoya Khan', grade: 7, board: 'CBSE', enrollment_number: 'VG-2026-0104' }
+      ];
+
+      const insertClassmate = db.prepare(`
+        INSERT OR IGNORE INTO students (
+          id, guardian_id, name, avatar, grade, board, medium, school_name,
+          child_pin, daily_time_limit_mins, minutes_used_today, bedtime_lock,
+          has_consent, consent_timestamp, streak_days, stars_earned, points,
+          status, enrollment_number
+        ) VALUES (?, ?, ?, '🦉', ?, ?, 'English', 'National Public School, Bengaluru', '1234', 45, 15, '21:30', 1, datetime('now'), 3, 25, 800, 'active', ?)
+      `);
+
+      const enrollClassmate = db.prepare(`
+        INSERT OR IGNORE INTO batch_enrollments (id, student_id, batch_id, status, notes)
+        VALUES (?, ?, 'batch-7a-cbse-math', 'active', 'Academic Batch 7-A Roster')
+      `);
+
+      sampleClassmates.forEach((cm, idx) => {
+        insertClassmate.run(cm.id, guardianId, cm.name, cm.grade, cm.board, cm.enrollment_number);
+        enrollClassmate.run(`enr-7a-${cm.id}`, cm.id);
+      });
+
+      // 4.5 Seed historical completed sessions for Class 7-A
+      const teacher = db.prepare("SELECT id FROM teachers WHERE id = 'tch-001'").get();
+      const teacherId = teacher ? teacher.id : null;
+      const teacherUser = db.prepare("SELECT id FROM users WHERE email = 'teacher@vayentra.org'").get();
+      const teacherUserId = teacherUser ? teacherUser.id : 'usr-teacher-01';
+
+      const pastSessions = [
+        { id: 'ses-7a-1014', date: '2026-10-14', topic: 'Integers & Number Line Basics', status: 'completed' },
+        { id: 'ses-7a-1016', date: '2026-10-16', topic: 'Integer Multiplication & Distribution', status: 'completed' },
+        { id: 'ses-7a-1021', date: '2026-10-21', topic: 'Division Rules & Word Problems', status: 'completed' },
+        { id: 'ses-7a-1023', date: '2026-10-23', topic: 'Fractions: Addition & Mixed Numbers', status: 'completed' },
+        { id: 'ses-7a-1028', date: '2026-10-28', topic: 'Rational Numbers & Practical Applications', status: 'completed' },
+        { id: 'ses-7a-cancelled', date: '2026-10-19', topic: 'State Holiday (Karnataka Rajyotsava Prep)', status: 'cancelled' },
+        { id: 'ses-7a-future', date: '2026-11-04', topic: 'Linear Equations in One Variable', status: 'scheduled' }
+      ];
+
+      const insertSession = db.prepare(`
+        INSERT OR IGNORE INTO batch_sessions (id, batch_id, session_date, start_time, end_time, topic, status, teacher_id)
+        VALUES (?, 'batch-7a-cbse-math', ?, '17:30', '18:30', ?, ?, ?)
+      `);
+
+      for (const ses of pastSessions) {
+        insertSession.run(ses.id, ses.date, ses.topic, ses.status, teacherId);
+      }
+
+      // 4.6 Seed attendance records for the completed sessions
+      // Completed sessions: ses-7a-1014, ses-7a-1016, ses-7a-1021, ses-7a-1023, ses-7a-1028
+      // Cancelled and future sessions must NOT have completed attendance or be factored into eligible calculations.
+      const attendanceMatrix = [
+        // Aarav Varma (stu-001): 4 present, 1 late => 5 attended, 0 absent => 100%
+        { sessionId: 'ses-7a-1014', studentId: 'stu-001', status: 'present', remarks: 'On time, active participant' },
+        { sessionId: 'ses-7a-1016', studentId: 'stu-001', status: 'present', remarks: 'Good grasp of integer signs' },
+        { sessionId: 'ses-7a-1021', studentId: 'stu-001', status: 'late', remarks: 'Joined 8 mins late with note' },
+        { sessionId: 'ses-7a-1023', studentId: 'stu-001', status: 'present', remarks: 'Solved board problem correctly' },
+        { sessionId: 'ses-7a-1028', studentId: 'stu-001', status: 'present', remarks: 'Mastered concept checkpoint' },
+
+        // Diya Patel: 4 present, 1 absent => 80%
+        { sessionId: 'ses-7a-1014', studentId: 'stu-diya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1016', studentId: 'stu-diya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1021', studentId: 'stu-diya', status: 'absent', remarks: 'Unexcused absence' },
+        { sessionId: 'ses-7a-1023', studentId: 'stu-diya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1028', studentId: 'stu-diya', status: 'present', remarks: '' },
+
+        // Kavya Rao: 5 present => 100%
+        { sessionId: 'ses-7a-1014', studentId: 'stu-kavya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1016', studentId: 'stu-kavya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1021', studentId: 'stu-kavya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1023', studentId: 'stu-kavya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1028', studentId: 'stu-kavya', status: 'present', remarks: '' },
+
+        // Rohan Sharma: 3 present, 1 absent, 1 excused => 3 / (3+1) = 75%
+        { sessionId: 'ses-7a-1014', studentId: 'stu-rohan', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1016', studentId: 'stu-rohan', status: 'excused', remarks: 'Medical leave approved by guardian' },
+        { sessionId: 'ses-7a-1021', studentId: 'stu-rohan', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1023', studentId: 'stu-rohan', status: 'absent', remarks: 'Unreported absence' },
+        { sessionId: 'ses-7a-1028', studentId: 'stu-rohan', status: 'present', remarks: '' },
+
+        // Zoya Khan: 4 present, 1 late => 100%
+        { sessionId: 'ses-7a-1014', studentId: 'stu-zoya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1016', studentId: 'stu-zoya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1021', studentId: 'stu-zoya', status: 'present', remarks: '' },
+        { sessionId: 'ses-7a-1023', studentId: 'stu-zoya', status: 'late', remarks: 'Traffic delay' },
+        { sessionId: 'ses-7a-1028', studentId: 'stu-zoya', status: 'present', remarks: '' }
+      ];
+
+      const insertAttRecord = db.prepare(`
+        INSERT OR IGNORE INTO attendance_records (id, session_id, batch_id, student_id, status, marked_by_user_id, remarks)
+        VALUES (?, ?, 'batch-7a-cbse-math', ?, ?, ?, ?)
+      `);
+
+      const insertAuditLog = db.prepare(`
+        INSERT OR IGNORE INTO attendance_audit_logs (id, attendance_record_id, session_id, student_id, previous_status, new_status, changed_by_user_id, change_reason)
+        VALUES (?, ?, ?, ?, NULL, ?, ?, 'Initial faculty roster submission')
+      `);
+
+      attendanceMatrix.forEach((item, index) => {
+        const recordId = `rec-att-${item.sessionId}-${item.studentId}`;
+        insertAttRecord.run(recordId, item.sessionId, item.studentId, item.status, teacherUserId, item.remarks);
+        insertAuditLog.run(`aud-${Date.now()}-${index}`, recordId, item.sessionId, item.studentId, item.status, teacherUserId);
+      });
+
+      db.prepare('INSERT INTO migrations (name) VALUES (?)').run('003_persistent_student_attendance');
+      console.log('[Vayentra DB] Migration 003_persistent_student_attendance completed successfully.');
+    }
+
+    // 5. Migration 004: Homework & Weekly Concept Assessments (Phase 4)
+    const applied004 = db.prepare('SELECT id FROM migrations WHERE name = ?').get('004_homework_weekly_assessments');
+    if (!applied004) {
+      console.log('[Vayentra DB] Applying migration 004_homework_weekly_assessments...');
+
+      if (fs.existsSync(DB_PATH)) {
+        try {
+          const backupFile = path.join(__dirname, `vayentra.sqlite.backup-mig004-${Date.now()}`);
+          fs.copyFileSync(DB_PATH, backupFile);
+          console.log(`[Vayentra DB] Pre-migration backup safely created at: ${backupFile}`);
+        } catch (backupErr) {
+          console.warn('[Vayentra DB] Note: Pre-migration backup warning:', backupErr.message);
+        }
+      }
+
+      // 5.1 Create homework_assignments table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS homework_assignments (
+          id TEXT PRIMARY KEY,
+          teacher_id TEXT NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+          batch_id TEXT REFERENCES batches(id) ON DELETE CASCADE,
+          target_student_id TEXT REFERENCES students(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          subject TEXT NOT NULL,
+          description TEXT NOT NULL,
+          due_date TEXT NOT NULL,
+          chapter_id TEXT REFERENCES chapters(id) ON DELETE SET NULL,
+          learning_resources_json TEXT NOT NULL DEFAULT '[]',
+          status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived', 'closed')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_homework_batch ON homework_assignments(batch_id);
+        CREATE INDEX IF NOT EXISTS idx_homework_target_student ON homework_assignments(target_student_id);
+        CREATE INDEX IF NOT EXISTS idx_homework_due_date ON homework_assignments(due_date);
+      `);
+
+      // 5.2 Create homework_submissions table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS homework_submissions (
+          id TEXT PRIMARY KEY,
+          homework_id TEXT NOT NULL REFERENCES homework_assignments(id) ON DELETE CASCADE,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          submission_text TEXT NOT NULL,
+          attachment_url TEXT,
+          status TEXT NOT NULL DEFAULT 'submitted' CHECK (status IN ('draft', 'submitted', 'reviewed', 'resubmission_requested')),
+          score REAL,
+          max_score REAL DEFAULT 100,
+          teacher_feedback TEXT,
+          reviewed_by_user_id TEXT REFERENCES users(id),
+          submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+          reviewed_at TEXT,
+          UNIQUE(homework_id, student_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_homework_subs_student ON homework_submissions(student_id);
+        CREATE INDEX IF NOT EXISTS idx_homework_subs_hw ON homework_submissions(homework_id);
+      `);
+
+      // 5.3 Create weekly_assessments table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS weekly_assessments (
+          id TEXT PRIMARY KEY,
+          batch_id TEXT NOT NULL REFERENCES batches(id) ON DELETE CASCADE,
+          teacher_id TEXT NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          subject TEXT NOT NULL,
+          assessment_date TEXT NOT NULL,
+          max_score REAL NOT NULL DEFAULT 50,
+          passing_score REAL NOT NULL DEFAULT 35,
+          topics_covered_json TEXT NOT NULL DEFAULT '[]',
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_weekly_assessments_batch ON weekly_assessments(batch_id);
+      `);
+
+      // 5.4 Create assessment_scores table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS assessment_scores (
+          id TEXT PRIMARY KEY,
+          assessment_id TEXT NOT NULL REFERENCES weekly_assessments(id) ON DELETE CASCADE,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          score REAL NOT NULL,
+          percentage REAL NOT NULL,
+          teacher_feedback TEXT NOT NULL,
+          areas_needing_revision_json TEXT NOT NULL DEFAULT '[]',
+          next_learning_recommendation TEXT NOT NULL,
+          recorded_by_user_id TEXT NOT NULL REFERENCES users(id),
+          recorded_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(assessment_id, student_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_assessment_scores_student ON assessment_scores(student_id);
+        CREATE INDEX IF NOT EXISTS idx_assessment_scores_assessment ON assessment_scores(assessment_id);
+      `);
+
+      // 5.5 Seed sample homework & assessment records
+      const teacher = db.prepare("SELECT id FROM teachers WHERE id = 'tch-001'").get();
+      const teacherId = teacher ? teacher.id : 'tch-001';
+      const teacherUser = db.prepare("SELECT id FROM users WHERE email = 'teacher@vayentra.org'").get();
+      const teacherUserId = teacherUser ? teacherUser.id : 'usr-teacher-01';
+
+      // HW 1: Active batch homework due in future
+      const hw1 = {
+        id: 'hw-7a-int-drill',
+        teacher_id: teacherId,
+        batch_id: 'batch-7a-cbse-math',
+        target_student_id: null,
+        title: 'Integer Multiplication & Division Drill',
+        subject: 'Mathematics',
+        description: 'Complete word problems 1 through 10 from the problem set. Write detailed steps showing sign rules and distributive law application.',
+        due_date: '2026-11-05',
+        chapter_id: 'chap-math-01',
+        learning_resources_json: JSON.stringify([
+          { title: 'Chapter 1: Integers & Real-World Operations', url: '/school/chapters', type: 'concept_notes' },
+          { title: 'Flashcards: Integer Sign Rules', url: '/school/practice/flashcards', type: 'flashcards' }
+        ])
+      };
+
+      // HW 2: Individual homework for stu-001
+      const hw2 = {
+        id: 'hw-stu001-challenge',
+        teacher_id: teacherId,
+        batch_id: null,
+        target_student_id: 'stu-001',
+        title: 'Advanced Prime Factorization & GCD Exploration',
+        subject: 'Mathematics',
+        description: 'Solve the 3 bonus challenge questions exploring Euclid algorithm for GCD using prime trees.',
+        due_date: '2026-11-08',
+        chapter_id: 'chap-math-01',
+        learning_resources_json: JSON.stringify([
+          { title: 'Olympiad Mathematics Foundation', url: '/school/catalogue', type: 'resource' }
+        ])
+      };
+
+      // HW 3: Overdue homework for Batch 7-A
+      const hw3 = {
+        id: 'hw-7a-bodmas-intro',
+        teacher_id: teacherId,
+        batch_id: 'batch-7a-cbse-math',
+        target_student_id: null,
+        title: 'Diagnostic Worksheet: BODMAS Order of Operations',
+        subject: 'Mathematics',
+        description: 'Practice evaluating expressions with nested parentheses, brackets, and negative exponents.',
+        due_date: '2026-10-20',
+        chapter_id: 'chap-math-01',
+        learning_resources_json: JSON.stringify([])
+      };
+
+      const insertHw = db.prepare(`
+        INSERT OR IGNORE INTO homework_assignments (
+          id, teacher_id, batch_id, target_student_id, title, subject, description, due_date, chapter_id, learning_resources_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      insertHw.run(hw1.id, hw1.teacher_id, hw1.batch_id, hw1.target_student_id, hw1.title, hw1.subject, hw1.description, hw1.due_date, hw1.chapter_id, hw1.learning_resources_json);
+      insertHw.run(hw2.id, hw2.teacher_id, hw2.batch_id, hw2.target_student_id, hw2.title, hw2.subject, hw2.description, hw2.due_date, hw2.chapter_id, hw2.learning_resources_json);
+      insertHw.run(hw3.id, hw3.teacher_id, hw3.batch_id, hw3.target_student_id, hw3.title, hw3.subject, hw3.description, hw3.due_date, hw3.chapter_id, hw3.learning_resources_json);
+
+      // Seed submissions:
+      // stu-001 submitted hw1 (reviewed) and hw3 (reviewed)
+      const insertSub = db.prepare(`
+        INSERT OR IGNORE INTO homework_submissions (
+          id, homework_id, student_id, submission_text, status, score, max_score, teacher_feedback, reviewed_by_user_id, submitted_at, reviewed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-2 days'), datetime('now', '-1 day'))
+      `);
+
+      insertSub.run(
+        'sub-hw1-stu001',
+        hw1.id,
+        'stu-001',
+        'Submitted 10 word problems with complete steps: 1) (-15) * 4 = -60. 2) (-12) / (-3) = 4. All distributive property proofs written.',
+        'reviewed',
+        95,
+        100,
+        'Flawless working steps Aarav! Clear understanding of integer sign rules.',
+        teacherUserId
+      );
+
+      insertSub.run(
+        'sub-hw3-stu001',
+        hw3.id,
+        'stu-001',
+        'Solved all diagnostic brackets: (15 - (-3)) * 2 = 36.',
+        'reviewed',
+        90,
+        100,
+        'Good grasp of bracket precedence.',
+        teacherUserId
+      );
+
+      // Seed Weekly Concept Assessments:
+      const insertWkAssessment = db.prepare(`
+        INSERT OR IGNORE INTO weekly_assessments (
+          id, batch_id, teacher_id, title, subject, assessment_date, max_score, passing_score, topics_covered_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const insertScore = db.prepare(`
+        INSERT OR IGNORE INTO assessment_scores (
+          id, assessment_id, student_id, score, percentage, teacher_feedback, areas_needing_revision_json, next_learning_recommendation, recorded_by_user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      // Assessment 1
+      insertWkAssessment.run(
+        'wka-7a-wk1',
+        'batch-7a-cbse-math',
+        teacherId,
+        'Week 2 Concept Mastery Check: Negative Integers on Number Line',
+        'Mathematics',
+        '2026-10-17',
+        50,
+        35,
+        JSON.stringify(['Absolute Value', 'Number Line Representation', 'Additive Inverse'])
+      );
+
+      insertScore.run(
+        'sc-wka1-stu001',
+        'wka-7a-wk1',
+        'stu-001',
+        44,
+        88,
+        'Demonstrates solid conceptual grasp of integers. Quick mental calculations.',
+        JSON.stringify(['Subtraction of double negative numbers']),
+        'Solve 5 multi-step word problems involving temperature drops and elevation changes.',
+        teacherUserId
+      );
+
+      // Assessment 2
+      insertWkAssessment.run(
+        'wka-7a-wk2',
+        'batch-7a-cbse-math',
+        teacherId,
+        'Week 3 Concept Mastery Check: Multiplication & Division Properties',
+        'Mathematics',
+        '2026-10-24',
+        50,
+        35,
+        JSON.stringify(['Distributive Property', 'Commutative Law', 'Word Problems'])
+      );
+
+      insertScore.run(
+        'sc-wka2-stu001',
+        'wka-7a-wk2',
+        'stu-001',
+        47,
+        94,
+        'Exemplary performance! Mastered distributive property across positive and negative operands.',
+        JSON.stringify(['Nested curly bracket evaluation']),
+        'Advance to Chapter 2 Rational Numbers & Decimals with confidence.',
+        teacherUserId
+      );
+
+      db.prepare('INSERT INTO migrations (name) VALUES (?)').run('004_homework_weekly_assessments');
+      console.log('[Vayentra DB] Migration 004_homework_weekly_assessments completed successfully.');
+    }
+
+    // 6. Migration 005: Parent Communication, Notifications & Reporting
+    const applied005 = db.prepare('SELECT id FROM migrations WHERE name = ?').get('005_parent_communication_reporting');
+    if (!applied005) {
+      console.log('[Vayentra DB] Applying migration 005_parent_communication_reporting...');
+
+      try {
+        const backupFile = path.join(__dirname, `vayentra.sqlite.backup-mig005-${Date.now()}`);
+        fs.copyFileSync(DB_PATH, backupFile);
+        console.log(`[Vayentra DB] Pre-migration backup safely created at: ${backupFile}`);
+      } catch (backupErr) {
+        console.warn('[Vayentra DB] Note: Pre-migration backup warning:', backupErr.message);
+      }
+
+      // 6.1 Guardian Communication Preferences
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS guardian_preferences (
+          guardian_id TEXT PRIMARY KEY,
+          notify_whatsapp INTEGER NOT NULL DEFAULT 1,
+          notify_sms INTEGER NOT NULL DEFAULT 1,
+          notify_email INTEGER NOT NULL DEFAULT 1,
+          preferred_language TEXT NOT NULL DEFAULT 'English',
+          alert_on_absence INTEGER NOT NULL DEFAULT 1,
+          alert_on_homework INTEGER NOT NULL DEFAULT 1,
+          alert_on_reports INTEGER NOT NULL DEFAULT 1,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (guardian_id) REFERENCES guardians(id) ON DELETE CASCADE
+        );
+      `);
+
+      // 6.2 Notifications Log (with truthful delivery statuses)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id TEXT PRIMARY KEY,
+          guardian_id TEXT NOT NULL,
+          student_id TEXT NOT NULL,
+          channel TEXT NOT NULL,
+          template_name TEXT NOT NULL,
+          recipient_contact TEXT NOT NULL,
+          message_content TEXT NOT NULL,
+          status TEXT NOT NULL,
+          status_reason TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          sent_at TEXT,
+          FOREIGN KEY (guardian_id) REFERENCES guardians(id) ON DELETE CASCADE,
+          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_notifications_guardian ON notifications(guardian_id);
+        CREATE INDEX IF NOT EXISTS idx_notifications_student ON notifications(student_id);
+        CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at);
+      `);
+
+      // 6.3 Institute Notices (Academic, Schedule, Holiday, Administrative)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS institute_notices (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          category TEXT NOT NULL,
+          content TEXT NOT NULL,
+          target_grade INTEGER,
+          target_board TEXT,
+          is_published INTEGER NOT NULL DEFAULT 1,
+          published_at TEXT NOT NULL DEFAULT (datetime('now')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_notices_published ON institute_notices(is_published, published_at);
+      `);
+
+      // Seed guardian preferences for existing guardians
+      db.exec(`
+        INSERT OR IGNORE INTO guardian_preferences (guardian_id, notify_whatsapp, notify_sms, notify_email, preferred_language, alert_on_absence, alert_on_homework, alert_on_reports)
+        SELECT id, 1, 1, 1, 'English', 1, 1, 1 FROM guardians;
+      `);
+
+      // Seed Institute Notices
+      const insertNotice = db.prepare(`
+        INSERT OR IGNORE INTO institute_notices (id, title, category, content, target_grade, target_board, is_published, published_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, datetime('now'))
+      `);
+
+      insertNotice.run(
+        'notice-01',
+        'Science Fair & Hands-On Concept Exhibition 2026',
+        'Academic',
+        'Gurukula students of Classes 6–10 will present their hands-on science and mathematics working models on Saturday, 14th November 2026. Parents are cordially invited from 10:00 AM to 1:00 PM.',
+        null,
+        null
+      );
+
+      insertNotice.run(
+        'notice-02',
+        'Term 1 Mathematics Revision Clinics (CBSE)',
+        'Academic',
+        'Special interactive revision clinics for Integers, Algebraic Expressions, and Geometry will be held on weekday evenings starting next Monday. Open to Class 7 CBSE students.',
+        7,
+        'CBSE'
+      );
+
+      insertNotice.run(
+        'notice-03',
+        'Kannada Rajyotsava Celebration & Holiday Schedule',
+        'Holiday',
+        'The tuition academy will remain closed on 1st November on account of Kannada Rajyotsava. Extra learning practice packs are available on the student portal.',
+        null,
+        null
+      );
+
+      insertNotice.run(
+        'notice-04',
+        'Parent-Faculty Consultation Meet: Term 1 Concept Progress',
+        'Administrative',
+        'One-on-one pedagogical consultations with subject mentors will take place virtually and in-center on Saturday, 7th November. Please confirm time slots via the portal.',
+        null,
+        null
+      );
+
+      // Seed initial sample notification with truthful 'not_sent' state
+      const insertNotif = db.prepare(`
+        INSERT OR IGNORE INTO notifications (id, guardian_id, student_id, channel, template_name, recipient_contact, message_content, status, status_reason, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      insertNotif.run(
+        'notif-init-001',
+        'par-001',
+        'stu-001',
+        'whatsapp',
+        'weekly_mastery_report',
+        '+91 98450 99999',
+        "Namaskara Parent, Aarav Varma's weekly concept mastery report is published. Score: 94%. Teacher prescription: Advance to Chapter 2 Rational Numbers & Decimals with confidence.",
+        'not_sent',
+        'Messaging gateway unconfigured in this environment. Simulated delivery prohibited.',
+        '2026-10-24 18:30:00'
+      );
+
+      db.prepare('INSERT INTO migrations (name) VALUES (?)').run('005_parent_communication_reporting');
+      console.log('[Vayentra DB] Migration 005_parent_communication_reporting completed successfully.');
+    }
+
+    db.exec('COMMIT;');
+  } catch (err) {
+    db.exec('ROLLBACK;');
+    console.error('[Vayentra DB] Migration failed:', err);
+    throw err;
+  }
+}

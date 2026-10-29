@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AttendanceRegister } from '../components/AttendanceRegister';
+import { TeacherAssignmentsDesk } from '../components/TeacherAssignmentsDesk';
 import { useApp } from '../context/AppContext';
 import { 
   GraduationCap, 
@@ -223,18 +224,8 @@ export const TeacherView: React.FC = () => {
         </div>
       )}
 
-      {/* CREATE ASSIGNMENT TAB */}
-      {activeTab === 'assignments' && (
-        <div className="b" style={{ maxWidth: '640px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div className="h2">Create Assignment for Class 7-A</div>
-          <input type="text" placeholder="Assignment Title (e.g. Integer Multiplication Drill)" className="in" />
-          <textarea rows={4} placeholder="Instructions and required problems..." style={{ resize: 'none' }} className="in" />
-          <input type="date" className="in" />
-          <button type="button" className="btn btn-teal" onClick={() => alert('Assignment Published to Class 7-A and Parents Notified via WhatsApp.')}>
-            <Plus size={16} /> Publish & Alert Parents
-          </button>
-        </div>
-      )}
+      {/* CREATE & MANAGE ASSIGNMENTS TAB */}
+      {activeTab === 'assignments' && <TeacherAssignmentsDesk />}
 
     </div>
   );

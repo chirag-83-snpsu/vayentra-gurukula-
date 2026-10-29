@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Episode, CheckpointQuestion } from '../types';
 import { UniversalStateWrapper } from '../components/UniversalStateWrapper';
+import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
 import confetti from 'canvas-confetti';
 import { 
   Play, 
@@ -42,7 +43,7 @@ export const StudentView: React.FC = () => {
   const isKannada = language === 'Kannada' || activeChild.medium === 'Kannada';
 
   // Navigation tab within student hub
-  const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map'>('learn');
+  const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map' | 'homework'>('learn');
 
   // Currently selected chapter & episode
   const currentChapter = chapters[0];
@@ -197,6 +198,13 @@ export const StudentView: React.FC = () => {
           onClick={() => setActiveTab('map')}
         >
           <Sparkles size={16} /> {isKannada ? 'ಪರಿಕಲ್ಪನೆ ನಕ್ಷೆ' : 'Concept Map'}
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'homework' ? 'btn btn-teal' : 'ghost'}
+          onClick={() => setActiveTab('homework')}
+        >
+          <FileText size={16} /> {isKannada ? 'ಮನೆಕೆಲಸ & ಪರೀಕ್ಷೆಗಳು' : 'Homework & Assessments'}
         </button>
       </div>
 
@@ -670,6 +678,11 @@ export const StudentView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* TAB 5: HOMEWORK & ASSESSMENTS */}
+      {activeTab === 'homework' && (
+        <HomeworkAndAssessmentTracker studentId={activeChild.id} isStudent={true} />
       )}
 
     </div>

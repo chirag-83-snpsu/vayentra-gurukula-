@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/database.js';
+import { authenticateToken, requireRole, requireChildOwnership } from '../middleware/auth.js';
 
 export const apiRouter = Router();
 
@@ -129,7 +130,7 @@ apiRouter.get('/school/chapters', (req, res) => {
 });
 
 // Checkpoint Quiz Evaluation (enforces AT-04: Score >= 60% unlocks next episode)
-apiRouter.post('/school/chapters/:chapterId/episodes/:episodeId/checkpoint', (req, res) => {
+apiRouter.post('/school/chapters/:chapterId/episodes/:episodeId/checkpoint', authenticateToken, (req, res) => {
   const { chapterId, episodeId } = req.params;
   const { scorePercent, studentId = 'stu-001', wrongQuestions = [] } = req.body;
 
@@ -212,7 +213,7 @@ apiRouter.post('/school/chapters/:chapterId/episodes/:episodeId/checkpoint', (re
 // ==========================================
 // 3. Spaced Repetition Practice Flashcards (Wireframe 23, PS-19)
 // ==========================================
-apiRouter.get('/school/practice/flashcards', (req, res) => {
+apiRouter.get('/school/practice/flashcards', authenticateToken, requireChildOwnership, (req, res) => {
   const { studentId = 'stu-001' } = req.query;
   try {
     const flashcards = db.prepare('SELECT * FROM practice_flashcards WHERE student_id = ?').all(studentId);
@@ -233,7 +234,7 @@ apiRouter.get('/school/practice/flashcards', (req, res) => {
   }
 });
 
-apiRouter.post('/school/practice/flashcards/:id/review', (req, res) => {
+apiRouter.post('/school/practice/flashcards/:id/review', authenticateToken, (req, res) => {
   const { id } = req.params;
   const { isCorrect } = req.body;
 
@@ -303,7 +304,7 @@ apiRouter.get('/school/tests/:chapterId', (req, res) => {
   }
 });
 
-apiRouter.post('/school/tests/:testId/submit', (req, res) => {
+apiRouter.post('/school/tests/:testId/submit', authenticateToken, (req, res) => {
   const { testId } = req.params;
   const { studentId = 'stu-001', answers = {}, durationSecs = 180 } = req.body;
 
@@ -376,7 +377,7 @@ apiRouter.post('/school/tests/:testId/submit', (req, res) => {
 // ==========================================
 // 5. Mistake Notebook (Wireframe 37, PS-15)
 // ==========================================
-apiRouter.get('/mistakes', (req, res) => {
+apiRouter.get('/mistakes', authenticateToken, requireChildOwnership, (req, res) => {
   const { studentId = 'stu-001' } = req.query;
   try {
     const mistakes = db.prepare('SELECT * FROM mistake_notebook WHERE student_id = ? ORDER BY date_logged DESC').all(studentId);
@@ -398,7 +399,7 @@ apiRouter.get('/mistakes', (req, res) => {
   }
 });
 
-apiRouter.post('/mistakes/:id/resolve', (req, res) => {
+apiRouter.post('/mistakes/:id/resolve', authenticateToken, (req, res) => {
   const { id } = req.params;
   try {
     db.prepare('UPDATE mistake_notebook SET is_resolved = 1 WHERE id = ?').run(id);
@@ -411,7 +412,7 @@ apiRouter.post('/mistakes/:id/resolve', (req, res) => {
 // ==========================================
 // 6. Child-Safe AI Doubt Tutor (AT-07, Wireframe 22)
 // ==========================================
-apiRouter.get('/doubts', (req, res) => {
+apiRouter.get('/doubts', authenticateToken, requireChildOwnership, (req, res) => {
   const { studentId = 'stu-001' } = req.query;
   try {
     const doubts = db.prepare('SELECT * FROM doubts WHERE student_id = ? ORDER BY timestamp DESC').all(studentId);
@@ -432,7 +433,7 @@ apiRouter.get('/doubts', (req, res) => {
   }
 });
 
-apiRouter.post('/doubts/ask', (req, res) => {
+apiRouter.post('/doubts/ask', authenticateToken, (req, res) => {
   const { text, mediaType = 'text', studentId = 'stu-001', studentName = 'Aarav Varma', subject = 'Mathematics' } = req.body;
 
   if (!text || !text.trim()) {
@@ -517,7 +518,7 @@ apiRouter.post('/doubts/ask', (req, res) => {
 // ==========================================
 // 7. Safeguarding Officer Desk (AT-07, Wireframe 17, 72)
 // ==========================================
-apiRouter.get('/safeguarding/cases', (req, res) => {
+apiRouter.get('/safeguarding/cases', authenticateToken, requireRole(['safeguarding', 'admin']), (req, res) => {
   try {
     const cases = db.prepare('SELECT * FROM safeguarding_cases ORDER BY reported_at DESC').all();
     res.json(cases.map(c => ({
@@ -537,7 +538,7 @@ apiRouter.get('/safeguarding/cases', (req, res) => {
   }
 });
 
-apiRouter.post('/safeguarding/report', (req, res) => {
+apiRouter.post('/safeguarding/report', authenticateToken, (req, res) => {
   const { studentName, category, details, severity = 'Medium', reporterRole = 'Faculty Report' } = req.body;
   try {
     const id = `SG-${Date.now()}`;
@@ -570,8 +571,9 @@ apiRouter.get('/plans', (req, res) => {
   }
 });
 
-apiRouter.post('/checkout', (req, res) => {
-  const { planId = 'plan-annual-pro', guardianId = 'par-001' } = req.body;
+apiRouter.post('/checkout', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
+  const { planId = 'plan-annual-pro' } = req.body;
+  const guardianId = req.user.guardianId || req.body.guardianId || 'par-001';
   try {
     const plan = db.prepare('SELECT * FROM plans WHERE id = ?').get(planId);
     const orderId = `order_${Date.now()}`;
@@ -588,8 +590,9 @@ apiRouter.post('/checkout', (req, res) => {
   }
 });
 
-apiRouter.post('/webhook/payment', (req, res) => {
-  const { paymentId = `pay_${Date.now()}`, orderId = `ord_${Date.now()}`, guardianId = 'par-001', planId = 'plan-annual-pro' } = req.body;
+apiRouter.post('/webhook/payment', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
+  const guardianId = req.user.guardianId || req.body.guardianId || 'par-001';
+  const { paymentId = `pay_${Date.now()}`, orderId = `ord_${Date.now()}`, planId = 'plan-annual-pro' } = req.body;
 
   try {
     const invoiceNumber = `VG-INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -647,7 +650,7 @@ apiRouter.get('/tech/courses', (req, res) => {
   }
 });
 
-apiRouter.post('/tech/courses/:id/run', (req, res) => {
+apiRouter.post('/tech/courses/:id/run', authenticateToken, (req, res) => {
   const { id } = req.params;
   const { code } = req.body;
 
