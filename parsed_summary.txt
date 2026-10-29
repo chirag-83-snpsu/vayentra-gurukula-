@@ -1,0 +1,228 @@
+=== WIREFRAME BOARDS (0) ===
+
+=== SCREEN STORIES (75) ===
+
+[PS-01] PS-01
+  As a prospective parent, I see a page for my board and class with chapters, a sample and a price | PublicHome (existing), Pricing (existing) | R1
+
+[PS-02] PS-02
+  I try a sample lesson without signing in | EpisodePlayer (existing) | R1
+
+[PS-03] PS-03
+  I book a demo class and get a confirmation | PublicHome (existing), LeadPipeline | R1
+
+[PS-04] PS-04
+  I register for the scholarship test, read instructions, take the test and see my result | ScholarshipFlow | R2
+
+[PS-05] PS-05
+  I read a Trust and Safety page and the blog | TrustSafety | R1
+
+[PS-06] PS-06
+  I read FAQs and policies in English or Kannada on my phone | KannadaVariant, HelpCenter | R1
+
+[PS-07] PS-07
+  I browse blog articles | TrustSafety | R2
+
+[PS-08] PS-08
+  I see which chapters are live per board and class | CoverageTracker | R1
+
+[PS-09] PS-09
+  I enter an OTP with autofill, resend and lockout states | OtpScreen | R1
+
+[PS-10] PS-10
+  I recover my account when my Google email changes | OtpScreen (recovery) | R2
+
+[PS-11] PS-11
+  I complete a 3-step parent onboarding | ParentOnboarding | R1
+
+[PS-12] PS-12
+  I invite a second guardian and transfer ownership | ParentControls | R2
+
+[PS-13] PS-13
+  I switch child profiles and lock child mode with a PIN | ProfileSwitcher, LockScreen | R1
+
+[PS-14] PS-14
+  As a new student I take a diagnostic and a first-run tour | TimedTest, StatesLibrary (existing) | R1
+
+[PS-15] PS-15
+  I open my Mistake Notebook and fix mistakes | MistakeNotebook | R2
+
+[PS-16] PS-16
+  I see a concept map with earlier topics to refresh | ConceptMap | R2
+
+[PS-17] PS-17
+  I see a daily plan and exam countdown | LearningPath (existing) | R2
+
+[PS-18] PS-18
+  I see private badges and a mastery map | ConceptMap | R2
+
+[PS-19] PS-19
+  I flip flashcards and mark known or review | PracticeArena (existing) | R2
+
+[PS-20] PS-20
+  I search and see results with filters and voice | SearchResults | R2
+
+[PS-21] PS-21
+  I see my live classes and join | LiveList | R2
+
+[PS-22] PS-22
+  I take a timed chapter test with timer and flag for later | TimedTest | R1
+
+[PS-23] PS-23
+  I see my doubts and their status | DoubtsList | R1
+
+[PS-24] PS-24
+  As a Class 1 to 4 child I get rewards and voice-answer feedback | PrimaryRewards | R2
+
+[PS-25] PS-25
+  I use dyslexia-friendly, large-text and high-contrast modes | AccessibilityVariants | R1
+
+[PS-26] PS-26
+  I learn on a weak network with audio-only and downloadable notes, and rate the lesson | LowNetworkLesson | R1
+
+[PS-27] PS-27
+  As a parent I see progress, attendance and assignment tabs on a tablet | TabletParent | R1
+
+[PS-28] PS-28
+  I set daily limit, study hours and bedtime lock | ParentControls | R1
+
+[PS-29] PS-29
+  I message a teacher, book a meeting and apply for leave | TeacherMessages | R2
+
+[PS-30] PS-30
+  I read and download a report card, and receive it on WhatsApp | ReportCard, MessageDesigns | R2
+
+[PS-31] PS-31
+  I handle a failed payment, grace period and receipts | PaymentFailed | R1
+
+[PS-32] PS-32
+  I track my data export or deletion request | PrivacyRequest | R1
+
+[PS-33] PS-33
+  I use the help centre, raise a ticket and request a call-back | HelpCenter | R1
+
+[PS-34] PS-34
+  I rate a lesson and answer a rare satisfaction prompt | LowNetworkLesson | R2
+
+[PS-35] PS-35
+  I use referral and gift screens | ReferralGift | R3
+
+[PS-36] PS-36
+  As a teacher I see a Today home with a setup checklist | TeacherToday | R1
+
+[PS-37] PS-37
+  I create an assignment for a class, batch or student | AssignmentCreate | R1
+
+[PS-38] PS-38
+  I manage the question bank with filters, duplicates and import preview | QuestionBank | R1
+
+[PS-39] PS-39
+  I build a test | TestBuilder | R1
+
+[PS-40] PS-40
+  I mark attendance on a grid and by QR | AttendanceGrid | R2
+
+[PS-41] PS-41
+  I answer doubts from a queue | DoubtQueue | R2
+
+[PS-42] PS-42
+  I create a remedial pack from the heatmap | TeacherHeatmap (existing), AssignmentCreate | R2
+
+[PS-43] PS-43
+  I see a class report and gradebook export | TeacherGrading (existing), AnalyticsDash | R2
+
+[PS-44] PS-44
+  I message parents with rules shown and logging | TeacherMessages | R2
+
+[PS-45] PS-45
+  I accept the code of conduct in an onboarding checklist | TeacherToday | R1
+
+[PS-46] PS-46
+  As a reviewer I see a queue with SLA timers and a media QA tab | ReviewQueue | R1
+
+[PS-47] PS-47
+  As the academic head I track production on a calendar | ProductionTracker | R1
+
+[PS-48] PS-48
+  I keep a syllabus source register | AcademicSetup | R1
+
+[PS-49] PS-49
+  As a media producer I check captions and audio quality | ReviewQueue | R1
+
+[PS-50] PS-50
+  As an admin I manage users and bulk import with row errors | UsersImport | R1
+
+[PS-51] PS-51
+  I set up boards, classes, years, calendar and batches | AcademicSetup | R1
+
+[PS-52] PS-52
+  I release and roll back content and see coverage | AdminConsole (existing), CoverageTracker | R1
+
+[PS-53] PS-53
+  I set up fees, plans and discount approvals | FeeSetup | R1
+
+[PS-54] PS-54
+  As finance I see collections, dues, refunds and reconciliation | FinanceDashboard | R1
+
+[PS-55] PS-55
+  I record an offline payment with a receipt | FinanceDashboard | R1
+
+[PS-56] PS-56
+  I build reports and export | AnalyticsDash | R2
+
+[PS-57] PS-57
+  I edit pages, banners and FAQs | CmsEditor | R2
+
+[PS-58] PS-58
+  I compose, schedule and track messages | CommsCentre | R2
+
+[PS-59] PS-59
+  As support I work tickets with SLA and shared inbox | SupportConsole | R1
+
+[PS-60] PS-60
+  I manage audit log, flags, privacy requests, AI cost and roles | AdminSettings | R1
+
+[PS-61] PS-61
+  As marketing I manage leads, campaigns and coupons | LeadPipeline | R2
+
+[PS-62] PS-62
+  As the safeguarding officer I see the case list | SafeguardingList, Safeguarding (existing) | R1
+
+[PS-63] PS-63
+  I see funnel, retention, content and cost dashboards | AnalyticsDash | R2
+
+[PS-64] PS-64
+  As a partner coordinator I import a school roster | UsersImport | R3
+
+[PS-65] PS-65
+  I receive well-designed WhatsApp and email messages | MessageDesigns | R1
+
+[PS-66] PS-66
+  I print a worksheet, invoice, report card or certificate | PrintLayouts, ReportCard | R2
+
+[PS-67] PS-67
+  I use the key screens in Kannada | KannadaVariant | R1
+
+[PS-68] PS-68
+  I use tablet, desktop and dark-mode layouts | TabletParent, DarkVariant, ResponsiveLayouts (existing) | R1
+
+[PS-69] PS-69
+  The designers have a component library and prototypes | DesignSystem (existing), clickable prototype | R1
+
+[PS-70] PS-70
+  The team has usability test scripts per persona | Section 15 | R1
+
+[PS-71] PS-71
+  At a centre I use a kiosk tablet that locks itself | KioskLock | R2
+
+[PS-72] PS-72
+  As a learner I browse the Technical Academy catalogue | TA_Catalogue | R2
+
+[PS-73] PS-73
+  I take a Technical Academy lesson with a lab and project | TA_CourseLab | R2
+
+[PS-74] PS-74
+  I receive a certificate and others can verify it | TA_Certificate | R2
+
+[PS-75] PS-75
+  I see a search results page | SearchResults | R2 | 14. Traceability to developer diagrams 69 to 100 | Requirements

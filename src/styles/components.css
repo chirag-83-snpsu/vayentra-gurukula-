@@ -1,0 +1,473 @@
+/* Global Base Styles & Component Library */
+/* Strictly Styled with Vayentra Gurukula Logo Aesthetic: Royal Navy & Regal Gold */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* App Container */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography Helpers */
+h1, .h1 {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-h1);
+  font-weight: 800;
+  line-height: var(--line-height-tight);
+  color: var(--color-ink);
+}
+
+h2, .h2 {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-h2);
+  font-weight: 700;
+  line-height: var(--line-height-tight);
+  color: var(--color-ink);
+}
+
+h3, .h3 {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-h3);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.t-muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.t-tiny {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-tiny);
+}
+
+/* Card Class (.b from wireframes) */
+.b, .card {
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-paper-card);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.b:hover, .card:hover {
+  border-color: var(--color-border);
+}
+
+.card-interactive {
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-navy-primary);
+}
+
+.card-gold {
+  border: 1.5px solid var(--color-gold-border);
+  background: var(--color-gold-light);
+}
+
+/* Logo Ribbon Banner Style (Identical to the banner in the logo) */
+.ribbon-banner {
+  background: var(--color-navy-primary);
+  color: #ffffff;
+  padding: 6px 18px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(18, 43, 112, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Button Classes */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1.5px solid var(--color-navy-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--color-navy-primary);
+  color: #ffffff;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  min-height: var(--target-touch-standard);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+  background-color: var(--color-navy-hover);
+  border-color: var(--color-navy-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Navy Button (Direct Brand Match) */
+.btn-navy, .btn-teal {
+  background-color: var(--color-navy-primary) !important;
+  border-color: var(--color-navy-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(18, 43, 112, 0.25);
+}
+
+.btn-navy:hover, .btn-teal:hover {
+  background-color: var(--color-navy-hover) !important;
+  border-color: var(--color-navy-hover) !important;
+  box-shadow: 0 4px 12px rgba(18, 43, 112, 0.35);
+}
+
+/* Regal Gold Button (Logo Gold Match) */
+.btn-gold {
+  background: linear-gradient(135deg, var(--color-gold-bright) 0%, var(--color-gold-primary) 100%) !important;
+  border-color: var(--color-gold-dark) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: var(--shadow-gold);
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #f5c451 0%, var(--color-gold-hover) 100%) !important;
+  border-color: var(--color-gold-dark) !important;
+  transform: translateY(-1px);
+}
+
+.ghost, .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--color-ink);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  min-height: var(--target-touch-standard);
+  transition: all var(--transition-fast);
+}
+
+.ghost:hover, .btn-ghost:hover {
+  background-color: var(--color-navy-light);
+  border-color: var(--color-navy-primary);
+  color: var(--color-navy-primary);
+}
+
+/* Large Touch Target for Primary Class 1-4 */
+.btn-large {
+  min-height: var(--target-touch-primary);
+  font-size: 18px;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-lg);
+}
+
+/* Chip & Badge (.chip from wireframes) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: var(--font-size-tiny);
+  font-weight: 600;
+  background-color: var(--color-paper-subtle);
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.chip-navy, .chip-teal {
+  background-color: var(--color-navy-light) !important;
+  border-color: var(--color-navy-subtle) !important;
+  color: var(--color-navy-primary) !important;
+}
+
+.chip-gold, .chip-saffron {
+  background-color: var(--color-gold-light) !important;
+  border-color: var(--color-gold-border) !important;
+  color: var(--color-gold-dark) !important;
+}
+
+.chip-success {
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.chip-error {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+/* Form Inputs (.in from wireframes) */
+.in, input[type="text"], input[type="password"], input[type="tel"], input[type="email"], select, textarea {
+  width: 100%;
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--color-paper-card);
+  padding: var(--space-3);
+  font-size: var(--font-size-body);
+  font-family: inherit;
+  color: var(--color-ink);
+  transition: border-color var(--transition-fast);
+  min-height: var(--target-touch-standard);
+}
+
+.in:focus, input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-navy-primary);
+  box-shadow: 0 0 0 3px var(--color-navy-subtle);
+}
+
+/* Line Placeholder (.ln from wireframes) */
+.ln {
+  height: 8px;
+  background-color: var(--color-border-subtle);
+  border-radius: 4px;
+  margin: 6px 0;
+}
+
+/* Shimmer Loading Animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, var(--color-paper-subtle) 25%, var(--color-paper-card) 50%, var(--color-paper-subtle) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* Universal 7 States (From 32_StatesLibrary.html) */
+.state-container {
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-paper-card);
+  border: 1.5px dashed var(--color-border-subtle);
+}
+
+.state-empty-icon, .state-error-icon, .state-locked-icon, .state-offline-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+
+.state-empty-icon {
+  background-color: var(--color-paper-subtle);
+  color: var(--color-text-muted);
+}
+
+.state-error-icon {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.state-locked-icon {
+  background-color: var(--color-gold-light);
+  color: var(--color-gold-dark);
+}
+
+.state-offline-icon {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+/* Layout System: Responsive Shell (From 31_ResponsiveLayouts.html) */
+
+/* Mobile Shell (< 768px): One column, bottom tabs */
+@media (max-width: 767px) {
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-bottom: 72px; /* space for bottom nav */
+  }
+
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--color-paper-card);
+    border-bottom: 1.5px solid var(--color-border-subtle);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .app-sidebar, .app-rail {
+    display: none;
+  }
+
+  .app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--color-paper-card);
+    border-top: 1.5px solid var(--color-border-subtle);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 64px;
+    padding: 0 var(--space-2);
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    flex: 1;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--color-navy-primary);
+    font-weight: 700;
+  }
+}
+
+/* Tablet Shell (768px - 1279px): Left Rail, Two Panes */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .app-shell {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .app-bottom-nav {
+    display: none;
+  }
+
+  .app-rail {
+    width: 68px;
+    background-color: var(--color-paper-card);
+    border-right: 1.5px solid var(--color-border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-4) 0;
+    gap: var(--space-6);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    overflow-y: auto;
+  }
+}
+
+/* Desktop Shell (>= 1280px): Sidebar + Content + Context Panel */
+@media (min-width: 1280px) {
+  .app-shell {
+    display: flex;
+    min-height: 100vh;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .app-bottom-nav {
+    display: none;
+  }
+
+  .app-rail {
+    display: none;
+  }
+
+  .app-sidebar {
+    width: 260px;
+    background-color: var(--color-paper-card);
+    border-right: 1.5px solid var(--color-border-subtle);
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    gap: var(--space-6);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .app-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: var(--space-6);
+    padding: var(--space-6);
+    overflow-y: auto;
+  }
+}

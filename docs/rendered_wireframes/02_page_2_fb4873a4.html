@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Parent dashboard</title>
+<script src="32b03313-e8c5-4e09-a4bf-806ca8ac5b5d"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1c}
+.b{border:1.5px solid #6b6b66;border-radius:8px;background:#fff;padding:10px;box-sizing:border-box}
+.h{font-weight:700;font-size:14px}
+.t{font-size:11px;color:#55554f;margin-top:4px}
+.btn{border:1.5px solid #1f1f1c;border-radius:8px;background:#1f1f1c;color:#fff;padding:10px 14px;font-size:14px;font-family:inherit}
+.ghost{border:1.5px solid #1f1f1c;border-radius:8px;background:#fff;color:#1f1f1c;padding:8px 12px;font-size:13px;font-family:inherit}
+.ln{height:8px;background:#d8d8d0;border-radius:4px;margin:7px 0}
+.chip{display:inline-block;border:1.5px solid #6b6b66;border-radius:12px;padding:2px 8px;font-size:11px;background:#f1f1ec}
+</style>
+</helmet>
+<div style="width:1200px;height:720px;box-sizing:border-box;background:#f4f4f0;padding:24px;display:flex;flex-direction:column;gap:14px;overflow:hidden">
+
+<div style="display:flex;justify-content:space-between;align-items:center"><div class="h" style="font-size:18px">Vayentra logo</div><div style="display:flex;gap:10px;align-items:center"><span class="chip">Child: [Name] v</span><span class="chip">Notifications</span><span class="chip">Parent</span></div></div>
+<div style="display:flex;gap:14px;flex:1">
+<div style="width:170px;display:flex;flex-direction:column;gap:6px"><div class="b" style="font-size:13px;padding:8px">Overview</div><div class="b" style="font-size:13px;padding:8px">Progress</div><div class="b" style="font-size:13px;padding:8px">Attendance</div><div class="b" style="font-size:13px;padding:8px">Assignments</div><div class="b" style="font-size:13px;padding:8px">Fees</div><div class="b" style="font-size:13px;padding:8px">Controls</div><div class="b" style="font-size:13px;padding:8px">Messages</div><div class="b" style="font-size:13px;padding:8px">Support</div></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:12px"><div class="b" style="flex:1"><div class="t">Minutes this week</div><div class="h" style="font-size:22px">[00]</div></div><div class="b" style="flex:1"><div class="t">Chapters mastered</div><div class="h" style="font-size:22px">[0]</div></div><div class="b" style="flex:1"><div class="t">Assignments pending</div><div class="h" style="font-size:22px">[0]</div></div><div class="b" style="flex:1"><div class="t">Attendance</div><div class="h" style="font-size:22px">[00%]</div></div></div>
+<div style="display:flex;gap:12px;flex:1">
+<div class="b" style="flex:1"><div class="h">Weak topics</div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:70%"></div><div class="t">Links to revision episodes. FR-FAM-03</div></div>
+<div class="b" style="flex:1"><div class="h">Latest teacher remark</div><div class="ln"></div><div class="ln" style="width:60%"></div><div class="t">Teacher name, date</div></div></div>
+<div style="display:flex;gap:12px">
+<div class="b" style="flex:1"><div class="h">Fee due</div><div class="t">[Amount] due [date]</div><button type="button" class="btn" style="margin-top:8px">Pay now</button></div>
+<div class="b" style="flex:1"><div class="h">Weekly report</div><div class="t">PDF and WhatsApp. FR-FAM-06</div><button type="button" class="ghost" style="margin-top:8px">Download</button></div></div>
+</div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:720}}">
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+
+
+</body></html>

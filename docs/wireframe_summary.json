@@ -1,0 +1,2492 @@
+[
+  {
+    "index": 1,
+    "id": "3122ea3e-2abb-4931-8ae6-a009a9a30c58",
+    "board_heading": "Sitemap",
+    "title": "Sitemap",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x560",
+    "width": 1200,
+    "height": 560,
+    "filename": "01_Sitemap.html",
+    "bytes": 112576,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 2,
+    "id": "fb4873a4-0307-4cee-ba23-f23b3e6cbf91",
+    "board_heading": "Parent dashboard",
+    "title": "Parent dashboard",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "02_Parent_dashboard.html",
+    "bytes": 110117,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 3,
+    "id": "df473c33-2cc1-4766-af0d-d1acbcc3938c",
+    "board_heading": "Teacher heatmap",
+    "title": "Teacher heatmap",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "03_Teacher_heatmap.html",
+    "bytes": 119638,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#f0b9b0",
+      "#666",
+      "#f3e3a8",
+      "#6b6b66",
+      "#cfe8d5",
+      "#55554f"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 4,
+    "id": "630b4a60-d042-4997-9296-4a8cc0b91b84",
+    "board_heading": "Episode player",
+    "title": "Episode player",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "04_Episode_player.html",
+    "bytes": 108786,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#e4e4de",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 5,
+    "id": "0beb353f-d4ba-4244-8420-b069f1f97b64",
+    "board_heading": "Class 1 to 4 home",
+    "title": "Class 1 to 4 home",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "05_Class_1_to_4_home.html",
+    "bytes": 109874,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 6,
+    "id": "6d4f860c-42ff-40a5-90ef-53753776f236",
+    "board_heading": "Fees and payment",
+    "title": "Fees and payment",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "06_Fees_and_payment.html",
+    "bytes": 108922,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 7,
+    "id": "d451b5ab-6a5e-4568-8d27-86c1a976e01b",
+    "board_heading": "StudentDashboard",
+    "title": "StudentDashboard",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "07_StudentDashboard.html",
+    "bytes": 108829,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 8,
+    "id": "d349752a-014a-4b9c-b068-5e471500383d",
+    "board_heading": "Checkpoint",
+    "title": "Checkpoint",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "08_Checkpoint.html",
+    "bytes": 108303,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 9,
+    "id": "1efbd69e-4017-4705-b04e-38fc96559ef8",
+    "board_heading": "Results",
+    "title": "Results",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "09_Results.html",
+    "bytes": 108315,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 10,
+    "id": "5a1a5856-8981-475e-a40d-69111c3a330e",
+    "board_heading": "SignIn",
+    "title": "SignIn",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "10_SignIn.html",
+    "bytes": 108179,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 11,
+    "id": "0edaaaf1-9d95-43d2-9f62-61f147cf007f",
+    "board_heading": "ConsentPIN",
+    "title": "ConsentPIN",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "11_ConsentPIN.html",
+    "bytes": 108723,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 12,
+    "id": "23bac65a-7b4d-40ef-88b1-3aa191fb93ff",
+    "board_heading": "AssignmentSubmit",
+    "title": "AssignmentSubmit",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "12_AssignmentSubmit.html",
+    "bytes": 108692,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 13,
+    "id": "c0c0150c-1d54-4237-8c1e-b6323912282f",
+    "board_heading": "PrimaryStory",
+    "title": "PrimaryStory",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "13_PrimaryStory.html",
+    "bytes": 108373,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#e4e4de",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 14,
+    "id": "291e1e59-5ba9-45d5-b7ed-d34ca3467898",
+    "board_heading": "PrimaryQuestion",
+    "title": "PrimaryQuestion",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "14_PrimaryQuestion.html",
+    "bytes": 108448,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 15,
+    "id": "e01e80ef-bbf7-405c-ad87-db78203546e1",
+    "board_heading": "TeacherGrading",
+    "title": "TeacherGrading",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "15_TeacherGrading.html",
+    "bytes": 110583,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#bbb",
+      "#666",
+      "#6b6b66",
+      "#e4e4de",
+      "#55554f",
+      "#f1f1ec"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 16,
+    "id": "626f50f4-442c-4b02-9081-38bc3ab44e2a",
+    "board_heading": "AdminConsole",
+    "title": "AdminConsole",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "16_AdminConsole.html",
+    "bytes": 110586,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 17,
+    "id": "78182a72-e8b5-47f2-a128-2f4d1059886a",
+    "board_heading": "Safeguarding",
+    "title": "Safeguarding",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "17_Safeguarding.html",
+    "bytes": 109082,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 18,
+    "id": "7801cb86-cd1a-495f-92d4-d6d323ac5c0c",
+    "board_heading": "Pricing",
+    "title": "Pricing",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "18_Pricing.html",
+    "bytes": 110063,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 19,
+    "id": "67b7a983-8626-4d4d-85c1-b981dd51ba20",
+    "board_heading": "PublicHome",
+    "title": "PublicHome",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1280x900",
+    "width": 1280,
+    "height": 900,
+    "filename": "19_PublicHome.html",
+    "bytes": 110101,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 20,
+    "id": "1296514a-0278-4b29-9f3d-941acb543f10",
+    "board_heading": "DesignSystem",
+    "title": "DesignSystem",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x760",
+    "width": 1200,
+    "height": 760,
+    "filename": "20_DesignSystem.html",
+    "bytes": 110401,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#b3261e",
+      "#888",
+      "#0f6e56",
+      "#fff",
+      "#9a5a0a",
+      "#666",
+      "#2e6b3a"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 21,
+    "id": "7063f6b3-3455-4658-b84e-17577fd77db4",
+    "board_heading": "LearningPath",
+    "title": "LearningPath",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "21_LearningPath.html",
+    "bytes": 108887,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#bbb",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 22,
+    "id": "f0c23628-4b66-4854-8cba-008a40694d2f",
+    "board_heading": "DoubtChat",
+    "title": "DoubtChat",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "22_DoubtChat.html",
+    "bytes": 108846,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#e4e4de",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 23,
+    "id": "cbcde45d-e3c1-4bf5-a327-d8dbd1701aff",
+    "board_heading": "PracticeArena",
+    "title": "PracticeArena",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "23_PracticeArena.html",
+    "bytes": 108935,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 24,
+    "id": "ca3ad08d-35ec-4d6b-988f-47a524803a9c",
+    "board_heading": "NotificationCenter",
+    "title": "NotificationCenter",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "24_NotificationCenter.html",
+    "bytes": 108556,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 25,
+    "id": "2ea2f6ae-ffa6-4dca-bcd4-2c018366f9cf",
+    "board_heading": "SettingsHub",
+    "title": "SettingsHub",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "25_SettingsHub.html",
+    "bytes": 108591,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 26,
+    "id": "17065e2a-cd87-480f-a9b2-2e3e7de135bc",
+    "board_heading": "SubscriptionManage",
+    "title": "SubscriptionManage",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "26_SubscriptionManage.html",
+    "bytes": 108725,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 27,
+    "id": "7e7869e2-1c9e-46cf-ae92-83b390174e26",
+    "board_heading": "MentorBooking",
+    "title": "MentorBooking",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "27_MentorBooking.html",
+    "bytes": 108670,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 28,
+    "id": "bd6bff87-6514-460f-9be1-b64b3d14f10d",
+    "board_heading": "LiveClassroom",
+    "title": "LiveClassroom",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "28_LiveClassroom.html",
+    "bytes": 109271,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#e4e4de",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 29,
+    "id": "3a28c8a0-2741-4f90-80db-a4e3b2644611",
+    "board_heading": "ReviewerCompare",
+    "title": "ReviewerCompare",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "29_ReviewerCompare.html",
+    "bytes": 110341,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 30,
+    "id": "2bcc468d-1028-457e-a16d-21195a5dfd84",
+    "board_heading": "EpisodeEditor",
+    "title": "EpisodeEditor",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "30_EpisodeEditor.html",
+    "bytes": 109871,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#e4e4de",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 31,
+    "id": "2105982e-84f9-4721-86c5-4010c1d54aee",
+    "board_heading": "ResponsiveLayouts",
+    "title": "ResponsiveLayouts",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x760",
+    "width": 1200,
+    "height": 760,
+    "filename": "31_ResponsiveLayouts.html",
+    "bytes": 110177,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 32,
+    "id": "3cb7dbf6-97c4-4fc2-98e3-b86707904e67",
+    "board_heading": "StatesLibrary",
+    "title": "StatesLibrary",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x560",
+    "width": 1200,
+    "height": 560,
+    "filename": "32_StatesLibrary.html",
+    "bytes": 109342,
+    "sample_colors": [
+      "#2a1215",
+      "#ff8a80",
+      "#5c2b2e",
+      "#fff",
+      "#666",
+      "#6b6b66",
+      "#55554f",
+      "#f1f1ec",
+      "#faf9f5",
+      "#f4f4f0"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 33,
+    "id": "001a38ff-9a66-4d14-b2d3-b1382b442723",
+    "board_heading": "OtpScreen",
+    "title": "OtpScreen",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "33_OtpScreen.html",
+    "bytes": 109109,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 34,
+    "id": "d9543a89-07d5-4f80-a6cf-0ac84535b944",
+    "board_heading": "ProfileSwitcher",
+    "title": "ProfileSwitcher",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "34_ProfileSwitcher.html",
+    "bytes": 108752,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 35,
+    "id": "194d145a-215c-4026-9ebe-0b2008f5ae68",
+    "board_heading": "LockScreen",
+    "title": "LockScreen",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "35_LockScreen.html",
+    "bytes": 108565,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 36,
+    "id": "c3f7988c-1d20-42bb-b54b-2e1c2f0cdff7",
+    "board_heading": "ParentOnboarding",
+    "title": "ParentOnboarding",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "36_ParentOnboarding.html",
+    "bytes": 109038,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 37,
+    "id": "eaef05ab-9057-4ed2-a23c-c46d507e3ad4",
+    "board_heading": "MistakeNotebook",
+    "title": "MistakeNotebook",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "37_MistakeNotebook.html",
+    "bytes": 108817,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 38,
+    "id": "170d4f89-165b-41f5-9324-aaabb9090cd6",
+    "board_heading": "ConceptMap",
+    "title": "ConceptMap",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "38_ConceptMap.html",
+    "bytes": 108956,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 39,
+    "id": "15f92d71-d81d-441d-821e-0eb5c3ab93af",
+    "board_heading": "TimedTest",
+    "title": "TimedTest",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "39_TimedTest.html",
+    "bytes": 108870,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 40,
+    "id": "d9b12a8a-23a4-4395-8de8-36c3b53a9ee9",
+    "board_heading": "LiveList",
+    "title": "LiveList",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "40_LiveList.html",
+    "bytes": 108672,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 41,
+    "id": "1ec79e5c-44c6-4af5-a073-e4aeb8be73b5",
+    "board_heading": "DoubtsList",
+    "title": "DoubtsList",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "41_DoubtsList.html",
+    "bytes": 108672,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 42,
+    "id": "24a34062-6473-4d68-b554-7317814ee211",
+    "board_heading": "PrimaryRewards",
+    "title": "PrimaryRewards",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "42_PrimaryRewards.html",
+    "bytes": 108805,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 43,
+    "id": "43aedc1a-b909-4f0c-9b29-0585b0e4c2d7",
+    "board_heading": "LowNetworkLesson",
+    "title": "LowNetworkLesson",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "43_LowNetworkLesson.html",
+    "bytes": 108826,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 44,
+    "id": "4a93a16e-31d8-4c2f-8c94-ec44a7129b58",
+    "board_heading": "ParentControls",
+    "title": "ParentControls",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "44_ParentControls.html",
+    "bytes": 109118,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 45,
+    "id": "20b93185-2ad4-49f5-8d89-68aa300ab111",
+    "board_heading": "TeacherMessages",
+    "title": "TeacherMessages",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "45_TeacherMessages.html",
+    "bytes": 108586,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 46,
+    "id": "8c979400-addd-4398-a696-49c9937eee36",
+    "board_heading": "PaymentFailed",
+    "title": "PaymentFailed",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "46_PaymentFailed.html",
+    "bytes": 108830,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 47,
+    "id": "6d069bb8-828b-43d9-9a71-d3ee4b8441b1",
+    "board_heading": "PrivacyRequest",
+    "title": "PrivacyRequest",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "47_PrivacyRequest.html",
+    "bytes": 108720,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 48,
+    "id": "1007d1e5-ba02-4a6e-9b12-f50c093754dd",
+    "board_heading": "HelpCenter",
+    "title": "HelpCenter",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "48_HelpCenter.html",
+    "bytes": 108620,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 49,
+    "id": "8d35767e-7237-405e-9630-6aebe6cdcd3d",
+    "board_heading": "ReferralGift",
+    "title": "ReferralGift",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "49_ReferralGift.html",
+    "bytes": 108569,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 50,
+    "id": "94787d99-df15-41d5-b408-8c44d536a84a",
+    "board_heading": "SearchResults",
+    "title": "SearchResults",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "50_SearchResults.html",
+    "bytes": 108918,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 51,
+    "id": "d358cbf3-913f-4dcc-a494-94e3d7e37744",
+    "board_heading": "KannadaVariant",
+    "title": "KannadaVariant",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "51_KannadaVariant.html",
+    "bytes": 108689,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 52,
+    "id": "1797b987-7b24-4c6b-849a-a3b5ba411303",
+    "board_heading": "DarkVariant",
+    "title": "DarkVariant",
+    "device_type": "Mobile (390px)",
+    "dimensions": "390x844",
+    "width": 390,
+    "height": 844,
+    "filename": "52_DarkVariant.html",
+    "bytes": 108646,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 53,
+    "id": "cdb01274-cdb6-41a9-8a31-f25ccef3d3c3",
+    "board_heading": "AccessibilityVariants",
+    "title": "AccessibilityVariants",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x560",
+    "width": 1200,
+    "height": 560,
+    "filename": "53_AccessibilityVariants.html",
+    "bytes": 109251,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 54,
+    "id": "d38b7905-dd6a-4f58-8415-340e580fa46f",
+    "board_heading": "ScholarshipFlow",
+    "title": "ScholarshipFlow",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x560",
+    "width": 1200,
+    "height": 560,
+    "filename": "54_ScholarshipFlow.html",
+    "bytes": 109496,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 55,
+    "id": "6eb336e8-e9f8-4dec-8562-be4cfc078659",
+    "board_heading": "MessageDesigns",
+    "title": "MessageDesigns",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x560",
+    "width": 1200,
+    "height": 560,
+    "filename": "55_MessageDesigns.html",
+    "bytes": 109232,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 56,
+    "id": "d3849ece-01cc-42dd-affb-524773ffb80c",
+    "board_heading": "PrintLayouts",
+    "title": "PrintLayouts",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x560",
+    "width": 1200,
+    "height": 560,
+    "filename": "56_PrintLayouts.html",
+    "bytes": 109305,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 57,
+    "id": "fdfa87a0-8021-45af-92d3-9c9a25a03820",
+    "board_heading": "TeacherToday",
+    "title": "TeacherToday",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "57_TeacherToday.html",
+    "bytes": 109764,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 58,
+    "id": "3c06bdb7-8586-4d54-91c0-e050256ca5ee",
+    "board_heading": "AssignmentCreate",
+    "title": "AssignmentCreate",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "58_AssignmentCreate.html",
+    "bytes": 109199,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 59,
+    "id": "03237ce4-4cec-42af-ba45-31fe3c218d1e",
+    "board_heading": "QuestionBank",
+    "title": "QuestionBank",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "59_QuestionBank.html",
+    "bytes": 109745,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 60,
+    "id": "5199420e-383b-4124-927a-cc9f348f5ce1",
+    "board_heading": "TestBuilder",
+    "title": "TestBuilder",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "60_TestBuilder.html",
+    "bytes": 109251,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 61,
+    "id": "d63a6633-4b5d-4f6b-a7a8-707cc5000519",
+    "board_heading": "AttendanceGrid",
+    "title": "AttendanceGrid",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "61_AttendanceGrid.html",
+    "bytes": 109295,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 62,
+    "id": "858684c3-9aba-41f4-a153-7273fb02465b",
+    "board_heading": "DoubtQueue",
+    "title": "DoubtQueue",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "62_DoubtQueue.html",
+    "bytes": 109334,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 63,
+    "id": "3cc2b053-17ca-49c2-b4e8-8a6d50bd8d75",
+    "board_heading": "ReviewQueue",
+    "title": "ReviewQueue",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "63_ReviewQueue.html",
+    "bytes": 109268,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 64,
+    "id": "da07f538-31f1-4f28-805d-97e41365669b",
+    "board_heading": "ProductionTracker",
+    "title": "ProductionTracker",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "64_ProductionTracker.html",
+    "bytes": 109854,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 65,
+    "id": "a39486c9-7ffc-4c07-98ec-e8855ef06418",
+    "board_heading": "UsersImport",
+    "title": "UsersImport",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "65_UsersImport.html",
+    "bytes": 109276,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 66,
+    "id": "3ffa3217-918e-48b6-8b34-b7febc376c55",
+    "board_heading": "FeeSetup",
+    "title": "FeeSetup",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "66_FeeSetup.html",
+    "bytes": 109573,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 67,
+    "id": "94aa26c3-bb77-4a82-b530-23e168e99d19",
+    "board_heading": "FinanceDashboard",
+    "title": "FinanceDashboard",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "67_FinanceDashboard.html",
+    "bytes": 109728,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 68,
+    "id": "0bc77af0-abd9-4d5d-8999-b584676a4070",
+    "board_heading": "SupportConsole",
+    "title": "SupportConsole",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "68_SupportConsole.html",
+    "bytes": 109223,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 69,
+    "id": "a5ddba53-500a-4481-ad59-d6e1e179b633",
+    "board_heading": "AdminSettings",
+    "title": "AdminSettings",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "69_AdminSettings.html",
+    "bytes": 109461,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 70,
+    "id": "fa8cbc19-9af1-4d7e-a25b-4ba51b792719",
+    "board_heading": "CommsCentre",
+    "title": "CommsCentre",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "70_CommsCentre.html",
+    "bytes": 109313,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 71,
+    "id": "227f4c94-4d76-49ef-847c-1c646fad6618",
+    "board_heading": "LeadPipeline",
+    "title": "LeadPipeline",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "71_LeadPipeline.html",
+    "bytes": 109810,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 72,
+    "id": "523d4623-11a3-4c04-a4a8-7633b2aa9161",
+    "board_heading": "SafeguardingList",
+    "title": "SafeguardingList",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "72_SafeguardingList.html",
+    "bytes": 109051,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 73,
+    "id": "244be82e-6edc-4dd2-8775-559fd05ab462",
+    "board_heading": "AnalyticsDash",
+    "title": "AnalyticsDash",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "73_AnalyticsDash.html",
+    "bytes": 109560,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 74,
+    "id": "bc089538-4686-4a5d-9f7d-03483ed19ba1",
+    "board_heading": "CmsEditor",
+    "title": "CmsEditor",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "74_CmsEditor.html",
+    "bytes": 109454,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 75,
+    "id": "1b59fbc4-667b-401c-9179-72e23d7402fe",
+    "board_heading": "AcademicSetup",
+    "title": "AcademicSetup",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "75_AcademicSetup.html",
+    "bytes": 109597,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 76,
+    "id": "f84386a3-87ea-4a48-a98a-c1e348bfd542",
+    "board_heading": "CoverageTracker",
+    "title": "CoverageTracker",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "76_CoverageTracker.html",
+    "bytes": 109076,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 77,
+    "id": "5c246c06-4d08-4e5c-8a78-a24f70a5ce2b",
+    "board_heading": "TrustSafety",
+    "title": "TrustSafety",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "77_TrustSafety.html",
+    "bytes": 109359,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 78,
+    "id": "317de779-d2b0-41ff-b8f3-af2529b7054c",
+    "board_heading": "TA_Catalogue",
+    "title": "TA_Catalogue",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "78_TA_Catalogue.html",
+    "bytes": 109512,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 79,
+    "id": "7fb58b58-cd43-4acb-a072-ae886053cf6f",
+    "board_heading": "TA_CourseLab",
+    "title": "TA_CourseLab",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "79_TA_CourseLab.html",
+    "bytes": 109866,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 80,
+    "id": "4e0eac7d-9f2b-4d0a-82cd-050d7b3df7b2",
+    "board_heading": "TA_Certificate",
+    "title": "TA_Certificate",
+    "device_type": "Desktop (1200px+)",
+    "dimensions": "1200x720",
+    "width": 1200,
+    "height": 720,
+    "filename": "80_TA_Certificate.html",
+    "bytes": 109246,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 81,
+    "id": "bfae31e9-80d1-40c0-bf5a-f7b7626e4b1f",
+    "board_heading": "KioskLock",
+    "title": "KioskLock",
+    "device_type": "Tablet (768px-800px)",
+    "dimensions": "800x600",
+    "width": 800,
+    "height": 600,
+    "filename": "81_KioskLock.html",
+    "bytes": 108494,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 82,
+    "id": "b674d209-dd18-4095-a240-044dfafbe99d",
+    "board_heading": "TabletParent",
+    "title": "TabletParent",
+    "device_type": "Tablet (768px-800px)",
+    "dimensions": "768x1024",
+    "width": 768,
+    "height": 1024,
+    "filename": "82_TabletParent.html",
+    "bytes": 109883,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  },
+  {
+    "index": 83,
+    "id": "dc42858a-fa10-49e9-a0eb-926ff2e67932",
+    "board_heading": "ReportCard",
+    "title": "ReportCard",
+    "device_type": "Tablet (768px-800px)",
+    "dimensions": "794x1123",
+    "width": 794,
+    "height": 1123,
+    "filename": "83_ReportCard.html",
+    "bytes": 109159,
+    "sample_colors": [
+      "#bbb",
+      "#666",
+      "#999",
+      "#d8d8d0",
+      "#2a1215",
+      "#171716",
+      "#f1f1ec",
+      "#8a8a82",
+      "#ff8a80",
+      "#5c2b2e"
+    ],
+    "fonts": [
+      "inherit}\\n.ln{height:8px",
+      "-apple-system, BlinkMacSystemFont, sans-serif",
+      "system-ui,-apple-system,\\\"Segoe UI\\\",sans-serif",
+      "inherit}\\n.ghost{border:1.5px solid #1f1f1c"
+    ]
+  }
+]

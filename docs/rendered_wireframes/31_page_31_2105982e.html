@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Responsive layouts: student home</title>
+<script src="f5cb511c-cfb7-4614-bbbc-6262ab961111"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1c}
+.b{border:1.5px solid #6b6b66;border-radius:8px;background:#fff;padding:10px;box-sizing:border-box}
+.h{font-weight:700;font-size:14px}.t{font-size:11px;color:#55554f;margin-top:4px}
+.btn{border:1.5px solid #1f1f1c;border-radius:8px;background:#1f1f1c;color:#fff;padding:12px 14px;font-size:14px;font-family:inherit}
+.ghost{border:1.5px solid #1f1f1c;border-radius:8px;background:#fff;color:#1f1f1c;padding:10px 12px;font-size:13px;font-family:inherit}
+.ln{height:8px;background:#d8d8d0;border-radius:4px;margin:7px 0}
+.chip{display:inline-block;border:1.5px solid #6b6b66;border-radius:12px;padding:2px 8px;font-size:11px;background:#f1f1ec}
+.in{border:1.5px solid #6b6b66;border-radius:8px;background:#fff;padding:12px;font-size:13px;color:#55554f}
+</style>
+</helmet>
+<div style="width:1200px;height:760px;box-sizing:border-box;background:#f4f4f0;padding:24px;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+<div class="h" style="font-size:18px">Student home at three widths (same content, different layout)</div><div style="display:flex;gap:24px;align-items:flex-end"><div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div class="b" style="width:180px;height:420px;display:flex;flex-direction:column;gap:6px;padding:8px"><div class="b" style="padding:6px;font-size:11px">Next 3 steps</div><div class="b" style="padding:6px;font-size:11px">Today</div><div class="b" style="padding:6px;font-size:11px">Practice</div><div style="flex:1"></div><div class="b" style="padding:6px;font-size:11px">Home | Learn | Practice | Doubts | Me</div></div><div class="t">Phone 360 to 767 px: one column, bottom tabs</div></div><div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div class="b" style="width:380px;height:420px;display:flex;flex-direction:column;gap:6px;padding:8px"><div style="display:flex;gap:6px;flex:1"><div class="b" style="width:50px;font-size:10px;padding:4px">Rail</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="b" style="padding:6px;font-size:11px">Next 3 steps</div><div class="b" style="padding:6px;font-size:11px">Today and practice</div></div><div style="width:110px"><div class="b" style="padding:6px;font-size:11px">Streak and goal</div></div></div></div><div class="t">Tablet 768 to 1279 px: left rail, two panes</div></div><div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div class="b" style="width:560px;height:420px;display:flex;flex-direction:column;gap:6px;padding:8px"><div style="display:flex;gap:6px;flex:1"><div class="b" style="width:90px;font-size:10px;padding:4px">Sidebar</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="b" style="padding:6px;font-size:11px">Search bar</div><div class="b" style="padding:6px;font-size:11px">Next 3 steps</div><div class="b" style="padding:6px;font-size:11px">Chapter map</div></div><div style="width:150px;display:flex;flex-direction:column;gap:6px"><div class="b" style="padding:6px;font-size:11px">Daily plan</div><div class="b" style="padding:6px;font-size:11px">Weekly goal</div></div></div></div><div class="t">Desktop 1280 px and up: sidebar, content, right panel</div></div></div><div class="t">Rules: design from 360 px up; no horizontal page scroll; content width capped on very large screens; safe-area padding; touch targets 48 px. FR-RSP-01 to 15</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:760}}">
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+
+
+</body></html>

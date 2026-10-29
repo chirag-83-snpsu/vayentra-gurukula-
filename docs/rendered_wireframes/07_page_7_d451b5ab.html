@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Student dashboard</title>
+<script src="3cd276d0-5505-4218-944a-b6b0527ea8e1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1c}
+.b{border:1.5px solid #6b6b66;border-radius:8px;background:#fff;padding:10px;box-sizing:border-box}
+.h{font-weight:700;font-size:14px}.t{font-size:11px;color:#55554f;margin-top:4px}
+.btn{border:1.5px solid #1f1f1c;border-radius:8px;background:#1f1f1c;color:#fff;padding:12px 14px;font-size:14px;font-family:inherit}
+.ghost{border:1.5px solid #1f1f1c;border-radius:8px;background:#fff;color:#1f1f1c;padding:10px 12px;font-size:13px;font-family:inherit}
+.ln{height:8px;background:#d8d8d0;border-radius:4px;margin:7px 0}
+.chip{display:inline-block;border:1.5px solid #6b6b66;border-radius:12px;padding:2px 8px;font-size:11px;background:#f1f1ec}
+.in{border:1.5px solid #6b6b66;border-radius:8px;background:#fff;padding:12px;font-size:13px;color:#55554f}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#f4f4f0;padding:24px;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+<div class="h" style="font-size:18px">Hi [Name]</div><div style="display:flex;gap:8px"><span class="chip">Streak: [n]</span><span class="chip">Daily goal 20 min</span></div><div class="b" style=""><div class="h">Continue learning</div><div class="t">[Subject] &gt; [Chapter] &gt; Episode [n]</div><button type="button" class="btn" style="margin-top:8px;width:100%">Resume</button></div><div class="b" style=""><div class="h">Today</div><div class="ln" style="width:100%"></div><div class="ln" style="width:80%"></div><div class="ln" style="width:60%"></div><div class="t">Revision: 5 questions. Assignment due [date]</div></div><div class="b" style=""><div class="h">Chapter map</div><div style="display:flex;gap:8px"><span class="chip">Not started</span><span class="chip">Learning</span><span class="chip">Revise</span><span class="chip">Mastered</span></div><div class="t">Status uses text as well as colour</div></div><div style="display:flex;gap:8px"><button type="button" class="ghost" style="flex:1">Doubts</button><button type="button" class="ghost" style="flex:1">Notebook</button><button type="button" class="ghost" style="flex:1">Planner</button></div><div class="t">FR-STU-01, 03, 06, 09</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+
+
+</body></html>

@@ -1,0 +1,180 @@
+/* Vayentra Gurukula Design System Tokens */
+/* Strictly Aligned to the Official Vayentra Gurukula Logo: Royal Navy & Regal Gold */
+
+:root {
+  /* Color Palette - Light Mode ("Academic Ivory / Paper" Canvas) */
+  --color-ink: #0d1527;
+  --color-paper: #f8f9fb;
+  --color-paper-subtle: #edf1f7;
+  --color-paper-card: #ffffff;
+  
+  /* Brand Core: Royal Navy Blue (Strictly sampled from "VAYENTRA" & Book Emblem) */
+  --color-navy-primary: #122B70;
+  --color-navy-dark: #0A1945;
+  --color-navy-hover: #081438;
+  --color-navy-light: #EEF3FD;
+  --color-navy-subtle: #D8E4FA;
+
+  /* Brand Core: Regal Gurukula Gold (Strictly sampled from "GURUKULA", Sunburst & Pen Nib) */
+  --color-gold-primary: #C88A1E;
+  --color-gold-dark: #9E6B11;
+  --color-gold-hover: #B27917;
+  --color-gold-light: #FFF9EC;
+  --color-gold-bright: #E5A910;
+  --color-gold-border: #E8BC66;
+
+  /* Backward Compatibility Aliases so all views instantly adopt the Logo Theme */
+  --color-teal-primary: var(--color-navy-primary);
+  --color-teal-hover: var(--color-navy-hover);
+  --color-teal-light: var(--color-navy-light);
+  
+  --color-saffron: var(--color-gold-primary);
+  --color-saffron-light: var(--color-gold-light);
+  --color-amber-accent: var(--color-gold-bright);
+  
+  /* System States */
+  --color-success: #1b7a42;
+  --color-success-bg: #eaf6ee;
+  
+  --color-error: #b8231b;
+  --color-error-bg: #fdeeee;
+  
+  --color-border: #4d5b7c;
+  --color-border-subtle: #d3dbee;
+  --color-text-muted: #475569;
+  --color-text-subtle: #64748b;
+  
+  /* Glassmorphism & Elevation */
+  --shadow-sm: 0 1px 3px rgba(18, 43, 112, 0.06);
+  --shadow-md: 0 4px 10px -1px rgba(18, 43, 112, 0.09), 0 2px 5px -1px rgba(18, 43, 112, 0.05);
+  --shadow-lg: 0 12px 20px -3px rgba(18, 43, 112, 0.12), 0 4px 8px -2px rgba(18, 43, 112, 0.06);
+  --shadow-gold: 0 4px 14px rgba(200, 138, 30, 0.25);
+  --shadow-card: 0 2px 10px rgba(18, 43, 112, 0.06);
+
+  /* Typography Scales */
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-display: 'Outfit', 'Cinzel', -apple-system, sans-serif;
+  --font-family-kannada: 'Noto Sans Kannada', var(--font-family-sans);
+  --font-family-dyslexic: 'OpenDyslexic', 'Inter', sans-serif;
+
+  --font-size-h1: 28px;
+  --font-size-h2: 22px;
+  --font-size-h3: 18px;
+  --font-size-subheading: 20px;
+  --font-size-body: 15px;
+  --font-size-small: 13px;
+  --font-size-tiny: 11px;
+
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-kannada: 1.65;
+
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* Border Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Touch Target Dimensions (FR-RSP-07) */
+  --target-touch-standard: 48px;
+  --target-touch-primary: 64px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dark Mode Tokens (Deep Midnight Navy with Brilliant Gold Accents) */
+[data-theme="dark"] {
+  --color-ink: #f1f5f9;
+  --color-paper: #090e1c;
+  --color-paper-subtle: #0f172e;
+  --color-paper-card: #15203d;
+  
+  --color-navy-primary: #3b82f6;
+  --color-navy-dark: #1d4ed8;
+  --color-navy-hover: #60a5fa;
+  --color-navy-light: rgba(59, 130, 246, 0.16);
+  --color-navy-subtle: rgba(59, 130, 246, 0.26);
+
+  --color-gold-primary: #f59e0b;
+  --color-gold-dark: #d97706;
+  --color-gold-hover: #fbbf24;
+  --color-gold-light: rgba(245, 158, 11, 0.16);
+  --color-gold-bright: #fbbf24;
+  --color-gold-border: #f59e0b;
+  
+  --color-teal-primary: var(--color-navy-primary);
+  --color-teal-hover: var(--color-navy-hover);
+  --color-teal-light: var(--color-navy-light);
+  
+  --color-saffron: var(--color-gold-primary);
+  --color-saffron-light: var(--color-gold-light);
+  --color-amber-accent: var(--color-gold-bright);
+  
+  --color-success: #34d399;
+  --color-success-bg: rgba(52, 211, 153, 0.15);
+  
+  --color-error: #f87171;
+  --color-error-bg: rgba(248, 113, 113, 0.15);
+  
+  --color-border: #2e3d64;
+  --color-border-subtle: #1e2947;
+  --color-text-muted: #94a3b8;
+  --color-text-subtle: #64748b;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 4px 16px rgba(245, 158, 11, 0.2);
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Accessibility Modes (Mapped to 53_AccessibilityVariants.html) */
+[data-font="dyslexic"] {
+  font-family: var(--font-family-dyslexic) !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.1em;
+}
+
+[data-large-text="true"] {
+  --font-size-body: 18px;
+  --font-size-small: 15px;
+  --font-size-tiny: 13px;
+  --font-size-h1: 34px;
+  --font-size-h2: 26px;
+  --font-size-h3: 22px;
+}
+
+[data-contrast="high"] {
+  --color-border: #000000 !important;
+  --color-border-subtle: #000000 !important;
+  --color-ink: #000000 !important;
+  --color-paper-card: #ffffff !important;
+}
+
+[data-theme="dark"][data-contrast="high"] {
+  --color-border: #ffffff !important;
+  --color-border-subtle: #ffffff !important;
+  --color-ink: #ffffff !important;
+  --color-paper-card: #000000 !important;
+}
+
+/* Kannada Typography Override */
+[lang="kn"] {
+  font-family: var(--font-family-kannada);
+  line-height: var(--line-height-kannada);
+}
