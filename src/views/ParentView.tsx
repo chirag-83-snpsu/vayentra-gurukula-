@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getStudentAttendanceSummary, readDemoAttendance } from '../data/attendanceDemo';
 import { useApp } from '../context/AppContext';
 import { 
   Users, 
@@ -25,6 +26,8 @@ export const ParentView: React.FC = () => {
     language
   } = useApp();
 
+  const attendance = getStudentAttendanceSummary(readDemoAttendance(), activeChild.id);
+  const attendanceText = attendance.percent === null ? 'Not yet recorded' : attendance.percent + '%';
   const [activeTab, setActiveTab] = useState<'overview' | 'controls' | 'fees' | 'consent' | 'report'>('overview');
   const [screenTimeInput, setScreenTimeInput] = useState(activeChild.dailyTimeLimitMins);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -144,8 +147,8 @@ export const ParentView: React.FC = () => {
             </div>
             <div className="b">
               <div className="t-muted">Live Class Attendance</div>
-              <div className="h1" style={{ marginTop: '4px' }}>94%</div>
-              <div className="t-tiny">16 of 17 sessions attended</div>
+              <div className="h1" style={{ marginTop: '4px' }}>{attendanceText}</div>
+              <div className="t-tiny">{attendance.attended} attended · {attendance.absent} absent · {attendance.excused} excused (demo, this browser)</div>
             </div>
             <div className="b">
               <div className="t-muted">Active Subscription</div>
@@ -388,7 +391,7 @@ export const ParentView: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center', background: 'var(--color-navy-light)', padding: '14px', borderRadius: '8px', border: '1px solid var(--color-navy-subtle)' }}>
               <div><span style={{ color: 'var(--color-text-muted)', fontSize: '12px', display: 'block' }}>Math Mastery</span><strong style={{ fontSize: '18px', color: 'var(--color-navy-primary)' }}>85%</strong></div>
               <div><span style={{ color: 'var(--color-text-muted)', fontSize: '12px', display: 'block' }}>Science Mastery</span><strong style={{ fontSize: '18px', color: 'var(--color-navy-primary)' }}>78%</strong></div>
-              <div><span style={{ color: 'var(--color-text-muted)', fontSize: '12px', display: 'block' }}>Attendance</span><strong style={{ fontSize: '18px', color: 'var(--color-navy-primary)' }}>94%</strong></div>
+              <div><span style={{ color: 'var(--color-text-muted)', fontSize: '12px', display: 'block' }}>Attendance</span><strong style={{ fontSize: '18px', color: 'var(--color-navy-primary)' }}>{attendanceText}</strong></div>
               <div><span style={{ color: 'var(--color-text-muted)', fontSize: '12px', display: 'block' }}>Effort Stars</span><strong style={{ fontSize: '18px', color: 'var(--color-gold-dark)' }}>{activeChild.starsEarned} ★</strong></div>
             </div>
 
