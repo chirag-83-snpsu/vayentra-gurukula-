@@ -18,8 +18,11 @@ interface ReportCardModalProps {
 }
 
 export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClose }) => {
-  const { activeChild, parent, language, authToken } = useApp();
-  const [whatsappSent, setWhatsappSent] = useState(false);
+  const { activeChild, parent, authToken } = useApp();
+  const [notificationBanner, setNotificationBanner] = useState<{
+    type: 'success' | 'info' | 'error';
+    message: string;
+  } | null>(null);
   const token = authToken || localStorage.getItem('vayentra_token');
   const [attendanceData, setAttendanceData] = useState<{
     percentage: number | null;
@@ -29,6 +32,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
 
   useEffect(() => {
     if (!isOpen || !activeChild?.id) return;
+    setNotificationBanner(null);
     fetch(`/api/v1/attendance/students/${activeChild.id}/summary`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
@@ -69,13 +73,21 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
       });
       const data = await res.json();
       if (data.notification?.status === 'not_sent') {
-        alert(`Truthful Notification Status: ${data.notification.statusReason}`);
+        setNotificationBanner({
+          type: 'info',
+          message: `Truthful Delivery State: ${data.notification.statusReason || 'Telecom credentials not configured; message saved in pending state.'}`
+        });
       } else {
-        setWhatsappSent(true);
-        setTimeout(() => setWhatsappSent(false), 5000);
+        setNotificationBanner({
+          type: 'success',
+          message: `Term 1 Report Card dispatched to Guardian contact (${parent.mobile || 'registered mobile'}). Delivery record persisted.`
+        });
       }
     } catch {
-      alert('Unable to reach messaging gateway.');
+      setNotificationBanner({
+        type: 'error',
+        message: 'Unable to connect to messaging gateway. Please verify network connectivity.'
+      });
     }
   };
 
@@ -117,7 +129,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
               <Printer size={16} /> Print Official A4 Report Card
             </button>
             <button type="button" className="ghost" onClick={handleSendWhatsApp} style={{ minHeight: '36px', fontSize: '13px' }}>
-              <Share2 size={16} /> {whatsappSent ? 'Dispatched to WhatsApp!' : 'Send to Registered WhatsApp'}
+              <Share2 size={16} /> Send to Registered WhatsApp
             </button>
           </div>
           <button type="button" className="ghost" onClick={onClose} style={{ padding: '4px 10px' }}>
@@ -125,16 +137,18 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
           </button>
         </div>
 
-        {whatsappSent && (
+        {notificationBanner && (
           <div className="no-print" style={{
-            background: 'var(--color-success-bg)',
-            border: '1px solid var(--color-success)',
+            background: notificationBanner.type === 'success' ? 'var(--color-success-bg)' : notificationBanner.type === 'error' ? 'var(--color-error-bg)' : 'var(--color-info-bg)',
+            border: `1px solid ${notificationBanner.type === 'success' ? 'var(--color-success)' : notificationBanner.type === 'error' ? 'var(--color-error)' : 'var(--color-info)'}`,
             borderRadius: '8px',
             padding: '10px 14px',
-            color: 'var(--color-success)',
-            fontSize: '13px'
+            color: notificationBanner.type === 'success' ? 'var(--color-success)' : notificationBanner.type === 'error' ? 'var(--color-error)' : 'var(--color-info)',
+            fontSize: '13px',
+            fontWeight: 500
           }}>
-            ✓ Term 1 Comprehensive Report Card sent to Guardian WhatsApp (+91 98450 12345) with cryptographic verification QR code.
+            {notificationBanner.type === 'success' ? '✓ ' : notificationBanner.type === 'error' ? '⚠ ' : 'ℹ '}
+            {notificationBanner.message}
           </div>
         )}
 
@@ -222,15 +236,6 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
                   <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontWeight: 700 }}>A1</td>
                   <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontSize: '12px' }}>
                     Excellent cellular understanding of photosynthesis and stomatal biology. — <em>Acharya Chinmayee Hegde</em>
-                  </td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1' }}><strong>Kannada (ದ್ವಿತೀಯ ಭಾಷೆ)</strong></td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', color: 'var(--color-teal-primary)', fontWeight: 700 }}>88%</td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1' }}>90%</td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontWeight: 700 }}>A2</td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontSize: '12px' }}>
-                    ಉತ್ತಮ ಸಾಹಿತ್ಯ ಆಸಕ್ತಿ ಮತ್ತು ಶುದ್ಧ ಉಚ್ಚಾರಣೆ. ಕವನ ವಾಚನದಲ್ಲಿ ಪ್ರಶಂಸನೀಯ ಪ್ರಗತಿ. — <em>Vidushi Ananya Kulkarni</em>
                   </td>
                 </tr>
                 <tr>

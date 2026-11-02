@@ -18,6 +18,7 @@ export const TeacherView: React.FC = () => {
   const { doubts } = useApp();
   const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance'>('attendance');
   const [remedialPackCreated, setRemedialPackCreated] = useState(false);
+  const [liveRoomNotice, setLiveRoomNotice] = useState<string | null>(null);
 
   // Mock Heatmap Data for Class 7 CBSE Mathematics (Wireframe 03 / Diagram 28)
   const heatmapStudents = [
@@ -57,7 +58,7 @@ export const TeacherView: React.FC = () => {
         flexWrap: 'wrap',
         gap: '16px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, flex: '1 1 240px' }}>
           <div style={{
             width: '48px',
             height: '48px',
@@ -66,22 +67,54 @@ export const TeacherView: React.FC = () => {
             color: 'var(--color-teal-primary)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            flexShrink: 0
           }}>
             <GraduationCap size={26} />
           </div>
-          <div>
-            <div className="h1" style={{ fontSize: '22px' }}>Teacher Studio & Faculty Desk</div>
-            <div className="t-muted">Assigned: Class 7-A (Mathematics) • Class 10-B (Physics)</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="h1" style={{ fontSize: 'clamp(18px, 4vw, 22px)', overflowWrap: 'break-word' }}>Teacher Studio & Faculty Desk</div>
+            <div className="t-muted" style={{ fontSize: '13px' }}>Assigned: Class 7-A (Mathematics) • Class 10-B (Physics)</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button type="button" className="btn btn-teal" onClick={() => alert('Starting Live Classroom session...')}>
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+          <button 
+            type="button" 
+            className="btn btn-teal" 
+            onClick={() => setLiveRoomNotice(
+              'Live Room: Classroom stream is scheduled for assigned batch slots (17:30 IST). WebRTC video integration connects during active session times.'
+            )}
+          >
             <Calendar size={16} /> Launch Live Room
           </button>
         </div>
       </div>
+
+      {liveRoomNotice && (
+        <div style={{
+          background: 'var(--color-paper-subtle)',
+          border: '1.5px solid var(--color-teal-primary)',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          fontSize: '13px',
+          color: 'var(--color-ink)'
+        }}>
+          <div>ℹ️ {liveRoomNotice}</div>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => setLiveRoomNotice(null)}
+            style={{ minHeight: '28px', padding: '2px 8px', fontSize: '11px' }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: '8px', overflowX: 'auto' }}>

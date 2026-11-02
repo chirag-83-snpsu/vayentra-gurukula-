@@ -91,7 +91,12 @@ export const AttendanceRegister: React.FC = () => {
         const res = await fetch('/api/v1/attendance/batches', {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
-        if (!res.ok) throw new Error('Failed to load instructor batches');
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            throw new Error('Please sign in with your faculty account to access batch attendance rosters.');
+          }
+          throw new Error('Failed to load instructor batches');
+        }
         const data = await res.json();
         if (isMounted && data.batches && data.batches.length > 0) {
           setBatches(data.batches);
@@ -307,12 +312,12 @@ export const AttendanceRegister: React.FC = () => {
       
       {/* Header Banner */}
       <div className="b" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-        <div>
-          <div className="h2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CalendarCheck2 size={22} style={{ color: 'var(--color-teal-primary)' }} />
-            Daily Student Attendance Register
+        <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+          <div className="h2" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'clamp(17px, 3.8vw, 20px)', flexWrap: 'wrap' }}>
+            <CalendarCheck2 size={22} style={{ color: 'var(--color-teal-primary)', flexShrink: 0 }} />
+            <span>Daily Student Attendance Register</span>
           </div>
-          <div className="t-muted">
+          <div className="t-muted" style={{ fontSize: '13px' }}>
             Authenticated faculty register. Enrolled roster is loaded from batch database and synchronized with parent portal.
           </div>
         </div>

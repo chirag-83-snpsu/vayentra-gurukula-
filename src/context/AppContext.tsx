@@ -18,8 +18,6 @@ interface AppContextType {
   isChildModeLocked: boolean;
   unlockChildModeWithPin: (pin: string) => boolean;
   lockIntoChildMode: () => void;
-  language: 'English' | 'Kannada';
-  setLanguage: (lang: 'English' | 'Kannada') => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   isDyslexicFont: boolean;
@@ -50,7 +48,15 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<UserRole>('student');
+  const [role, setRole] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('portal');
+      if (p && ['student', 'parent', 'teacher', 'reviewer', 'admin', 'safeguarding', 'tech_learner'].includes(p)) {
+        return p as UserRole;
+      }
+    }
+    return 'student';
+  });
   const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('vayentra_token'));
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [parent, setParent] = useState<ParentUser>(() => {
@@ -79,7 +85,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [isChildModeLocked, setIsChildModeLocked] = useState<boolean>(false);
-  const [language, setLanguage] = useState<'English' | 'Kannada'>('English');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isDyslexicFont, setIsDyslexicFont] = useState<boolean>(false);
   const [isLargeText, setIsLargeText] = useState<boolean>(false);
@@ -90,7 +95,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     return false;
   });
-  const [showPublicPortal, setShowPublicPortal] = useState<boolean>(true);
+  const [showPublicPortal, setShowPublicPortal] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('portal');
+      if (p && p !== 'public') return false;
+    }
+    return true;
+  });
 
   // Synchronize with genuine browser online / offline network state
   useEffect(() => {
@@ -269,8 +280,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [isHighContrast]);
 
   useEffect(() => {
-    document.documentElement.setAttribute('lang', language === 'Kannada' ? 'kn' : 'en');
-  }, [language]);
+    document.documentElement.setAttribute('lang', 'en');
+  }, []);
 
   const activeChild = parent.children.find(c => c.id === parent.activeChildId) || parent.children[0];
 
@@ -469,8 +480,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isChildModeLocked,
         unlockChildModeWithPin,
         lockIntoChildMode,
-        language,
-        setLanguage,
         theme,
         toggleTheme,
         isDyslexicFont,

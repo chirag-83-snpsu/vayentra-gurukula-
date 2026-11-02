@@ -200,6 +200,8 @@ export const ParentView: React.FC = () => {
 
   // Screen time & fee management
   const [screenTimeInput, setScreenTimeInput] = useState(activeChild.dailyTimeLimitMins);
+  const [screenTimeSaved, setScreenTimeSaved] = useState<boolean>(false);
+  const [deleteNotice, setDeleteNotice] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // 1. Fetch unified parent dashboard for active child
@@ -370,7 +372,43 @@ export const ParentView: React.FC = () => {
 
   const handleSaveScreenTime = () => {
     updateScreenTime(screenTimeInput);
-    alert(`Updated daily screen time limit to ${screenTimeInput} minutes.`);
+    setScreenTimeSaved(true);
+    setTimeout(() => setScreenTimeSaved(false), 4000);
+  };
+
+  const handleExportData = () => {
+    const exportData = {
+      platform: "Vayentra Gurukula Unified Learning Platform",
+      exportedAt: new Date().toISOString(),
+      student: {
+        id: activeChild.id,
+        name: activeChild.name,
+        grade: activeChild.grade,
+        board: activeChild.board,
+        medium: activeChild.medium,
+        points: activeChild.points,
+        starsEarned: activeChild.starsEarned,
+        streakDays: activeChild.streakDays,
+        dailyTimeLimitMins: screenTimeInput
+      },
+      guardian: {
+        id: parent.id,
+        name: parent.name,
+        email: parent.email,
+        mobile: parent.mobile,
+        subscriptionStatus: parent.subscriptionStatus
+      },
+      liveDashboard: dashboardData || null
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vayentra-dpdp-export-${activeChild.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handlePayFee = () => {
@@ -1422,14 +1460,18 @@ export const ParentView: React.FC = () => {
             />
           </div>
 
-          <button
-            type="button"
-            className="btn btn-teal"
-            onClick={handleSaveScreenTime}
-            style={{ alignSelf: 'flex-start' }}
-          >
-            Update Screen Time
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-teal"
+              onClick={handleSaveScreenTime}
+            >
+              Update Screen Time
+            </button>
+            {screenTimeSaved && (
+              <span className="chip chip-success">✓ Limit updated to {screenTimeInput} minutes</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -1503,11 +1545,11 @@ export const ParentView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button
               type="button"
               className="ghost"
-              onClick={() => alert('DPDP Data Export: Your child\'s complete learning ledger and mistake log has been queued for download.')}
+              onClick={handleExportData}
             >
               <Download size={16} /> Request Complete Data Export
             </button>
@@ -1515,11 +1557,27 @@ export const ParentView: React.FC = () => {
               type="button"
               className="ghost"
               style={{ color: 'var(--color-error)' }}
-              onClick={() => alert('Right to be Forgotten: Account deletion request logged with 30-day grace period.')}
+              onClick={() => setDeleteNotice(
+                'Account Deletion Request: For legal safeguarding compliance under Indian DPDP Act 2023, guardian identity verification by the institution administrator is required before irreversible profile deletion. Please contact support@vayentra.org or visit the campus office.'
+              )}
             >
               Delete Student Profile & Data
             </button>
           </div>
+
+          {deleteNotice && (
+            <div style={{
+              padding: '12px 16px',
+              borderRadius: '8px',
+              background: 'var(--color-paper-subtle)',
+              border: '1.5px solid var(--color-gold-primary)',
+              fontSize: '13px',
+              lineHeight: 1.5,
+              color: 'var(--color-ink)'
+            }}>
+              ⚖️ {deleteNotice}
+            </div>
+          )}
         </div>
       )}
 

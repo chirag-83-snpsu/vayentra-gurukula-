@@ -159,6 +159,16 @@ export const AdminView: React.FC = () => {
   // Feedback notifications
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [healthStatus, setHealthStatus] = useState<{ status: string; uptime: number; db: string } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/v1/health')
+      .then(r => r.json())
+      .then(d => {
+        if (d.status) setHealthStatus({ status: d.status, uptime: d.uptimeSeconds, db: d.database });
+      })
+      .catch(() => setHealthStatus(null));
+  }, []);
 
   // Registration Form
   const [regName, setRegName] = useState('');
@@ -614,14 +624,16 @@ export const AdminView: React.FC = () => {
           }}>
             <SlidersHorizontal size={26} />
           </div>
-          <div>
-            <div className="h1" style={{ fontSize: '22px' }}>Super Admin & Operations Console</div>
-            <div className="t-muted">Vayentra Gurukula • Student Enrollment, Faculty & Batch Management (Classes 1–10)</div>
+          <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+            <div className="h1" style={{ fontSize: 'clamp(18px, 4vw, 22px)', wordBreak: 'break-word' }}>Super Admin & Operations Console</div>
+            <div className="t-muted" style={{ fontSize: '13px' }}>Vayentra Gurukula • Student Enrollment, Faculty & Batch Management (Classes 1–10)</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="chip chip-teal">System Status: All Services Healthy</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <span className={`chip ${healthStatus ? 'chip-teal' : 'chip-saffron'}`}>
+            {healthStatus ? `Gateway: ${healthStatus.status} (${healthStatus.db})` : 'Gateway: Offline'}
+          </span>
         </div>
       </div>
 

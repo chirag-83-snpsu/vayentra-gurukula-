@@ -292,7 +292,7 @@ export const App: React.FC = () => {
         )}
 
         {/* Central Main Learning Canvas */}
-        <main style={{ padding: '24px 20px', width: '100%' }}>
+        <main className="app-canvas">
           {renderActiveView()}
         </main>
       </div>

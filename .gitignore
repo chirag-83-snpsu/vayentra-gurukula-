@@ -46,3 +46,10 @@ env/
 venv/
 ENV/
 *.backup*
+
+# SQLite runtime databases and journals
+*.sqlite-wal
+*.sqlite-shm
+server/db/*.sqlite-wal
+server/db/*.sqlite-shm
+

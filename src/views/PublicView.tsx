@@ -30,7 +30,7 @@ import { Logo } from '../components/Logo';
 import { ScholarshipModal } from '../components/ScholarshipModal';
 
 export const PublicView: React.FC = () => {
-  const { setRole, setShowPublicPortal, language, setLanguage } = useApp();
+  const { setRole, setShowPublicPortal } = useApp();
   const [selectedBoard, setSelectedBoard] = useState<'CBSE' | 'STATE'>('CBSE');
   const [selectedClass, setSelectedClass] = useState<number>(7);
   const [isScholarshipOpen, setIsScholarshipOpen] = useState<boolean>(false);
@@ -51,16 +51,16 @@ export const PublicView: React.FC = () => {
       10: { math: 'Real Numbers, Quadratic Equations & Trigonometry', science: 'Chemical Reactions, Electricity & Heredity', language: 'Board Exam Precision Writing', highlights: ['Board-pattern mock papers', 'Step-by-step marking rubrics', 'Formula cheat-sheets'] }
     },
     STATE: {
-      1: { math: 'ಸಂಖ್ಯೆಗಳು ಮತ್ತು ಆಕಾರಗಳು (Numbers & Shapes)', science: 'ನನ್ನ ಪರಿಸರ (Our Environment)', language: 'ಕನ್ನಡ ಅಕ್ಷರಾಭ್ಯಾಸ & Phonics', highlights: ['Kannada-first story audio', 'State textbook aligned', 'Picture cards'] },
-      2: { math: 'ಸಂಕಲನ ಮತ್ತು ವ್ಯವಕಲನ (Addition & Subtraction)', science: 'ಗಿಡ-ಮರಗಳು ಮತ್ತು ಪ್ರಾಣಿಗಳು (Nature)', language: 'ಸರಳ ವಾಕ್ಯಗಳು & Words', highlights: ['Bilingual prompts', 'Local Karnataka context', 'Star badges'] },
-      3: { math: 'ಗುಣಾಕಾರ ಮತ್ತು ಅಳತೆ (Multiplication & Units)', science: 'ನೀರು ಮತ್ತು ಗಾಳಿ (Air & Water)', language: 'ಕಥೆಗಳು ಮತ್ತು ಕವನಗಳು (Stories)', highlights: ['Mental arithmetic drills', 'Village & town EVS examples', 'Audio guidance'] },
-      4: { math: 'ಭಾಗಾಕಾರ ಮತ್ತು ಭಿನ್ನರಾಶಿ (Division & Fractions)', science: 'ನಮ್ಮ ದೇಹದ ಅಂಗಗಳು (Human Body)', language: 'ವ್ಯಾಕರಣ ಮತ್ತು ವಾಚನ (Grammar)', highlights: ['Hands-on fraction discs', 'Karnataka flora & fauna', 'Voice questions'] },
-      5: { math: 'ಅಪವರ್ತನಗಳು ಮತ್ತು ದಶಮಾಂಶ (Factors & Decimals)', science: 'ಪರಿಸರ ಸಮತೋಲನ (Ecosystems)', language: 'ಪ್ರಬಂಧ ರಚನೆ (Composition)', highlights: ['Bilingual mathematical terms', 'Simple machine models', 'Mistake notebook'] },
-      6: { math: 'ಪೂರ್ಣಾಂಕಗಳು ಮತ್ತು ಬೀಜಗಣಿತ (Integers & Algebra)', science: 'ವಸ್ತುಗಳು ಮತ್ತು ಚಲನೆ (Matter & Motion)', language: 'ಕನ್ನಡ ಸಾಹಿತ್ಯ ಪರಿಚಯ', highlights: ['Directional number lines', 'State board curriculum match', 'Concept mastery'] },
-      7: { math: 'ಪೂರ್ಣಾಂಕಗಳ ಗುಣಾಕಾರ & ಭಿನ್ನರಾಶಿಗಳು', science: 'ದ್ಯುತಿಸಂಶ್ಲೇಷಣೆ, ಉಷ್ಣ & ರಾಸಾಯನಿಕ ಬದಲಾವಣೆ', language: 'ಕನ್ನಡ ಮತ್ತು ಆಂಗ್ಲ ಭಾಷಾ ಕೌಶಲ್ಯ', highlights: ['Karnataka context examples', 'Bilingual glossary lookups', 'Leitner flashcards'] },
-      8: { math: 'ರೇಖಾತ್ಮಕ ಸಮೀಕರಣಗಳು & ಕ್ಷೇತ್ರಗಣಿತ', science: 'ಕೋಶ ರಚನೆ, ಬಲ ಮತ್ತು ಒತ್ತಡ', language: 'ಭಾಷಣ & ಸಂವಹನ ಕಲೆ', highlights: ['Step-by-step equation checking', 'Diagram labeling practice', 'Diagnostic test'] },
-      9: { math: 'ಬಹುಪದೋಕ್ತಿಗಳು & ತ್ರಿಕೋನಮಿತಿ ಪರಿಚಯ', science: 'ಚಲನೆಯ ನಿಯಮಗಳು & ಗುರುತ್ವಾಕರ್ಷಣೆ', language: 'ಸಾಹಿತ್ಯ ವಿಮರ್ಶೆ & ರಚನೆ', highlights: ['State board syllabus diff check', 'Formula cheat-sheets', 'Spaced revision'] },
-      10: { math: 'SSLC ಗಣಿತ: ನೈಜ ಸಂಖ್ಯೆಗಳು & ತ್ರಿಕೋನಮಿತಿ', science: 'SSLC ವಿಜ್ಞಾನ: ವಿದ್ಯುಚ್ಛಕ್ತಿ, ರಾಸಾಯನಿಕ ಕ್ರಿಯೆಗಳು', language: 'SSLC ಪರೀಕ್ಷಾ ಬರವಣಿಗೆ ಕೌಶಲ್ಯ', highlights: ['KSEAB SSLC exam blueprint', 'Step-wise marking rubrics', 'Weekly mock papers'] }
+      1: { math: 'Numbers & Shapes in Daily Life', science: 'Our Environment & Nature', language: 'Foundational Phonics & Reading', highlights: ['State textbook aligned', 'Hands-on counting aids', 'Picture story cards'] },
+      2: { math: 'Addition & Subtraction Foundations', science: 'Plants, Animals & Habitats', language: 'Sentence Formation & Vocabulary', highlights: ['Karnataka State Board syllabus', 'Tactile number models', 'Star badges'] },
+      3: { math: 'Multiplication & Units of Measurement', science: 'Water, Air & Living Things', language: 'Reading Comprehension & Stories', highlights: ['Mental arithmetic drills', 'Local Karnataka context', 'Guided learning'] },
+      4: { math: 'Division & Geometric Patterns', science: 'Human Body Systems & Community', language: 'Grammar Foundations & Composition', highlights: ['Hands-on fraction discs', 'Karnataka flora & fauna', 'Voice questions'] },
+      5: { math: 'Factors, Decimals & Shapes', science: 'Ecosystems, Energy & Natural Resources', language: 'Composition & Structured Essays', highlights: ['Practical measurement kits', 'Agricultural science links', 'Concept mapping'] },
+      6: { math: 'Integers, Factors & Algebra Basics', science: 'Matter, Energy & Motion', language: 'Literature, Expression & Debate', highlights: ['Directional number lines', 'State board curriculum match', 'Concept mastery'] },
+      7: { math: 'Integer Arithmetic & Rational Numbers', science: 'Photosynthesis, Heat & Reactions', language: 'Language Fluency & Analytical Reading', highlights: ['Karnataka context examples', 'Clear concept glossaries', 'Leitner flashcards'] },
+      8: { math: 'Linear Equations & Mensuration', science: 'Cell Biology, Forces & Pressure', language: 'Public Speaking & Presentation', highlights: ['Step-by-step equation checking', 'Diagram labeling practice', 'Diagnostic test'] },
+      9: { math: 'Polynomials & Coordinate Geometry', science: 'Laws of Motion & Gravitation', language: 'Literary Analysis & Writing', highlights: ['State board syllabus diff check', 'Formula cheat-sheets', 'Spaced revision'] },
+      10: { math: 'SSLC Real Numbers & Trigonometry', science: 'SSLC Electricity, Reactions & Heredity', language: 'SSLC Board Exam Precision Writing', highlights: ['KSEAB SSLC exam blueprint', 'Step-wise marking rubrics', 'Weekly mock papers'] }
     }
   };
 
@@ -95,7 +95,7 @@ export const PublicView: React.FC = () => {
           <span className="chip" style={{ background: 'var(--color-gold-primary)', color: '#ffffff', border: 'none', padding: '3px 10px' }}>
             ✦ 2026–2027 ADMISSIONS
           </span>
-          <span>Classes 1 to 10 • CBSE & Karnataka State Board (English & Kannada Mediums) • Abacus Mental Math Cohorts</span>
+          <span>Classes 1 to 10 • CBSE & Karnataka State Board • Abacus Mental Math Cohorts</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button 
@@ -111,20 +111,6 @@ export const PublicView: React.FC = () => {
             }}
           >
             <Award size={14} /> Aptitude Scholarship Test
-          </button>
-          <button 
-            type="button" 
-            className="ghost"
-            onClick={() => setLanguage(language === 'Kannada' ? 'English' : 'Kannada')}
-            style={{ 
-              minHeight: '32px', 
-              fontSize: '12px', 
-              color: '#ffffff', 
-              borderColor: 'rgba(255, 255, 255, 0.3)',
-              padding: '4px 10px'
-            }}
-          >
-            {language === 'Kannada' ? 'English UI' : 'ಕನ್ನಡ ಆವೃತ್ತಿ'}
           </button>
         </div>
       </div>
@@ -173,17 +159,10 @@ export const PublicView: React.FC = () => {
           lineHeight: 1.6, 
           color: 'var(--color-ink)' 
         }}>
-          {language === 'Kannada' ? (
-            <span style={{ fontWeight: 500 }}>
-              ಕಂಠಪಾಠವಿಲ್ಲದ ಕಲ್ಪನಾಧಾರಿತ ಕಲಿಕೆ. ಸಿಬಿಎಸ್‌ಇ (CBSE) ಮತ್ತು ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪಠ್ಯಕ್ರಮದ (Karnataka State Board) 1 ರಿಂದ 10 ನೇ ತರಗತಿ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ 
-              ಪ್ರಾಯೋಗಿಕ ಗಣಿತ, ವಿಜ್ಞಾನ ಹಾಗೂ ಸಂವಹನ ಕೌಶಲ್ಯಗಳ ಸಮಗ್ರ ತರಬೇತಿ.
-            </span>
-          ) : (
-            <span>
-              Moving beyond rote memorization for <strong>Classes 1 to 10</strong> across <strong>CBSE</strong> and <strong>Karnataka State Board</strong>. 
-              We nurture foundational understanding, rapid mental math, articulate communication, and personalized academic progress with child-safe AI tutoring.
-            </span>
-          )}
+          <span>
+            Moving beyond rote memorization for <strong>Classes 1 to 10</strong> across <strong>CBSE</strong> and <strong>Karnataka State Board</strong>. 
+            We nurture foundational understanding, rapid mental math, articulate communication, and personalized academic progress with child-safe AI tutoring.
+          </span>
         </div>
 
         {/* Hero CTAs */}
@@ -331,10 +310,10 @@ export const PublicView: React.FC = () => {
               3. Expressive Communication
             </div>
             <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--color-text-muted)' }}>
-              True mastery means being able to articulate what you know. Our unique <strong>"Explain-It-Back"</strong> prompts encourage students to explain problems in their own words, building academic vocabulary in both English and Kannada.
+              True mastery means being able to articulate what you know. Our unique <strong>"Explain-It-Back"</strong> prompts encourage students to explain problems in their own words, building academic vocabulary and confident presentation.
             </p>
             <div className="t-tiny" style={{ marginTop: 'auto', fontWeight: 600, color: 'var(--color-navy-primary)' }}>
-              ✓ Voice explanation reviews • Bilingual Kannada glossaries • Clear reasoning
+              ✓ Voice explanation reviews • Structured concept glossaries • Clear reasoning
             </div>
           </div>
 
@@ -681,11 +660,11 @@ export const PublicView: React.FC = () => {
             <div className="b" style={{ background: '#ffffff', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="h3" style={{ color: 'var(--color-navy-primary)' }}>📚 Language & Expression</span>
-                <span className="chip">Bilingual</span>
+                <span className="chip">Foundational</span>
               </div>
               <div style={{ fontWeight: 600, fontSize: '15px' }}>{currentPreview.language}</div>
               <div className="t-muted" style={{ fontSize: '13px' }}>
-                Vocabulary building, reading fluency, grammar rules and English-Kannada bilingual confidence.
+                Vocabulary building, reading fluency, grammar rules and structured analytical expression.
               </div>
               <button 
                 type="button" 
@@ -946,7 +925,7 @@ export const PublicView: React.FC = () => {
             <strong style={{ color: 'var(--color-navy-primary)' }}>Academic Curricula</strong>
             <span style={{ color: 'var(--color-text-muted)' }}>• CBSE Classes 1 to 10</span>
             <span style={{ color: 'var(--color-text-muted)' }}>• Karnataka State Board (KSEAB)</span>
-            <span style={{ color: 'var(--color-text-muted)' }}>• English & Kannada Mediums</span>
+            <span style={{ color: 'var(--color-text-muted)' }}>• English Medium Instruction</span>
             <span style={{ color: 'var(--color-text-muted)' }}>• Foundational Abacus Training</span>
           </div>
 
@@ -994,12 +973,6 @@ export const PublicView: React.FC = () => {
             <span>Privacy Notice</span>
             <span>Terms of Service</span>
             <span>Grievance Officer</span>
-            <span 
-              style={{ cursor: 'pointer', color: 'var(--color-navy-primary)', fontWeight: 600 }}
-              onClick={() => setLanguage(language === 'Kannada' ? 'English' : 'Kannada')}
-            >
-              🌐 Language: {language}
-            </span>
           </div>
         </div>
       </footer>

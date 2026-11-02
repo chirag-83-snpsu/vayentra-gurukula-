@@ -12,7 +12,6 @@ import {
   WifiOff, 
   Lock, 
   Unlock, 
-  Globe, 
   Users, 
   BookOpen, 
   GraduationCap, 
@@ -40,8 +39,6 @@ export const Navbar: React.FC = () => {
     isChildModeLocked,
     unlockChildModeWithPin,
     lockIntoChildMode,
-    language,
-    setLanguage,
     theme,
     toggleTheme,
     isDyslexicFont,
@@ -223,17 +220,6 @@ export const Navbar: React.FC = () => {
             <Unlock size={14} /> Exit Child Mode
           </button>
         )}
-
-        {/* Language Toggle (EN / ಕನ್ನಡ) */}
-        <button
-          type="button"
-          className="ghost"
-          onClick={() => setLanguage(language === 'English' ? 'Kannada' : 'English')}
-          title="Toggle Language"
-          style={{ padding: '6px 10px', minHeight: '36px', fontSize: '13px', fontWeight: 600 }}
-        >
-          <Globe size={14} /> {language === 'English' ? 'ಕನ್ನಡ' : 'English'}
-        </button>
 
         {/* Theme Toggle */}
         <button

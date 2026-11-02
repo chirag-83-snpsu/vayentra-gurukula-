@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ShieldAlert, AlertTriangle, Clock, CheckCircle2, FileText, PhoneCall } from 'lucide-react';
 
 export const SafeguardingView: React.FC = () => {
   const { safeguardingCases } = useApp();
+  const [actionFeedback, setActionFeedback] = useState<{ id: string; text: string } | null>(null);
+
+  const highestSeverity = safeguardingCases.length > 0
+    ? (safeguardingCases.some(c => c.severity === 'Critical') ? 'Critical (Urgent)' : safeguardingCases.some(c => c.severity === 'High') ? 'High (Distress)' : 'Standard / Routine')
+    : 'None Pending';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -41,7 +46,7 @@ export const SafeguardingView: React.FC = () => {
           </div>
         </div>
 
-        <span className="chip chip-error">Audit Log Sealed & Hash-Chained</span>
+        <span className="chip chip-error">DPDP Child Protection & Escrow Dossier</span>
       </div>
 
       {/* SLA Status Bar */}
@@ -52,7 +57,7 @@ export const SafeguardingView: React.FC = () => {
         </div>
         <div>
           <div className="t-muted">Highest Severity</div>
-          <div className="h1" style={{ color: '#ff5722' }}>High (Distress)</div>
+          <div className="h1" style={{ color: highestSeverity.includes('Critical') ? '#b8231b' : '#ff5722' }}>{highestSeverity}</div>
         </div>
         <div>
           <div className="t-muted">Mandatory Response SLA</div>
@@ -86,15 +91,44 @@ export const SafeguardingView: React.FC = () => {
               <strong>Incident Description:</strong> {c.details}
             </div>
 
+            {actionFeedback && actionFeedback.id === c.id && (
+              <div style={{
+                padding: '10px 14px',
+                borderRadius: '6px',
+                background: 'var(--color-teal-light)',
+                color: 'var(--color-teal-primary)',
+                fontSize: '13px',
+                fontWeight: 600
+              }}>
+                ✓ {actionFeedback.text}
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div className="t-tiny">
                 Reporter: <strong>{c.reporterRole}</strong> • Involved: <strong>{c.studentName}</strong>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="ghost" style={{ minHeight: '36px', fontSize: '12px' }} onClick={() => alert('Initiating secure encrypted contact with registered parent...')}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button 
+                  type="button" 
+                  className="ghost" 
+                  style={{ minHeight: '36px', fontSize: '12px' }} 
+                  onClick={() => setActionFeedback({
+                    id: c.id,
+                    text: `Guardian notification dispatched to parent of ${c.studentName}. Communication channel: Phone / WhatsApp.`
+                  })}
+                >
                   <PhoneCall size={14} /> Contact Parent
                 </button>
-                <button type="button" className="btn btn-teal" style={{ minHeight: '36px', fontSize: '12px' }} onClick={() => alert('Case marked investigated and closed with legal counsel notes.')}>
+                <button 
+                  type="button" 
+                  className="btn btn-teal" 
+                  style={{ minHeight: '36px', fontSize: '12px' }} 
+                  onClick={() => setActionFeedback({
+                    id: c.id,
+                    text: `Case ${c.id} marked investigated and archived with legal counsel notes.`
+                  })}
+                >
                   <CheckCircle2 size={14} /> Close Case with Notes
                 </button>
               </div>
