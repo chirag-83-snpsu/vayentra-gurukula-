@@ -5,6 +5,7 @@ import { UniversalStateWrapper } from '../components/UniversalStateWrapper';
 import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
 import { LearningCompass } from '../components/LearningCompass';
 import { CbseNcertLibrary } from '../components/CbseNcertLibrary';
+import { OneLearnerLaunchpad } from '../components/OneLearnerLaunchpad';
 import { PracticeArena } from '../components/PracticeArena';
 import confetti from 'canvas-confetti';
 import { 
@@ -44,7 +45,7 @@ export const StudentView: React.FC = () => {
   const isPrimary = activeChild.grade <= 4;
 
   // Navigation tab within student hub
-  const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map' | 'homework' | 'diagnostics' | 'ncert'>('learn');
+  const [activeTab, setActiveTab] = useState<'one_home' | 'learn' | 'practice' | 'mistakes' | 'doubts' | 'map' | 'homework' | 'diagnostics' | 'ncert'>('one_home');
 
   // Currently selected chapter & episode
   const currentChapter = chapters[0];
@@ -129,6 +130,8 @@ export const StudentView: React.FC = () => {
     setDoubtText('');
   };
 
+  if(activeTab==='one_home') return <OneLearnerLaunchpad onExplore={()=>setActiveTab('learn')} />;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
@@ -170,7 +173,10 @@ export const StudentView: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
+      <button type="button" className="btn btn-navy" onClick={()=>setActiveTab('one_home')} style={{alignSelf:'flex-start',minHeight:43}}>
+        <BookOpen size={16}/> Back to My Learning Universe
+      </button>
+            {/* Navigation Sub-Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: '8px', overflowX: 'auto' }}>
         <button
           type="button"
