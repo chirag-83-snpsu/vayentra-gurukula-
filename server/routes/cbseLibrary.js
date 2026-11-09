@@ -1,5 +1,7 @@
 import {Router} from 'express';
 import {randomUUID} from 'node:crypto';
+import {existsSync,statSync,realpathSync} from 'node:fs';
+import {resolve,sep} from 'node:path';
 import {db} from '../db/database.js';
 import {authenticateToken,requireRole} from '../middleware/auth.js';
 import {classGrades,CBSE_SUBJECTS_BY_GRADE,OFFICIAL_NCERT_REFERENCES} from '../data/cbseCatalog.js';
@@ -41,6 +43,16 @@ function safePublicTopic(row){
    provenance:'Vayentra original learning video, not NCERT-published footage'
   }
  };
+}
+function hasLocalMediaFile(mediaUrl){
+ if(!mediaUrl.startsWith('/media/lessons/'))return true; // External approved HTTPS media must be tested by faculty.
+ try{
+  const root=realpathSync(resolve(process.cwd(),'public/media/lessons'));
+  const file=resolve(process.cwd(),'public',mediaUrl.substring(1));
+  if(!existsSync(file))return false;
+  const actual=realpathSync(file);
+  return actual.startsWith(root+sep)&&statSync(actual).isFile()&&statSync(actual).size>1024;
+ }catch{return false;}
 }
 function isOriginalMediaUrl(text){
  if(typeof text!=='string'||text.length>1400)return false;
@@ -218,6 +230,7 @@ cbseLibraryRouter.post('/teacher/topics/:id/publish',(req,res)=>{
   return res.status(400).json({code:'INVALID_MEDIA',message:'Provide a reviewed video URL from an approved host and duration.'});
  if(!mediaUrl.toLowerCase().split('?')[0].endsWith('.'+mediaType))
   return res.status(400).json({code:'MEDIA_TYPE_MISMATCH'});
+ if(!hasLocalMediaFile(mediaUrl))return res.status(400).json({code:'MEDIA_FILE_MISSING',message:'Copy and play-test the local MP4/WebM in public/media/lessons before publishing.'});
  try{
   db.exec('BEGIN IMMEDIATE');
   db.prepare("UPDATE cbse_topics SET status='published',reviewed_by_user_id=?,reviewed_at=datetime('now') WHERE id=?")
