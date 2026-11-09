@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { CbseVideoStudio } from '../components/CbseVideoStudio';
 import { AdmissionsInbox } from '../components/AdmissionsInbox';
 import { LearningPassportVision } from '../components/LearningPassportVision';
+import { PassportAdminDesk } from '../components/PassportAdminDesk';
 import { 
   SlidersHorizontal, 
   Upload, 
@@ -91,7 +92,7 @@ interface TeacherData {
 export const AdminView: React.FC = () => {
   const { authToken } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'passport_vision'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'passport_vision' | 'passport_records'>('students');
 
   // Students State
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -712,6 +713,9 @@ export const AdminView: React.FC = () => {
         </button>
         <button type="button" className={activeTab === 'passport_vision' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('passport_vision')}>
           <GraduationCap size={16} /> Learning Passport Vision
+        </button>
+        <button type="button" className={activeTab === 'passport_records' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('passport_records')}>
+          <GraduationCap size={16} /> Passport Records
         </button>
       </div>
 
@@ -1468,6 +1472,7 @@ export const AdminView: React.FC = () => {
       {activeTab === 'video_library' && <CbseVideoStudio />}
       {activeTab === 'enquiries' && <AdmissionsInbox />}
       {activeTab === 'passport_vision' && <LearningPassportVision />}
+      {activeTab === 'passport_records' && <PassportAdminDesk />}
 
       {/* MODAL: REGISTER STUDENT & LINK GUARDIAN */}
       {/* ======================================================== */}
