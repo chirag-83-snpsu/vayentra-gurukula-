@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { db } from '../db/database.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { summarizeConceptEvidence } from '../services/diagnosticRules.js';
 
 export const diagnosticsRouter = Router();
 diagnosticsRouter.use(authenticateToken);
@@ -56,15 +57,7 @@ function analysisForAttempt(id) {
     JOIN diagnostic_items di ON di.id=dr.item_id
     WHERE dr.attempt_id=?
   `).all(id);
-  const clusters=new Map();
-  for (const row of responseRows) {
-    if(!clusters.has(row.concept_id)) clusters.set(row.concept_id,{conceptId:row.concept_id,correct:0,total:0,misconceptions:{}});
-    const c=clusters.get(row.concept_id);
-    c.total++; c.correct+=Number(row.is_correct);
-    if(row.misconception_code) c.misconceptions[row.misconception_code]=(c.misconceptions[row.misconception_code]||0)+1;
-  }
-  return [...clusters.values()].map(c=>({...c,accuracy:Math.round(100*c.correct/c.total),
-    pathway:c.correct===c.total?'extend':'teacher_review_required'}));
+  return summarizeConceptEvidence(responseRows);
 }
 diagnosticsRouter.get('/forms', (req,res)=>{
   try {
