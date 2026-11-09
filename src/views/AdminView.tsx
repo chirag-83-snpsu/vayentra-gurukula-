@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CbseVideoStudio } from '../components/CbseVideoStudio';
+import { AdmissionsInbox } from '../components/AdmissionsInbox';
 import { 
   SlidersHorizontal, 
   Upload, 
@@ -89,7 +90,7 @@ interface TeacherData {
 export const AdminView: React.FC = () => {
   const { authToken } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries'>('students');
 
   // Students State
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -704,6 +705,9 @@ export const AdminView: React.FC = () => {
         </button>
         <button type="button" className={activeTab === 'video_library' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('video_library')}>
           <BookOpen size={16} /> CBSE Video Library
+        </button>
+        <button type="button" className={activeTab === 'enquiries' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('enquiries')}>
+          <UserPlus size={16} /> Admissions Enquiries
         </button>
       </div>
 
@@ -1458,6 +1462,7 @@ export const AdminView: React.FC = () => {
       {/* ======================================================== */}
       {/* Video production and verified lesson question review */}
       {activeTab === 'video_library' && <CbseVideoStudio />}
+      {activeTab === 'enquiries' && <AdmissionsInbox />}
 
       {/* MODAL: REGISTER STUDENT & LINK GUARDIAN */}
       {/* ======================================================== */}
