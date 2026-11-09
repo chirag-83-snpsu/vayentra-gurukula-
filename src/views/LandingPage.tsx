@@ -5,15 +5,17 @@ import {
   Lightbulb, LockKeyhole, Menu, MoveRight, PlayCircle, ShieldCheck,
   Sparkles, Target, Users, X
 } from 'lucide-react';
+import { TeachingMethodShowcase } from '../components/TeachingMethodShowcase';
+import { ClassDiscoveryPanel } from '../components/ClassDiscoveryPanel';
 import '../styles/premium-home.css';
 
-interface Props { onLogin: () => void; onExplore: () => void; }
+interface Props { onLogin: () => void; onExplore: () => void; onAdmissions: (grade?: number) => void; }
 type DemoKey = 'math' | 'science' | 'english';
 type BandKey = 'foundation' | 'middle' | 'board';
 type SchoolBoard = 'CBSE' | 'STATE';
 
 const lessonDemos: Record<DemoKey, {
-  tag: string; title: string; question: string; options: string[]; correct: number; answer: string; insight: string;
+  tag: string; title: string; question: string; options: string[]; correct: number; answer: string; insight: string; steps: readonly string[];
 }> = {
   math: {
     tag: 'MATHEMATICS · REASONING',
@@ -22,7 +24,8 @@ const lessonDemos: Record<DemoKey, {
     options: ['16', '11', '13'],
     correct: 1,
     answer: '11',
-    insight: 'Multiplication happens before addition. First 3 × 2 = 6, then 5 + 6 = 11. Understanding the rule makes every similar question easier.'
+    insight: 'Multiplication happens before addition. First 3 × 2 = 6, then 5 + 6 = 11. Understanding the rule makes every similar question easier.',
+    steps: ['Spot the two operations: addition and multiplication.','Complete multiplication first: 3 × 2 = 6.','Add the remaining number: 5 + 6 = 11.']
   },
   science: {
     tag: 'SCIENCE · EVERYDAY WONDER',
@@ -31,7 +34,8 @@ const lessonDemos: Record<DemoKey, {
     options: ['Refraction of light', 'Gravity', 'Magnetism'],
     correct: 0,
     answer: 'Refraction',
-    insight: 'Light changes direction as it travels between water and air. Our eyes trace the light backward, making the submerged part appear displaced.'
+    insight: 'Light changes direction as it travels between water and air. Our eyes trace the light backward, making the submerged part appear displaced.',
+    steps: ['Light travels from water into air.','Its direction changes at the boundary; this is refraction.','Our eyes trace the rays backward, so the pencil appears shifted.']
   },
   english: {
     tag: 'ENGLISH · LANGUAGE CLARITY',
@@ -40,7 +44,8 @@ const lessonDemos: Record<DemoKey, {
     options: ['complete', 'completed', 'completing'],
     correct: 1,
     answer: 'completed',
-    insight: 'The present perfect uses has or have plus a past participle. So we say, “She has completed her homework.”'
+    insight: 'The present perfect uses has or have plus a past participle. So we say, “She has completed her homework.”',
+    steps: ['Find the helping verb: has.','Present perfect uses has or have followed by the past participle.','Complete becomes completed: She has completed her homework.']
   }
 };
 
@@ -74,11 +79,13 @@ const questions = [
   {q:'What happens after students sign in?', a:'Students select their class and board, then enter the appropriate authorised learning space. Access to private student records is controlled by the registered account, not by the class selected on screen.'}
 ];
 
-export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
+export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions}) => {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [demoKey, setDemoKey] = useState<DemoKey>('math');
   const [selection, setSelection] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [explainStep,setExplainStep]=useState(0);
+  const [grade,setGrade]=useState(7);
   const [band, setBand] = useState<BandKey>('middle');
   const [board, setBoard] = useState<SchoolBoard>('CBSE');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -89,7 +96,15 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
     setMobileMenu(false);
     document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
   };
-  const changeDemo = (next: DemoKey) => {setDemoKey(next);setRevealed(false);setSelection(null);};
+  const changeDemo = (next: DemoKey) => {setDemoKey(next);setRevealed(false);setSelection(null);setExplainStep(0);};
+  const nextExplanation = () => {
+    if(!revealed){setRevealed(true);setExplainStep(0);return;}
+    if(explainStep < lesson.steps.length-1){setExplainStep(x=>x+1);return;}
+    const keys:DemoKey[]=['math','science','english'];
+    changeDemo(keys[(keys.indexOf(demoKey)+1)%keys.length]);
+  };
+  const selectBand = (next:BandKey) => {setBand(next);setGrade(next==='foundation'?3:next==='middle'?7:10);};
+  const selectGrade=(next:number)=>{setGrade(next);setBand(next<=5?'foundation':next<=8?'middle':'board');};
 
   return <div className="vgp">
     <header className="vgp-header">
@@ -103,6 +118,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
           <button onClick={()=>jumpTo('our-programmes')}>Programmes</button>
           <button onClick={()=>jumpTo('the-experience')}>Student experience</button>
           <button onClick={()=>jumpTo('common-questions')}>FAQs</button>
+          <button onClick={()=>onAdmissions()}>Admissions</button>
         </nav>
         <div className="vgp-header-actions">
           <button type="button" className="vgp-header-login" onClick={onLogin}>Student login <ArrowUpRight size={18}/></button>
@@ -131,7 +147,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
             <div className="vgp-stage-tag"><Sparkles size={15}/> A SMALL MOMENT OF UNDERSTANDING</div>
             <div className="vgp-sample-stack" aria-hidden="true"><div/><div/></div>
             <article className="vgp-sample-card" aria-label="Interactive learning illustration">
-              <div className="vgp-sample-header"><span className="vgp-sample-dot"/><span>TRY A CONCEPT</span><span className="vgp-sample-num">01 / 03</span></div>
+              <div className="vgp-sample-header"><span className="vgp-sample-dot"/><span>TRY A CONCEPT</span><span className="vgp-sample-num">0{(['math','science','english'] as const).indexOf(demoKey)+1} / 03</span></div>
               <div className="vgp-sample-tabs" role="group" aria-label="Select a practice subject">
                 {(['math','science','english'] as const).map(key=><button key={key} type="button" className={demoKey===key?'active':''} onClick={()=>changeDemo(key)}>{key==='math'?'Maths':key==='science'?'Science':'English'}</button>)}
               </div>
@@ -140,13 +156,19 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
                 <h2>{lesson.title}</h2>
                 <div className={'vgp-sample-question'+(demoKey==='math'?' vgp-sample-math':'')}>{lesson.question}</div>
                 <div className="vgp-sample-options">
-                  {lesson.options.map((option,index)=><button key={option} type="button" className={'vgp-sample-option'+(selection===index?' selected':'')+(revealed&&index===lesson.correct?' correct':'')} onClick={()=>{setSelection(index);setRevealed(false)}} aria-pressed={selection===index}>
+                  {lesson.options.map((option,index)=><button key={option} type="button" className={'vgp-sample-option'+(selection===index?' selected':'')+(revealed&&index===lesson.correct?' correct':'')+(revealed&&selection===index&&index!==lesson.correct?' incorrect':'')} onClick={()=>{setSelection(index);setRevealed(false);setExplainStep(0)}} aria-pressed={selection===index}>
                     <span>{String.fromCharCode(65+index)}</span>{option}{revealed&&index===lesson.correct&&<Check size={16}/>}
                   </button>)}
                 </div>
-                {revealed?<div className="vgp-sample-insight" role="status"><div><Lightbulb size={18}/><strong>The why behind it</strong></div><p>{lesson.insight}</p></div>:<div className="vgp-sample-help">Choose an answer, then discover the reasoning.</div>}
+                {revealed?<div className="vgp-sample-insight" role="status" aria-live="polite">
+  <div><Lightbulb size={18}/><strong>{selection===lesson.correct?'Correct! Now understand why.':'Not quite. Here is the reasoning.'}</strong></div>
+  <div className="vgp-sample-step-indicator">EXPLANATION {explainStep+1} OF {lesson.steps.length}</div>
+  <p>{lesson.steps[explainStep]}</p>
+  {explainStep===lesson.steps.length-1&&<p className="vgp-sample-summary">{lesson.insight}</p>}
+ </div>:<div className="vgp-sample-help">Choose an answer, then discover the reasoning.</div>}
               </div>
-              <div className="vgp-sample-footer"><span><span className="vgp-indicator"/> An interactive illustration</span><button type="button" onClick={()=>setRevealed(true)} disabled={selection===null}>{revealed?'Reason explained':'Explain the answer'} <ArrowRight size={16}/></button></div>
+              <div className="vgp-sample-footer"><span><span className="vgp-indicator"/> Original interactive concept preview</span>
+ <button type="button" onClick={nextExplanation} disabled={selection===null}>{!revealed?'Explain the answer':explainStep<lesson.steps.length-1?'Next step':'Try another concept'} <ArrowRight size={16}/></button></div>
             </article>
             <div className="vgp-floating-note"><span><BrainCircuit size={17}/></span><div><strong>The 'why' changes everything.</strong><small>Explore. Question. Understand.</small></div></div>
           </div>
@@ -179,7 +201,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
         <div className="vgp-container">
           <div className="vgp-programmes-top"><div><div className="vgp-kicker">02 — FIND YOUR PATH</div><h2>Built for the way<br/><em>you grow.</em></h2></div><p>A learner in Class 3 has different needs from someone preparing for Class 10. Explore how the experience evolves with each stage.</p></div>
           <div className="vgp-path-switch" role="group" aria-label="Select academic stage">
-            {(['foundation','middle','board'] as const).map(key=><button key={key} type="button" className={band===key?'active':''} aria-pressed={band===key} onClick={()=>setBand(key)}>{pathways[key].range}</button>)}
+            {(['foundation','middle','board'] as const).map(key=><button key={key} type="button" className={band===key?'active':''} aria-pressed={band===key} onClick={()=>selectBand(key)}>{pathways[key].range}</button>)}
           </div>
           <div className="vgp-path-display">
             <div className="vgp-path-copy"><div className="vgp-path-eyebrow"><GraduationCap size={18}/> {path.range}</div><h3>{path.headline}</h3><p>{path.description}</p><ul>{path.focus.map(focus=><li key={focus}><Check size={17}/>{focus}</li>)}</ul><button className="vgp-text-link" onClick={onExplore}>Explore curriculum resources <ArrowUpRight size={19}/></button></div>
@@ -191,22 +213,11 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
             </div>
           </div>
           <div className="vgp-board-line"><span>ACADEMIC BOARDS</span><div role="group" aria-label="Preview supported boards"><button className={board==='CBSE'?'active':''} onClick={()=>setBoard('CBSE')} aria-pressed={board==='CBSE'}>CBSE</button><button className={board==='STATE'?'active':''} onClick={()=>setBoard('STATE')} aria-pressed={board==='STATE'}>Karnataka State Board</button></div><p>Exploring: {board==='CBSE'?'CBSE':'Karnataka State Board'} · Confirm current subjects and batch availability with our team.</p></div>
+          <ClassDiscoveryPanel grade={grade} board={board} onGradeChange={selectGrade} onExplore={onExplore} onAdmissions={onAdmissions}/>
         </div>
       </section>
 
-      <section className="vgp-process">
-        <div className="vgp-container">
-          <div className="vgp-process-header"><div><div className="vgp-kicker">03 — HOW LEARNING WORKS</div><h2>Less confusion.<br/><em>More breakthroughs.</em></h2></div><p>The right next step isn't always another lecture. Sometimes it's a different explanation, a small experiment or the question that unlocks understanding.</p></div>
-          <div className="vgp-process-grid">
-            {[
-              {number:'01',icon:Compass,title:'Find the missing step',text:'Notice what's unclear through questions and short concept checks.'},
-              {number:'02',icon:Lightbulb,title:'Make it make sense',text:'Explore the idea through clear explanations and practical examples.'},
-              {number:'03',icon:BrainCircuit,title:'Practise with intention',text:'Work on the specific misunderstanding — and try again with confidence.'},
-              {number:'04',icon:BarChart3,title:'See the progress',text:'Use teacher feedback, assignments and available learning records to guide what comes next.'}
-            ].map(({number,icon:Icon,title,text})=><article key={number} className="vgp-process-step"><div className="vgp-process-step-top"><span>{number}</span><Icon size={25}/></div><h3>{title}</h3><p>{text}</p></article>)}
-          </div>
-        </div>
-      </section>
+      <TeachingMethodShowcase />
 
       <section className="vgp-experience" id="the-experience">
         <div className="vgp-container vgp-experience-inner">
@@ -232,7 +243,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore}) => {
         </div>
       </section>
 
-      <section className="vgp-closing"><div className="vgp-container vgp-closing-inner"><div className="vgp-closing-mark">✦</div><div className="vgp-kicker">A DIFFERENT KIND OF LEARNING JOURNEY</div><h2>Here's to the moment<br/><em>it all makes sense.</em></h2><p>Discover Vayentra Gurukula, where understanding comes first.</p><div className="vgp-closing-actions"><button className="vgp-cta vgp-cta-gold" onClick={onLogin}>Student login <ArrowUpRight size={18}/></button><button className="vgp-cta vgp-cta-outline" onClick={onExplore}>Explore our resources <MoveRight size={18}/></button></div></div></section>
+      <section className="vgp-closing"><div className="vgp-container vgp-closing-inner"><div className="vgp-closing-mark">✦</div><div className="vgp-kicker">A DIFFERENT KIND OF LEARNING JOURNEY</div><h2>Here's to the moment<br/><em>it all makes sense.</em></h2><p>Discover Vayentra Gurukula, where understanding comes first.</p><div className="vgp-closing-actions"><button className="vgp-cta vgp-cta-gold" onClick={onLogin}>Student login <ArrowUpRight size={18}/></button><button className="vgp-cta vgp-cta-outline" onClick={()=>onAdmissions()}>Enquire about admissions <MoveRight size={18}/></button></div></div></section>
     </main>
     <footer className="vgp-footer"><div className="vgp-container vgp-footer-inner"><div><div className="vgp-footer-brand"><span>✦</span> VAYENTRA <b>GURUKULA</b></div><p>Concept-based academic coaching for Classes 1–10, Bengaluru.</p></div><div className="vgp-footer-right"><span>An initiative of Vayentra Ventures Pvt. Ltd.</span><span>© {new Date().getFullYear()} Vayentra Gurukula</span></div></div></footer>
   </div>;
