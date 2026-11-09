@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { db } from './database.js';
 import { CBSE_SUBJECTS_BY_GRADE } from '../data/cbseCatalog.js';
 import { CLASS10_PILOT_LESSONS } from '../data/class10PilotLessons.js';
+import { CLASS10_NEXT_LESSON_BATCH } from '../data/class10NextLessonBatch.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1161,6 +1162,40 @@ export function runMigrations() {
       });
       db.prepare("INSERT INTO migrations(name) VALUES('008_class10_original_video_pilots')").run();
       console.log('[Vayentra DB] Class 10 original Maths & Science video + quiz DRAFTS created.');
+    }
+
+
+    // 009 — Four additional ORIGINAL Class 10 Maths/Science lesson and question drafts.
+    // Migration is idempotent; no student data is read, overwritten or seeded.
+    if(!db.prepare("SELECT id FROM migrations WHERE name='009_class10_four_original_lessons'").get()){
+      const insertTopic=db.prepare(`
+        INSERT OR IGNORE INTO cbse_topics
+        (id,source_id,chapter_title,topic_title,concept_description,lesson_order,status)
+        VALUES(?,?,?,?,?,?,'draft')
+      `);
+      const insertVideo=db.prepare(`
+        INSERT OR IGNORE INTO cbse_lesson_videos
+        (id,topic_id,origin,production_status,script_outline)
+        VALUES(?,?,'vayentra_original','teacher_review',?)
+      `);
+      const insertQuiz=db.prepare(`
+        INSERT OR IGNORE INTO cbse_topic_practice_items
+        (id,topic_id,question,options_json,correct_index,explanation,misconception_code,position,status)
+        VALUES(?,?,?,?,?,?,?,?,'draft')
+      `);
+      CLASS10_NEXT_LESSON_BATCH.forEach((lesson,index)=>{
+        insertTopic.run(lesson.id,lesson.sourceId,lesson.chapter,lesson.topic,lesson.objective,index+10);
+        const script='Original Vayentra teacher-review storyboard.\\n'
+          +lesson.storyboard.map((scene,i)=>'Scene '+(i+1)+': '+scene).join('\\n')
+          +'\\nUse the separate narrated MP4 and transcript teacher-review pack to verify exact words and timing.';
+        insertVideo.run('video-'+lesson.id,lesson.id,script);
+        lesson.questions.forEach((q,i)=>{
+          insertQuiz.run(q.id,lesson.id,q.question,JSON.stringify(q.options),q.correctIndex,
+            q.explanation,q.misconceptionCode,i+1);
+        });
+      });
+      db.prepare("INSERT INTO migrations(name) VALUES('009_class10_four_original_lessons')").run();
+      console.log('[Vayentra DB] Added 4 additional Class 10 original lesson drafts and 12 draft questions.');
     }
 
     db.exec('COMMIT;');
