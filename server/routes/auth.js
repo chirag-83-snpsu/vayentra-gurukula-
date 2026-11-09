@@ -125,124 +125,17 @@ authRouter.post('/google', (_req,res) => res.status(503).json({
 }));
 
 // ========================================================
-// 4. Mobile OTP Flow (DLT-SMS Compliant Challenge Store)
+// 4. Mobile OTP — not enabled until SMS dispatch and verification are integrated
 // ========================================================
-authRouter.post('/otp/send', (req, res) => {
-  // This prototype does not actually dispatch an SMS. Never claim dispatch in production.
-  if(process.env.NODE_ENV==='production') return res.status(503).json({
-    code:'SMS_PROVIDER_NOT_READY',
-    message:'Mobile OTP sign-in is not enabled. Use registered email and password.'
-  });
-  const { mobile } = req.body;
-  if (!mobile || mobile.replace(/\D/g, '').length < 10) {
-    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Valid 10-digit mobile number is required.' });
-  }
-
-  const cleanMobile = mobile.trim();
-  const isDev = process.env.NODE_ENV !== 'production';
-
-  // Generate a cryptographically random 6-digit challenge in production, standard in dev
-  const generatedOtp = isDev ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
-
-  otpChallenges.set(cleanMobile, {
-    otp: generatedOtp,
-    expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
-  });
-
-  try {
-    db.prepare(`
-      INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
-      VALUES (?, ?, 'OTP_DISPATCHED', 'DLT_SMS_Gateway', ?, ?)
-    `).run(`aud-${Date.now()}`, cleanMobile, req.ip || '127.0.0.1', JSON.stringify({ provider: 'TRAI_DLT_GATEWAY', status: 'dispatched' }));
-  } catch (e) {}
-
-  res.json({
-    success: true,
-    message: 'OTP dispatched successfully via DLT-SMS gateway.',
-    expiresInSeconds: 300,
-    devHint: isDev ? 'Demo OTP is 123456' : undefined
-  });
+// The former implementation returned a successful SMS-dispatched message without
+// actually delivering a message and supported a static challenge code.
+// Never create accounts or minors' profiles on an unverified OTP channel.
+const smsNotReady=(_req,res)=>res.status(503).json({
+  code:'SMS_PROVIDER_NOT_READY',
+  message:'Mobile OTP sign-in is unavailable. Use registered email and password.'
 });
-
-authRouter.post('/otp/verify', (req, res) => {
-  if(process.env.NODE_ENV==='production') return res.status(503).json({
-    code:'SMS_PROVIDER_NOT_READY',
-    message:'Mobile OTP sign-in is not enabled. Use registered email and password.'
-  });
-  const { mobile, otp, name } = req.body;
-  if (!mobile || !otp) {
-    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Mobile and OTP are required.' });
-  }
-
-  const cleanMobile = mobile.trim();
-  const challenge = otpChallenges.get(cleanMobile);
-  const isDev = process.env.NODE_ENV !== 'production';
-
-  const isChallengeMatch = challenge && challenge.otp === otp && challenge.expiresAt > Date.now();
-  const isDevBypass = isDev && (otp === '123456' || otp === '1234');
-
-  if (!isChallengeMatch && !isDevBypass) {
-    return res.status(400).json({ code: 'INVALID_OTP', message: 'Incorrect or expired OTP. Please try again.' });
-  }
-
-  // Clear challenge after successful consumption
-  otpChallenges.delete(cleanMobile);
-
-  try {
-    let user = db.prepare('SELECT * FROM users WHERE mobile = ?').get(cleanMobile);
-
-    if (!user) {
-      const newUserId = `usr-${Date.now()}`;
-      db.prepare(`
-        INSERT INTO users (id, mobile, name, role)
-        VALUES (?, ?, ?, 'parent')
-      `).run(newUserId, cleanMobile, name || 'Vayentra Guardian');
-
-      user = db.prepare('SELECT * FROM users WHERE id = ?').get(newUserId);
-
-      const guardianId = `par-${Date.now()}`;
-      db.prepare(`
-        INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, renewal_date, outstanding_fee)
-        VALUES (?, ?, '1234', 'Active', 'Annual Gurukula Pro + AI Tutor', '2027-04-10', 0.0)
-      `).run(guardianId, user.id);
-
-      const studentId = `stu-${Date.now()}`;
-      db.prepare(`
-        INSERT INTO students (
-          id, guardian_id, name, avatar, grade, board, medium, school_name,
-          child_pin, daily_time_limit_mins, minutes_used_today, bedtime_lock,
-          has_consent, streak_days, stars_earned, points
-        ) VALUES (?, ?, 'Aarav Varma', '🦊', 7, 'CBSE', 'English', 'Vayentra Central Gurukula', '0000', 45, 0, '21:30', 1, 1, 10, 250)
-      `).run(studentId, guardianId);
-    }
-
-    const guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
-    const children = guardian ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id) : [];
-
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        role: user.role,
-        mobile: user.mobile,
-        guardianId: guardian?.id
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      success: true,
-      token,
-      user,
-      guardian,
-      children,
-      activeChild: children[0] || null
-    });
-  } catch (err) {
-    console.error('[OTP Verify Error]:', err);
-    res.status(500).json({ code: 'AUTH_ERROR', message: 'Failed to verify OTP.' });
-  }
-});
+authRouter.post('/otp/send',smsNotReady);
+authRouter.post('/otp/verify',smsNotReady);
 
 // ========================================================
 // 5. Current User Session Hydration (Strictly Authenticated)
@@ -335,14 +228,14 @@ authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']
 
   try {
     const studentId = `stu-${Date.now()}`;
-    const timestamp = new Date().toISOString();
+    // New child profiles remain unverified until the formal guardian-consent review.
 
     db.prepare(`
       INSERT INTO students (
         id, guardian_id, name, avatar, grade, board, medium, school_name,
         child_pin, daily_time_limit_mins, minutes_used_today, bedtime_lock,
         has_consent, consent_timestamp, streak_days, stars_earned, points
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?, 1, 15, 300)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, NULL, 1, 15, 300)
     `).run(
       studentId,
       guardianId,
@@ -354,23 +247,18 @@ authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']
       schoolName,
       childPin,
       Number(dailyLimitMins),
-      bedtimeLock,
-      timestamp
+      bedtimeLock
     );
 
-    // Record DPDP consent record
-    const consentId = `dpdp-${Date.now()}`;
-    db.prepare(`
-      INSERT INTO consent_records (id, guardian_id, student_id, policy_version, guardian_ip, legal_hash)
-      VALUES (?, ?, ?, 'v2.1', ?, 'sha256_vayentra_dpdp_consent_verified')
-    `).run(consentId, guardianId, studentId, req.ip || '127.0.0.1');
+    // Do not create a pretend signed consent record or assert that consent was verified.
+    // The Vayentra ONE admin review must confirm and record actual guardian evidence.
 
     const newStudent = db.prepare('SELECT * FROM students WHERE id = ?').get(studentId);
 
     res.json({
       success: true,
       student: newStudent,
-      message: `Child profile for ${name} created with DPDP Guardian Consent recorded.`
+      message: `Profile for ${name} created as a pending, unverified academic record. Guardian consent review is required before access.`
     });
   } catch (err) {
     console.error('[Add Child Error]:', err);
