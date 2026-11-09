@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BookOpen, Brain, GraduationCap, Layers, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Brain, GraduationCap, Sparkles } from 'lucide-react';
 
 type Board = 'CBSE' | 'STATE';
 type Pathway = {
@@ -17,9 +17,7 @@ const pathwaysFor = (grade:number):Pathway[] => {
     : grade<=8
     ? {id:'concept',name:'Concept Mastery',subtitle:'Understand the why behind every topic',gradeRange:'Classes 6–8',icon:Brain,highlights:['Mathematics & Science','Concept checkpoints','Teacher-guided practice']}
     : {id:'board',name:'Board Preparation',subtitle:'Strengthen prerequisites and exam technique',gradeRange:'Classes 9–10',icon:GraduationCap,highlights:['Mathematics & Science','Revision and weekly checks','Step-by-step answer practice']};
-  const extras:Pathway[]=grade<=5?[
-    {id:'abacus',name:'Abacus & Mental Maths',subtitle:'Optional skill-building alongside tuition',gradeRange:'Classes 1–5',icon:Layers,highlights:['Tactile bead models','Number fluency','Guided practice']}
-  ]:[
+  const extras:Pathway[]=grade<=5?[]:[
     {id:'diagnostic',name:'Learning Compass',subtitle:'Understand and bridge concept gaps',gradeRange:grade===7?'Class 7 Maths pilot':'Phased rollout',icon:Sparkles,highlights:['Concept diagnosis','Teacher intervention','Personalized practice']}
   ];
   return [core,...extras];
