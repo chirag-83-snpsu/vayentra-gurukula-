@@ -196,72 +196,11 @@ authRouter.post('/pin/verify', authenticateToken, (req, res) => {
 });
 
 // ========================================================
-// 7. Add Child Profile (Verified Parent Session with DPDP Consent)
+// 7. Legacy direct child creation retired in favour of the reviewed ONE pathway.
 // ========================================================
-authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
-  const {
-    name,
-    avatar = '🦁',
-    grade = 7,
-    board = 'CBSE',
-    medium = 'English',
-    schoolName = 'Vayentra Gurukula Academy',
-    childPin = '0000',
-    dailyLimitMins = 45,
-    bedtimeLock = '21:30'
-  } = req.body;
-
-  if (!name || !name.trim()) {
-    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Child name is required.' });
-  }
-
-  const guardianId=req.user.role==='parent'?req.user.guardianId:req.body.guardianId;
-  if(req.user.role==='parent'&&!req.user.guardianId)
-    return res.status(403).json({code:'GUARDIAN_PROFILE_REQUIRED',message:'Your guardian profile must be verified by the academy.'});
-  if(!Number.isInteger(Number(grade))||Number(grade)<1||Number(grade)>10)
-    return res.status(400).json({code:'INVALID_GRADE'});
-  if(!['CBSE','STATE','STATE_KARNATAKA'].includes(board))
-    return res.status(400).json({code:'INVALID_BOARD'});
-  if (!guardianId) {
-    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Guardian identifier is required.' });
-  }
-
-  try {
-    const studentId = `stu-${Date.now()}`;
-    // New child profiles remain unverified until the formal guardian-consent review.
-
-    db.prepare(`
-      INSERT INTO students (
-        id, guardian_id, name, avatar, grade, board, medium, school_name,
-        child_pin, daily_time_limit_mins, minutes_used_today, bedtime_lock,
-        has_consent, consent_timestamp, streak_days, stars_earned, points
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, NULL, 1, 15, 300)
-    `).run(
-      studentId,
-      guardianId,
-      name.trim(),
-      avatar,
-      Number(grade),
-      board,
-      medium,
-      schoolName,
-      childPin,
-      Number(dailyLimitMins),
-      bedtimeLock
-    );
-
-    // Do not create a pretend signed consent record or assert that consent was verified.
-    // The Vayentra ONE admin review must confirm and record actual guardian evidence.
-
-    const newStudent = db.prepare('SELECT * FROM students WHERE id = ?').get(studentId);
-
-    res.json({
-      success: true,
-      student: newStudent,
-      message: `Profile for ${name} created as a pending, unverified academic record. Guardian consent review is required before access.`
-    });
-  } catch (err) {
-    console.error('[Add Child Error]:', err);
-    res.status(500).json({ code: 'SERVER_ERROR', message: 'Failed to create child profile.' });
-  }
+authRouter.post('/child/add',authenticateToken,requireRole(['parent','admin']),(_req,res)=>{
+  return res.status(410).json({
+    code:'USE_REVIEWED_ONE_ADMISSION',
+    message:'Direct child registration has been retired. Submit a Vayentra ONE guardian application and complete administrator review.'
+  });
 });
