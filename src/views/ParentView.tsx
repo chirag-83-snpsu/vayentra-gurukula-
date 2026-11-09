@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
+import { LearnerPassportJourney } from '../components/LearnerPassportJourney';
 import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
 import { ParentLearningCompass } from '../components/ParentLearningCompass';
 import { 
@@ -168,7 +169,7 @@ export const ParentView: React.FC = () => {
   const token = authToken || localStorage.getItem('vayentra_token');
 
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'attendance' | 'homework' | 'communication' | 'report' | 'controls' | 'fees' | 'consent' | 'diagnostics'
+    'overview' | 'attendance' | 'homework' | 'communication' | 'report' | 'controls' | 'fees' | 'consent' | 'diagnostics' | 'passport'
   >('overview');
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -497,6 +498,7 @@ export const ParentView: React.FC = () => {
           <FileText size={16} /> Homework & Concept Mastery
         </button>
         <button type="button" className={activeTab === 'diagnostics' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('diagnostics')}>Learning Compass</button>
+        <button type="button" className={activeTab === 'passport' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('passport')}>Learning Passport</button>
         <button
           type="button"
           className={activeTab === 'communication' ? 'btn btn-teal' : 'ghost'}
@@ -535,6 +537,7 @@ export const ParentView: React.FC = () => {
       </div>
 
       {activeTab === 'diagnostics' && <ParentLearningCompass />}
+      {activeTab === 'passport' && <LearnerPassportJourney />}
 
       {/* ERROR BANNER */}
       {dashboardError && (
