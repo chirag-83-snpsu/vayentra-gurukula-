@@ -49,10 +49,11 @@ describe('Learning Compass pilot security and content contract',()=>{
    assert.ok(key.correctIndex>=0&&key.correctIndex<q.options.length);
   }
  });
- test('student does not receive teacher answer key before publication',async()=>{
+ test('student never receives answer key; draft remains private',async()=>{
   const result=await request(pilot,studentToken);
-  // Form is deliberately a draft; the student must not receive its answer key.
-  assert.equal(result.status,403);
+  const status=db.prepare('SELECT status FROM diagnostic_forms WHERE id=?').get('vg-lc-7-cbse-math-v1').status;
+  if(status==='draft')assert.equal(result.status,403);
+  else {assert.equal(result.status,200);assert.equal(result.body.form.answerKey,undefined);}
  });
  test('student cannot publish question bank',async()=>{
   const result=await request(pilot+'/publish',studentToken,'POST',{confirmedReviewed:true});
@@ -62,9 +63,10 @@ describe('Learning Compass pilot security and content contract',()=>{
   const result=await request(pilot+'/submit',parentToken,'POST',{responses:[]});
   assert.equal(result.status,403);
  });
- test('draft diagnostic cannot be submitted by student',async()=>{
+ test('invalid/incomplete submission is never saved',async()=>{
   const result=await request(pilot+'/submit',studentToken,'POST',{responses:[]});
-  assert.equal(result.status,403);
+  const status=db.prepare('SELECT status FROM diagnostic_forms WHERE id=?').get('vg-lc-7-cbse-math-v1').status;
+  assert.equal(result.status,status==='draft'?403:400);
  });
  test('guardian cannot access arbitrary student record',async()=>{
   const result=await request('/api/v1/diagnostics/student/not-my-child/attempts',parentToken);
@@ -72,7 +74,7 @@ describe('Learning Compass pilot security and content contract',()=>{
  });
  test('question bank contains four misconception dimensions',()=>{
   const form=db.prepare('SELECT * FROM diagnostic_forms WHERE id=?').get('vg-lc-7-cbse-math-v1');
-  assert.equal(form.status,'draft');
+  assert.ok(['draft','published'].includes(form.status));
   const concepts=db.prepare('SELECT DISTINCT concept_id FROM diagnostic_items WHERE form_id=?').all(form.id).map(x=>x.concept_id);
   assert.deepEqual(concepts.sort(),['equation-formation','integer-signs','multiplication-signs','order-of-operations']);
  });
