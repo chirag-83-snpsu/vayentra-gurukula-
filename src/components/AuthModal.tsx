@@ -28,7 +28,7 @@ declare global {
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTab = 'password' }) => {
   const { setParent, setRole, setCurrentUser, login } = useApp();
-  const [activeTab, setActiveTab] = useState<'password' | 'google' | 'otp'>(defaultTab);
+  const [activeTab, setActiveTab] = useState<'password' | 'google' | 'otp'>('password');
 
   // Email/Password states
   const [loginEmail, setLoginEmail] = useState('');
@@ -399,20 +399,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
           </button>
           <button
             type="button"
-            className={activeTab === 'google' ? 'btn btn-teal' : 'ghost'}
-            onClick={() => { setActiveTab('google'); setAuthError(null); }}
+            className="ghost"
+            disabled
+            title="Google sign-in will return after verified provider integration"
             style={{ minHeight: '38px', fontSize: '12px', fontWeight: 600 }}
           >
             Google Sign-In
           </button>
           <button
             type="button"
-            className={activeTab === 'otp' ? 'btn btn-teal' : 'ghost'}
-            onClick={() => { setActiveTab('otp'); setAuthError(null); }}
+            className="ghost"
+            disabled
+            title="SMS sign-in will return after real OTP delivery and verification"
             style={{ minHeight: '38px', fontSize: '12px', fontWeight: 600 }}
           >
             <Smartphone size={14} /> Mobile OTP
           </button>
+        </div>
+
+        <div role="status" style={{fontSize:'12px',lineHeight:1.6,color:'var(--color-text-subtle)'}}>
+          Google and mobile OTP sign-in are temporarily unavailable during security verification. Please use your registered email and password.
         </div>
 
         {/* TAB 1: VERIFIED PASSWORD LOGIN */}
