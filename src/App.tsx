@@ -12,6 +12,7 @@ import { TechAcademyView } from './views/TechAcademyView';
 import { PublicView } from './views/PublicView';
 import { LandingPage } from './views/LandingPage';
 import { StudentLoginPage } from './views/StudentLoginPage';
+import { AdmissionsPage } from './views/AdmissionsPage';
 
 import { 
   BookOpen, 
@@ -98,23 +99,26 @@ export const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   // Public routes are distinct from the authenticated application shell.
   // Never grant portal access based only on a URL parameter or class selector.
-  const [page, setPage] = useState<'home'|'login'|'explore'|'portal'>(() => {
+  const [page, setPage] = useState<'home'|'login'|'explore'|'portal'|'admissions'>(() => {
     const path = window.location.pathname;
     if (path === '/login') return 'login';
+    if (path === '/admissions') return 'admissions';
     if (path === '/explore') return 'explore';
     if (path === '/app') return 'portal';
     return 'home';
   });
-  const navigate = (next: 'home'|'login'|'explore'|'portal') => {
+  const navigate = (next: 'home'|'login'|'explore'|'portal'|'admissions', grade?: number) => {
     const path = next === 'home' ? '/' : next === 'portal' ? '/app' : '/' + next;
-    window.history.pushState({}, '', path);
+    const search = next === 'admissions' && grade && grade >= 1 && grade <= 10 ? '?class='+grade : '';
+    window.history.pushState({}, '', path+search);
     setPage(next);
+    window.scrollTo({top:0});
     if (next === 'portal') setShowPublicPortal(false);
   };
   useEffect(() => {
     const onPop = () => {
       const path = window.location.pathname;
-      setPage(path === '/login' ? 'login' : path === '/explore' ? 'explore' : path === '/app' ? 'portal' : 'home');
+      setPage(path === '/login' ? 'login' : path === '/explore' ? 'explore' : path === '/app' ? 'portal' : path === '/admissions' ? 'admissions' : 'home');
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
@@ -209,7 +213,8 @@ export const App: React.FC = () => {
     }
   };
 
-  if (page === 'home') return <LandingPage onLogin={() => navigate('login')} onExplore={() => navigate('explore')} />;
+  if (page === 'home') return <LandingPage onLogin={() => navigate('login')} onExplore={() => navigate('explore')} onAdmissions={grade => navigate('admissions',grade)} />;
+  if (page === 'admissions') return <AdmissionsPage onBack={() => navigate('home')} onLogin={() => navigate('login')} />;
   if (page === 'login') return <StudentLoginPage onBack={() => navigate('home')} onSuccess={() => navigate('portal')} />;
   if (page === 'explore') return <div className="vg-public-explore">
     <header style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:15,padding:'18px 28px',borderBottom:'1px solid #e4e8f1',background:'#fff'}}>
