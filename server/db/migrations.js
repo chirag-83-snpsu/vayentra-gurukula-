@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import { db } from './database.js';
+import { CBSE_SUBJECTS_BY_GRADE } from '../data/cbseCatalog.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1022,6 +1023,93 @@ export function runMigrations() {
       );
       db.prepare('INSERT INTO migrations (name) VALUES (?)').run('006_learning_compass_pilot');
       console.log('[Vayentra DB] Migration 006_learning_compass_pilot completed (DRAFT item bank; no student data).');
+    }
+
+
+    // 007 — Verified-reference CBSE learning and original video production catalogue.
+    // No NCERT material is copied, hosted, deep-linked or represented as permission-cleared.
+    const applied007=db.prepare("SELECT id FROM migrations WHERE name='007_cbse_ncert_video_library'").get();
+    if(!applied007){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS cbse_subject_sources(
+          id TEXT PRIMARY KEY,
+          grade INTEGER NOT NULL CHECK (grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL DEFAULT 'CBSE' CHECK(board='CBSE'),
+          subject TEXT NOT NULL,
+          publisher TEXT NOT NULL DEFAULT 'NCERT',
+          source_portal TEXT NOT NULL DEFAULT 'NCERT official textbook catalogue',
+          source_url TEXT NOT NULL DEFAULT 'https://ncert.nic.in/textbook.php',
+          source_status TEXT NOT NULL DEFAULT 'reference_only_permission_pending'
+            CHECK(source_status IN ('reference_only_permission_pending','approved_for_linking')),
+          curriculum_status TEXT NOT NULL DEFAULT 'needs_academic_review'
+            CHECK(curriculum_status IN ('needs_academic_review','verified')),
+          academic_year TEXT NOT NULL DEFAULT '2026-27',
+          verified_by_user_id TEXT REFERENCES users(id),
+          verified_at TEXT,
+          UNIQUE(grade,subject,academic_year)
+        );
+        CREATE TABLE IF NOT EXISTS cbse_topics(
+          id TEXT PRIMARY KEY,
+          source_id TEXT NOT NULL REFERENCES cbse_subject_sources(id),
+          chapter_title TEXT NOT NULL,
+          topic_title TEXT NOT NULL,
+          concept_description TEXT,
+          lesson_order INTEGER NOT NULL DEFAULT 1,
+          status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published','archived')),
+          reviewed_by_user_id TEXT REFERENCES users(id),
+          reviewed_at TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(source_id,chapter_title,topic_title)
+        );
+        CREATE TABLE IF NOT EXISTS cbse_lesson_videos(
+          id TEXT PRIMARY KEY,
+          topic_id TEXT NOT NULL UNIQUE REFERENCES cbse_topics(id),
+          origin TEXT NOT NULL DEFAULT 'vayentra_original',
+          production_status TEXT NOT NULL DEFAULT 'not_started'
+            CHECK(production_status IN ('not_started','script_draft','teacher_review','ready','archived')),
+          script_outline TEXT,
+          media_url TEXT,
+          media_type TEXT CHECK(media_type IS NULL OR media_type IN ('mp4','webm')),
+          duration_seconds INTEGER CHECK(duration_seconds IS NULL OR duration_seconds BETWEEN 10 AND 3600),
+          reviewed_by_user_id TEXT REFERENCES users(id),
+          reviewed_at TEXT,
+          published_at TEXT,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_cbse_topics_source ON cbse_topics(source_id,status);
+        CREATE INDEX IF NOT EXISTS idx_cbse_video_status ON cbse_lesson_videos(production_status);
+      `);
+      const insertSource=db.prepare(`
+        INSERT OR IGNORE INTO cbse_subject_sources(id,grade,subject)
+        VALUES(?,?,?)
+      `);
+      Object.entries(CBSE_SUBJECTS_BY_GRADE).forEach(([grade,subjects])=>{
+        subjects.forEach(subject=>{
+          const slug=subject.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+          insertSource.run('cbse-'+grade+'-'+slug,Number(grade),subject);
+        });
+      });
+      // Pilot topics are drafts and must be checked against the current textbooks.
+      const insertTopic=db.prepare(`
+        INSERT OR IGNORE INTO cbse_topics(id,source_id,chapter_title,topic_title,concept_description,lesson_order)
+        VALUES(?,?,?,?,?,?)
+      `);
+      const pilot=[
+        ['signed-numbers','Integers and Rational Numbers','Ordering negative numbers','Use an original number-line animation to explain position and value.'],
+        ['subtract-negative','Integers and Rational Numbers','Subtracting a negative number','Use examples involving height and temperature without reproducing textbook diagrams.'],
+        ['order-operations','Expressions and Equations','Order of operations','Illustrate brackets and operation precedence with original visual examples.'],
+        ['form-equations','Expressions and Equations','Forming equations from word problems','Translate a practical word problem into a linear equation.']
+      ];
+      pilot.forEach(([id,chapter,topic,description],i)=>{
+        const topicId='cbse7math-'+id;
+        insertTopic.run(topicId,'cbse-7-mathematics',chapter,topic,description,i+1);
+        db.prepare(`
+          INSERT OR IGNORE INTO cbse_lesson_videos(id,topic_id,production_status)
+          VALUES(?,?,'not_started')
+        `).run('vid-'+topicId,topicId);
+      });
+      db.prepare("INSERT INTO migrations(name) VALUES('007_cbse_ncert_video_library')").run();
+      console.log('[Vayentra DB] CBSE NCERT source references and unpublished AI video pilot created.');
     }
 
     db.exec('COMMIT;');
