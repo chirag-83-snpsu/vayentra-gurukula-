@@ -47,6 +47,7 @@ export function authenticateToken(req, res, next) {
       guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
     } else if (user.role === 'student') {
       student = db.prepare('SELECT s.* FROM learner_student_accounts a JOIN students s ON s.id=a.student_id WHERE a.user_id=?').get(user.id);
+      if(!student)return res.status(403).json({code:'STUDENT_LINK_REQUIRED',message:'Student account must be explicitly linked to a learner record.'});
     } else if (user.role === 'teacher') {
       teacher = db.prepare('SELECT * FROM teachers WHERE user_id = ?').get(user.id);
     }
