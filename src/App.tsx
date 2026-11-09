@@ -4,6 +4,7 @@ import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
 import { StudentView } from './views/StudentView';
 import { ParentView } from './views/ParentView';
+import { OneGuardianAdmission } from './components/OneGuardianAdmission';
 import { TeacherView } from './views/TeacherView';
 import { ReviewerView } from './views/ReviewerView';
 import { AdminView } from './views/AdminView';
@@ -88,6 +89,7 @@ export const App: React.FC = () => {
     role,
     setRole,
     currentUser,
+    parent,
     isAuthenticated,
     isChildModeLocked,
     showPublicPortal,
@@ -157,6 +159,8 @@ export const App: React.FC = () => {
             />
           );
         }
+        // A new guardian with no linked children should see admission, not a demo child dashboard.
+        if (!parent.children.length) return <OneGuardianAdmission />;
         return <ParentView />;
       case 'teacher':
         if (!hasAccess(['teacher', 'admin'])) {
