@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
 import { ParentLearningCompass } from '../components/ParentLearningCompass';
 import { OneGuardianAdmission } from '../components/OneGuardianAdmission';
+import { OneLearnerLaunchpad } from '../components/OneLearnerLaunchpad';
 import { OneJourneyPanel } from '../components/OneJourneyPanel';
 import { 
   Users, 
@@ -170,7 +171,7 @@ export const ParentView: React.FC = () => {
   const token = authToken || localStorage.getItem('vayentra_token');
 
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'attendance' | 'homework' | 'communication' | 'report' | 'controls' | 'fees' | 'consent' | 'diagnostics' | 'one_journey' | 'one_admission'
+    'overview' | 'attendance' | 'homework' | 'communication' | 'report' | 'controls' | 'fees' | 'consent' | 'diagnostics' | 'one_journey' | 'one_admission' | 'one_learn'
   >('overview');
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -503,6 +504,7 @@ export const ParentView: React.FC = () => {
           <GraduationCap size={16}/> My Vayentra Journey
         </button>
         <button type="button" className={activeTab === 'one_admission' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_admission')}><GraduationCap size={16}/> Enrol a learner</button>
+        <button type="button" className={activeTab === 'one_learn' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_learn')}><BookOpen size={16}/> Learning Universe</button>
         <button
           type="button"
           className={activeTab === 'communication' ? 'btn btn-teal' : 'ghost'}
@@ -543,6 +545,7 @@ export const ParentView: React.FC = () => {
       {activeTab === 'diagnostics' && <ParentLearningCompass />}
       {activeTab === 'one_journey' && <OneJourneyPanel />}
       {activeTab === 'one_admission' && <OneGuardianAdmission />}
+      {activeTab === 'one_learn' && <OneLearnerLaunchpad parentPreviewStudentId={activeChild.id} onExplore={()=>setActiveTab('one_journey')}/>}
 
       {/* ERROR BANNER */}
       {dashboardError && (
