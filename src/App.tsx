@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
@@ -10,6 +10,8 @@ import { AdminView } from './views/AdminView';
 import { SafeguardingView } from './views/SafeguardingView';
 import { TechAcademyView } from './views/TechAcademyView';
 import { PublicView } from './views/PublicView';
+import { LandingPage } from './views/LandingPage';
+import { StudentLoginPage } from './views/StudentLoginPage';
 
 import { 
   BookOpen, 
@@ -94,6 +96,30 @@ export const App: React.FC = () => {
   } = useApp();
 
   const [showAuthModal, setShowAuthModal] = useState(false);
+  // Public routes are distinct from the authenticated application shell.
+  // Never grant portal access based only on a URL parameter or class selector.
+  const [page, setPage] = useState<'home'|'login'|'explore'|'portal'>(() => {
+    const path = window.location.pathname;
+    if (path === '/login') return 'login';
+    if (path === '/explore') return 'explore';
+    if (path === '/app') return 'portal';
+    return 'home';
+  });
+  const navigate = (next: 'home'|'login'|'explore'|'portal') => {
+    const path = next === 'home' ? '/' : next === 'portal' ? '/app' : '/' + next;
+    window.history.pushState({}, '', path);
+    setPage(next);
+    if (next === 'portal') setShowPublicPortal(false);
+  };
+  useEffect(() => {
+    const onPop = () => {
+      const path = window.location.pathname;
+      setPage(path === '/login' ? 'login' : path === '/explore' ? 'explore' : path === '/app' ? 'portal' : 'home');
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
 
   const navItems = [
     { id: 'student', label: 'Learn Hub', icon: BookOpen },
@@ -106,7 +132,6 @@ export const App: React.FC = () => {
   ];
 
   const hasAccess = (allowedRoles: string[]) => {
-    if (import.meta.env.DEV) return true; // Allowed in dev for rapid testing
     if (!isAuthenticated || !currentUser) return false;
     return allowedRoles.includes(currentUser.role);
   };
@@ -184,6 +209,17 @@ export const App: React.FC = () => {
     }
   };
 
+  if (page === 'home') return <LandingPage onLogin={() => navigate('login')} onExplore={() => navigate('explore')} />;
+  if (page === 'login') return <StudentLoginPage onBack={() => navigate('home')} onSuccess={() => navigate('portal')} />;
+  if (page === 'explore') return <div className="vg-public-explore">
+    <header style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:15,padding:'18px 28px',borderBottom:'1px solid #e4e8f1',background:'#fff'}}>
+      <button className="ghost" onClick={() => navigate('home')}><Home size={17}/> Back to Home</button>
+      <button className="btn btn-navy" onClick={() => navigate('login')}>Student Login</button>
+    </header>
+    <PublicView />
+  </div>;
+  // The existing portal shell remains private, including during local development.
+  if (!isAuthenticated || !currentUser) return <StudentLoginPage onBack={() => navigate('home')} onSuccess={() => navigate('portal')} />;
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
