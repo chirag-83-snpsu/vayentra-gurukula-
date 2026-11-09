@@ -1,6 +1,7 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {BookOpenCheck,Clapperboard,Copy,PlusCircle,Video} from 'lucide-react';
 import {useApp} from '../context/AppContext';
+import {CbseLessonQuestionReview} from './CbseLessonQuestionReview';
 type Source={id:string;grade:number;subject:string;academic_year:string};
 type Catalogue={grades:number[];subjectsByGrade:Record<number,string[]>;subjects:Source[]};
 type Item={id:string;topicTitle:string;chapterTitle:string;status:string;productionStatus:string;scriptOutline:string;video:{status:string}};
@@ -111,6 +112,7 @@ export const CbseVideoStudio:React.FC=()=>{
       });setMessage('Original video script saved for teacher review.');})}>
       <BookOpenCheck size={16}/> Save script for review
      </button>
+     <CbseLessonQuestionReview topicId={selectedTopic.id} token={token}/>
      <hr style={{border:0,borderTop:'1px solid var(--color-border-subtle)',margin:'20px 0'}}/>
      <h3>Publish reviewed video asset</h3>
      <p className="t-muted">Create the video externally using your selected AI video production service. Upload the original file to an approved host, then publish only after playback and accuracy checks.</p>
