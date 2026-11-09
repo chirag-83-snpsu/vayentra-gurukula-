@@ -15,17 +15,27 @@ import { admissionsRouter } from './routes/admissions.js';
 import { journeyRouter } from './routes/journey.js';
 import { oneContentRouter } from './routes/oneContent.js';
 
-// Initialize SQLite database and seed records
+// Phase 0 safety gate: production must never seed demo students, default passwords,
+// pseudo-consent, or unverified third-party identity. Release requires independent audit.
+if (process.env.NODE_ENV === 'production') {
+  throw new Error('VAYENTRA_RELEASE_BLOCKED: Production launch requires audited identity, migrations, child consent, and payment safeguards.');
+}
+
+// Initialize isolated development/test database only.
 initDatabase();
 
 export const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Security & Parsing Middlewares
+// Explicit allowlist for staged hosts; never deploy a wildcard CORS policy.
+const allowedOrigins = new Set((process.env.VAYENTRA_ALLOWED_ORIGINS ||
+  'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
+  .split(',').map(x=>x.trim()).filter(Boolean));
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Idempotency-Key']
+  origin: (origin, done) => done(null, !origin || allowedOrigins.has(origin)),
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-Idempotency-Key']
 }));
 app.use(express.json());
 
@@ -44,7 +54,7 @@ app.get('/', (req, res) => {
   res.json({
     platform: 'Vayentra Gurukula Unified Learning Platform',
     status: 'ONLINE',
-    version: '1.0.0-production',
+    version: '1.0.0-development',
     database: 'SQLite (Persistent Storage Engine)',
     endpoints: {
       health: '/api/v1/health',
