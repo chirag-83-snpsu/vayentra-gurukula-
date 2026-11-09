@@ -1198,6 +1198,30 @@ export function runMigrations() {
       console.log('[Vayentra DB] Added 4 additional Class 10 original lesson drafts and 12 draft questions.');
     }
 
+
+    // 010 — Guardian-only admissions enquiries. No child names or student records.
+    if(!db.prepare("SELECT id FROM migrations WHERE name='010_guardian_admission_enquiries'").get()){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS admission_enquiries(
+          id TEXT PRIMARY KEY,
+          guardian_name TEXT NOT NULL,
+          contact_phone TEXT NOT NULL,
+          contact_email TEXT,
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL CHECK(board IN ('CBSE','STATE')),
+          message TEXT,
+          consent_at TEXT NOT NULL DEFAULT (datetime('now')),
+          status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','contacted','closed')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_admission_enquiries_status_created
+          ON admission_enquiries(status,created_at DESC);
+      `);
+      db.prepare("INSERT INTO migrations(name) VALUES('010_guardian_admission_enquiries')").run();
+      console.log('[Vayentra DB] Guardian-only admissions enquiry inbox prepared.');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');
