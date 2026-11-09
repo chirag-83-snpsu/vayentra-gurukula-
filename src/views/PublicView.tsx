@@ -35,7 +35,6 @@ export const PublicView: React.FC = () => {
   const [selectedBoard, setSelectedBoard] = useState<'CBSE' | 'STATE'>('CBSE');
   const [selectedClass, setSelectedClass] = useState<number>(7);
   const [isScholarshipOpen, setIsScholarshipOpen] = useState<boolean>(false);
-  const [abacusBeads, setAbacusBeads] = useState<number[]>([3, 4, 2, 5, 1]); // Interactive visual abacus beads state
 
   // Sample chapter previews mapped to board & grade
   const curriculumPreviews: Record<string, Record<number, { math: string; science: string; language: string; highlights: string[] }>> = {
@@ -70,13 +69,6 @@ export const PublicView: React.FC = () => {
   const browseCurriculum = () => document.getElementById('vg-curriculum-explorer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const browseMethod = () => document.getElementById('vg-teaching-method')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  const handleAbacusTap = (colIdx: number) => {
-    setAbacusBeads(prev => {
-      const copy = [...prev];
-      copy[colIdx] = (copy[colIdx] % 5) + 1;
-      return copy;
-    });
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '48px', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
@@ -99,7 +91,7 @@ export const PublicView: React.FC = () => {
           <span className="chip" style={{ background: 'var(--color-gold-primary)', color: '#ffffff', border: 'none', padding: '3px 10px' }}>
             ✦ 2026–2027 ADMISSIONS
           </span>
-          <span>Classes 1 to 10 • CBSE & Karnataka State Board • Abacus Mental Math Cohorts</span>
+          <span>Classes 1 to 10 • CBSE & Karnataka State Board • Concept-Based Learning</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button 
@@ -373,159 +365,6 @@ export const PublicView: React.FC = () => {
             </div>
           </div>
 
-        </div>
-      </section>
-
-      {/* 4. DEDICATED ABACUS OFFERING SHOWCASE */}
-      <section className="b" style={{
-        background: 'linear-gradient(135deg, var(--color-navy-dark) 0%, #152248 100%)',
-        color: '#ffffff',
-        padding: '36px 32px',
-        borderRadius: '20px',
-        border: '2px solid var(--color-gold-border)',
-        boxShadow: 'var(--shadow-lg)',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '32px',
-        alignItems: 'center'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="chip" style={{ background: 'var(--color-gold-bright)', color: '#000000', fontWeight: 700, border: 'none' }}>
-              SPECIALIZED ADDITIONAL OFFERING
-            </span>
-            <span style={{ fontSize: '12px', color: 'var(--color-gold-border)' }}>Classes 1 to 5 Foundation</span>
-          </div>
-
-          <h2 style={{ fontSize: '30px', color: '#ffffff', lineHeight: 1.25 }}>
-            Whole-Brain Abacus & Mental Arithmetic Training
-          </h2>
-
-          <p style={{ fontSize: '15px', lineHeight: 1.6, color: '#d0daf0' }}>
-            As an additional cognitive accelerator, Vayentra Gurukula offers structured <strong>Abacus Mental Arithmetic</strong>. 
-            By physically manipulating beads and transitioning to internal mental bead visualization, children unlock remarkable concentration, photographic memory, and arithmetic speed.
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '6px' }}>
-            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
-              <div style={{ fontWeight: 700, color: 'var(--color-gold-bright)', fontSize: '14px' }}>Tactile Visualization</div>
-              <div style={{ fontSize: '12px', color: '#c3d0ea', marginTop: '3px' }}>Translates numbers into spatial bead formations</div>
-            </div>
-            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
-              <div style={{ fontWeight: 700, color: 'var(--color-gold-bright)', fontSize: '14px' }}>Dual-Brain Synergy</div>
-              <div style={{ fontSize: '12px', color: '#c3d0ea', marginTop: '3px' }}>Simultaneously activates visual and logical brain hemispheres</div>
-            </div>
-            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
-              <div style={{ fontWeight: 700, color: 'var(--color-gold-bright)', fontSize: '14px' }}>Laser Concentration</div>
-              <div style={{ fontSize: '12px', color: '#c3d0ea', marginTop: '3px' }}>Sharpens listening stamina, reflexes and visual memory</div>
-            </div>
-            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
-              <div style={{ fontWeight: 700, color: 'var(--color-gold-bright)', fontSize: '14px' }}>Speed Without Stress</div>
-              <div style={{ fontSize: '12px', color: '#c3d0ea', marginTop: '3px' }}>Calculations performed mentally faster than pencil-paper</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Abacus Widget Preview */}
-        <div style={{
-          background: 'rgba(10, 20, 50, 0.7)',
-          padding: '24px',
-          borderRadius: '16px',
-          border: '1.5px solid var(--color-gold-border)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '16px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-gold-bright)' }}>
-              Interactive Soroban Abacus Frame
-            </span>
-            <span className="chip" style={{ background: 'rgba(200, 138, 30, 0.2)', color: 'var(--color-gold-bright)', border: '1px solid var(--color-gold-border)' }}>
-              Tap Beads to Count
-            </span>
-          </div>
-
-          {/* Abacus Frame Graphic */}
-          <div style={{
-            width: '100%',
-            maxWidth: '380px',
-            background: '#8b4513',
-            padding: '12px',
-            borderRadius: '10px',
-            boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4)',
-            border: '3px solid #5a2a0a'
-          }}>
-            {/* The Beam Divider */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-around',
-              padding: '6px 0',
-              background: '#2b1d0c',
-              borderRadius: '4px',
-              borderBottom: '2px solid #e5a910'
-            }}>
-              {abacusBeads.map((val, idx) => (
-                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  {/* Upper Deck (Value 5 Bead) */}
-                  <div 
-                    onClick={() => handleAbacusTap(idx)}
-                    style={{
-                      width: '28px',
-                      height: '18px',
-                      borderRadius: '50%',
-                      background: val >= 5 ? 'radial-gradient(circle, #fde047 0%, #ca8a04 100%)' : 'radial-gradient(circle, #d97706 0%, #78350f 100%)',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
-                      cursor: 'pointer',
-                      transform: val >= 5 ? 'translateY(8px)' : 'translateY(0)',
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }}
-                    title="Upper Bead (Value 5)"
-                  />
-                  <div style={{ width: '4px', height: '12px', background: '#cbd5e1' }} />
-                </div>
-              ))}
-            </div>
-
-            {/* Lower Deck (Earth Beads) */}
-            <div style={{ display: 'flex', justifyContent: 'space-around', padding: '12px 0', minHeight: '80px', background: '#1c1308' }}>
-              {abacusBeads.map((val, idx) => {
-                const lowerCount = val >= 5 ? val - 5 : val;
-                return (
-                  <div 
-                    key={idx} 
-                    onClick={() => handleAbacusTap(idx)}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'pointer' }}
-                  >
-                    {[1, 2, 3, 4].map(bIdx => (
-                      <div
-                        key={bIdx}
-                        style={{
-                          width: '28px',
-                          height: '14px',
-                          borderRadius: '50%',
-                          background: bIdx <= lowerCount 
-                            ? 'radial-gradient(circle, #facc15 0%, #b45309 100%)' 
-                            : 'radial-gradient(circle, #92400e 0%, #451a03 100%)',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                          transform: bIdx <= lowerCount ? 'translateY(-6px)' : 'translateY(0)',
-                          transition: 'all 0.15s ease'
-                        }}
-                      />
-                    ))}
-                    <span style={{ fontSize: '11px', color: 'var(--color-gold-bright)', marginTop: '6px', fontWeight: 700 }}>
-                      Col {idx + 1}: {val}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div style={{ fontSize: '12px', color: '#cbd5e1', textAlign: 'center' }}>
-            Value Represented: <strong style={{ color: 'var(--color-gold-bright)', fontSize: '16px' }}>{abacusBeads.join('')}</strong> • Abacus enhances tactile visualization for primary kids
-          </div>
         </div>
       </section>
 
@@ -932,8 +771,7 @@ export const PublicView: React.FC = () => {
             <span style={{ color: 'var(--color-text-muted)' }}>• CBSE Classes 1 to 10</span>
             <span style={{ color: 'var(--color-text-muted)' }}>• Karnataka State Board (KSEAB)</span>
             <span style={{ color: 'var(--color-text-muted)' }}>• English Medium Instruction</span>
-            <span style={{ color: 'var(--color-text-muted)' }}>• Foundational Abacus Training</span>
-          </div>
+            </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
             <strong style={{ color: 'var(--color-navy-primary)' }}>Gurukula Portals</strong>
