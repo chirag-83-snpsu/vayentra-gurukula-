@@ -132,110 +132,11 @@ authRouter.post('/logout', (req, res) => {
 // ========================================================
 // 3. Google OAuth 2.0 Endpoint
 // ========================================================
-authRouter.post('/google', (req, res) => {
-  const { credential, isDemoSandbox, mockUser } = req.body;
-
-  let googleUser = null;
-
-  if (credential) {
-    googleUser = parseGoogleJwt(credential);
-  } else if (isDemoSandbox || mockUser) {
-    // Explicit environment boundary: Sandbox credentials prohibited in production
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(403).json({
-        code: 'SANDBOX_PROHIBITED',
-        message: 'Sandbox authentication is strictly disabled in production.'
-      });
-    }
-
-    googleUser = {
-      sub: mockUser?.sub || 'google-sub-' + Date.now(),
-      email: mockUser?.email || 'guardian@vayentra.org',
-      name: mockUser?.name || 'Venkatesh Prasad',
-      picture: mockUser?.picture || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      email_verified: true
-    };
-  }
-
-  if (!googleUser || !googleUser.email) {
-    return res.status(400).json({
-      code: 'INVALID_CREDENTIAL',
-      message: 'Failed to authenticate Google identity. Please try again.'
-    });
-  }
-
-  try {
-    let user = db.prepare('SELECT * FROM users WHERE google_id = ? OR email = ?').get(googleUser.sub, googleUser.email);
-
-    if (!user) {
-      const newUserId = `usr-${Date.now()}`;
-      db.prepare(`
-        INSERT INTO users (id, google_id, email, name, avatar, role)
-        VALUES (?, ?, ?, ?, ?, 'parent')
-      `).run(newUserId, googleUser.sub, googleUser.email, googleUser.name, googleUser.picture);
-
-      user = db.prepare('SELECT * FROM users WHERE id = ?').get(newUserId);
-
-      const guardianId = `par-${Date.now()}`;
-      db.prepare(`
-        INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, renewal_date, outstanding_fee)
-        VALUES (?, ?, '1234', 'Active', 'Annual Gurukula Pro + AI Tutor', '2027-04-10', 0.0)
-      `).run(guardianId, user.id);
-
-      const studentId = `stu-${Date.now()}`;
-      db.prepare(`
-        INSERT INTO students (
-          id, guardian_id, name, avatar, grade, board, medium, school_name,
-          child_pin, daily_time_limit_mins, minutes_used_today, bedtime_lock,
-          has_consent, streak_days, stars_earned, points
-        ) VALUES (?, ?, ?, '🦊', 7, 'CBSE', 'English', 'Vayentra Central Gurukula', '0000', 45, 0, '21:30', 1, 1, 10, 250)
-      `).run(studentId, guardianId, `${googleUser.name.split(' ')[0]}'s Child`);
-
-      db.prepare(`
-        INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
-        VALUES (?, ?, 'GOOGLE_REGISTER', 'User', ?, ?)
-      `).run(`aud-${Date.now()}`, user.email, req.ip || '127.0.0.1', JSON.stringify({ name: user.name, provider: 'google' }));
-    } else {
-      db.prepare('UPDATE users SET google_id = ?, avatar = coalesce(avatar, ?) WHERE id = ?').run(googleUser.sub, googleUser.picture, user.id);
-      db.prepare(`
-        INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
-        VALUES (?, ?, 'GOOGLE_LOGIN', 'User', ?, ?)
-      `).run(`aud-${Date.now()}`, user.email, req.ip || '127.0.0.1', JSON.stringify({ name: user.name, provider: 'google' }));
-    }
-
-    const guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
-    const children = guardian ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id) : [];
-
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        role: user.role,
-        email: user.email,
-        name: user.name,
-        guardianId: guardian?.id
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      success: true,
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        role: user.role
-      },
-      guardian,
-      children,
-      activeChild: children[0] || null
-    });
-  } catch (err) {
-    console.error('[Google Auth Error]:', err);
-    res.status(500).json({ code: 'AUTH_ERROR', message: 'Failed to complete Google authentication.' });
-  }
+authRouter.post('/google', (_req,res) => {
+  return res.status(503).json({
+    code:'PROVIDER_VERIFICATION_NOT_CONFIGURED',
+    message:'Third-party sign-in requires verified provider configuration. Use the enrolled password login meanwhile.'
+  });
 });
 
 // ========================================================
