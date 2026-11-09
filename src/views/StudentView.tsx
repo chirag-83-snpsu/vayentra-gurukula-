@@ -5,9 +5,11 @@ import { UniversalStateWrapper } from '../components/UniversalStateWrapper';
 import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
 import { LearningCompass } from '../components/LearningCompass';
 import { CbseNcertLibrary } from '../components/CbseNcertLibrary';
+import { LearnerPassportJourney } from '../components/LearnerPassportJourney';
 import { PracticeArena } from '../components/PracticeArena';
 import confetti from 'canvas-confetti';
 import { 
+  GraduationCap,
   Play, 
   CheckCircle2, 
   Lock, 
@@ -44,7 +46,7 @@ export const StudentView: React.FC = () => {
   const isPrimary = activeChild.grade <= 4;
 
   // Navigation tab within student hub
-  const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map' | 'homework' | 'diagnostics' | 'ncert'>('learn');
+  const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map' | 'homework' | 'diagnostics' | 'ncert' | 'passport'>('learn');
 
   // Currently selected chapter & episode
   const currentChapter = chapters[0];
@@ -210,10 +212,12 @@ export const StudentView: React.FC = () => {
         </button>
         <button type="button" className={activeTab === 'diagnostics' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('diagnostics')}>Learning Compass</button>
         <button type="button" className={activeTab === 'ncert' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('ncert')}><BookOpen size={16}/> NCERT & AI Lessons</button>
+        <button type="button" className={activeTab === 'passport' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('passport')}><GraduationCap size={16}/> My Learning Passport</button>
       </div>
 
       {activeTab === 'diagnostics' && <LearningCompass mode="student" />}
       {activeTab === 'ncert' && <CbseNcertLibrary />}
+      {activeTab === 'passport' && <LearnerPassportJourney />}
       {activeTab === 'practice' && <PracticeArena />}
 
       {/* TAB 1: LEARN (Episode Player / Story Mode) */}
