@@ -876,3 +876,47 @@ a:focus-visible,
     scroll-behavior: auto !important;
   }
 }
+
+
+/* PW-inspired workflow affordances, Vayentra-original navy/gold visual design */
+.vg-course-discovery {display:flex;flex-direction:column;gap:22px;scroll-margin-top:110px}
+.vg-course-intro {max-width:680px}
+.vg-course-intro h2 {font-size:clamp(24px,3vw,34px);color:var(--color-navy-primary);margin:14px 0 8px;line-height:1.2}
+.vg-course-intro p {color:var(--color-text-muted);line-height:1.65}
+.vg-course-filters {display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:18px;border-radius:16px;background:var(--color-paper-card);border:1px solid var(--color-border-subtle)}
+.vg-course-filters label {display:flex;flex-direction:column;flex:1 1 180px;gap:6px;font-size:12px;font-weight:700;color:var(--color-navy-primary)}
+.vg-course-filters select {width:100%;min-height:44px}
+.vg-course-filters .btn {min-height:44px;flex:1 1 200px}
+.vg-course-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:18px}
+.vg-course-card {display:flex;flex-direction:column;gap:11px;min-width:0;background:var(--color-paper-card);border:1px solid var(--color-border-subtle);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm);transition:transform 170ms ease,border-color 170ms ease,box-shadow 170ms ease}
+.vg-course-card:hover {transform:translateY(-3px);border-color:var(--color-gold-border);box-shadow:var(--shadow-md)}
+.vg-course-icon {display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:var(--color-navy-light);color:var(--color-navy-primary)}
+.vg-course-kicker {color:var(--color-text-muted);font-size:12px;font-weight:700}
+.vg-course-card h3 {color:var(--color-navy-primary);font-size:21px}
+.vg-course-card p {color:var(--color-text-muted);font-size:14px}
+.vg-course-card ul {list-style:none;display:flex;flex-direction:column;gap:8px;margin:7px 0 12px;padding:0}
+.vg-course-card li {font-size:13px;color:var(--color-ink);display:flex;gap:9px}
+.vg-course-card li::before {content:'✓';color:var(--color-navy-primary);font-weight:800}
+.vg-course-link {margin-top:auto;background:transparent;border:0;border-top:1px solid var(--color-border-subtle);padding:14px 0 0;display:flex;align-items:center;gap:8px;font-family:inherit;color:var(--color-navy-primary);font-size:14px;font-weight:700;cursor:pointer;text-align:left}
+.vg-course-link:hover {color:var(--color-gold-dark)}
+.vg-practice {display:flex;flex-direction:column;gap:16px}
+.vg-practice-filter {display:flex;gap:8px;flex-wrap:wrap}
+.vg-practice-levels {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.vg-practice-levels .b {display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:14px 4px}
+.vg-practice-levels strong {font-size:24px;color:var(--color-navy-primary)}
+.vg-practice-levels span {font-size:12px;color:var(--color-text-muted)}
+.vg-practice-card {background:linear-gradient(145deg,var(--color-paper-card),var(--color-paper-subtle));border:1px solid var(--color-border-subtle);border-radius:18px;max-width:750px;width:100%;margin:auto;min-height:280px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;padding:26px}
+.vg-practice-top {display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%}
+.vg-practice-kicker {font-size:11px;letter-spacing:0.07em;color:var(--color-text-muted);font-weight:800;margin-top:12px}
+.vg-practice-card h3 {font-size:clamp(21px,3vw,29px);color:var(--color-navy-primary);line-height:1.4}
+.vg-practice-card>p:not(.vg-practice-kicker) {font-size:15px;color:var(--color-text-muted);max-width:530px}
+.vg-practice-actions {display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:auto;width:100%}
+.vg-practice-actions button {flex:1 1 190px}
+@media(max-width:600px) {
+ .vg-course-filters {padding:14px}
+ .vg-course-grid {grid-template-columns:1fr}
+ .vg-practice-levels {grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+ .vg-practice-levels span {font-size:10px}
+ .vg-practice-card {padding:18px}
+}
+@media(prefers-reduced-motion:reduce) {.vg-course-card {transition:none}.vg-course-card:hover {transform:none}}
