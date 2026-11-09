@@ -53,3 +53,17 @@ ENV/
 server/db/*.sqlite-wal
 server/db/*.sqlite-shm
 
+
+
+# Vayentra ONE: no school records, photos, identity proofs or marksheets in Git
+server/private-uploads/
+private-uploads/
+student-exports/
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-wal
+*.db-shm
+*.pdf.encrypted
+*.markcard
+secrets/
