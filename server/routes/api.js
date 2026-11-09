@@ -213,8 +213,9 @@ apiRouter.post('/school/chapters/:chapterId/episodes/:episodeId/checkpoint', aut
 // ==========================================
 // 3. Spaced Repetition Practice Flashcards (Wireframe 23, PS-19)
 // ==========================================
-apiRouter.get('/school/practice/flashcards', authenticateToken, requireChildOwnership, (req, res) => {
-  const { studentId = 'stu-001' } = req.query;
+apiRouter.get('/school/practice/flashcards', authenticateToken, requireRole('student'), (req, res) => {
+  const studentId = req.user.studentId;
+  if (!studentId) return res.status(403).json({ code: 'PROFILE_NOT_LINKED', message: 'No verified student profile is linked to this account.' });
   try {
     const flashcards = db.prepare('SELECT * FROM practice_flashcards WHERE student_id = ?').all(studentId);
     res.json(flashcards.map(f => ({
@@ -234,12 +235,19 @@ apiRouter.get('/school/practice/flashcards', authenticateToken, requireChildOwne
   }
 });
 
-apiRouter.post('/school/practice/flashcards/:id/review', authenticateToken, (req, res) => {
+apiRouter.post('/school/practice/flashcards/:id/review', authenticateToken, requireRole('student'), (req, res) => {
   const { id } = req.params;
-  const { isCorrect } = req.body;
+  const { isCorrect } = req.body || {};
+  if (typeof isCorrect !== 'boolean') {
+    return res.status(400).json({ code: 'INVALID_REVIEW', message: 'isCorrect must be a boolean.' });
+  }
+  if (!req.user.studentId) {
+    return res.status(403).json({ code: 'PROFILE_NOT_LINKED' });
+  }
 
   try {
-    const card = db.prepare('SELECT * FROM practice_flashcards WHERE id = ?').get(id);
+    const card = db.prepare('SELECT * FROM practice_flashcards WHERE id = ? AND student_id = ?')
+      .get(id, req.user.studentId);
     if (!card) {
       return res.status(404).json({ code: 'NOT_FOUND', message: 'Flashcard not found.' });
     }
