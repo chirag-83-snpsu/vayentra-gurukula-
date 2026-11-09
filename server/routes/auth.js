@@ -2,6 +2,7 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { db } from '../db/database.js';
+import { ensureStudentPassport } from '../domain/passportService.js';
 import { JWT_SECRET, authenticateToken, requireRole } from '../middleware/auth.js';
 
 export const authRouter = Router();
@@ -309,7 +310,12 @@ authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']
     return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Child name is required.' });
   }
 
-  const guardianId = req.user.guardianId || req.body.guardianId;
+  // Parent accounts may only register children under their authenticated guardian identity.
+  const guardianId=req.user.role==='parent'?req.user.guardianId:req.body.guardianId;
+  if(!Number.isInteger(Number(grade))||Number(grade)<1||Number(grade)>10)
+    return res.status(400).json({code:'INVALID_GRADE'});
+  if(!['CBSE','STATE','STATE_KARNATAKA'].includes(board))
+    return res.status(400).json({code:'INVALID_BOARD'});
   if (!guardianId) {
     return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Guardian identifier is required.' });
   }
@@ -317,6 +323,7 @@ authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']
   try {
     const studentId = `stu-${Date.now()}`;
     const timestamp = new Date().toISOString();
+    db.exec('BEGIN IMMEDIATE');
 
     db.prepare(`
       INSERT INTO students (
@@ -346,6 +353,10 @@ authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']
       VALUES (?, ?, ?, 'v2.1', ?, 'sha256_vayentra_dpdp_consent_verified')
     `).run(consentId, guardianId, studentId, req.ip || '127.0.0.1');
 
+    // Create stable academic identity before confirming this student registration.
+    ensureStudentPassport(db,studentId);
+    db.exec('COMMIT');
+
     const newStudent = db.prepare('SELECT * FROM students WHERE id = ?').get(studentId);
 
     res.json({
@@ -354,6 +365,7 @@ authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']
       message: `Child profile for ${name} created with DPDP Guardian Consent recorded.`
     });
   } catch (err) {
+    try{db.exec('ROLLBACK');}catch(_rollbackError){}
     console.error('[Add Child Error]:', err);
     res.status(500).json({ code: 'SERVER_ERROR', message: 'Failed to create child profile.' });
   }
