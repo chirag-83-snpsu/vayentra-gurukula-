@@ -147,6 +147,14 @@ export const App: React.FC = () => {
 
     switch (role) {
       case 'student':
+        if (!hasAccess(['student'])) {
+          return <AccessDeniedCard
+            title="Learning Universe Access Restricted"
+            description="Sign in with a verified and explicitly linked student account. Selecting a class or role in the browser never grants learner access."
+            requiredRole="student"
+            onSignIn={() => setShowAuthModal(true)}
+          />;
+        }
         return <StudentView />;
       case 'parent':
         if (!hasAccess(['parent', 'admin'])) {
@@ -213,7 +221,12 @@ export const App: React.FC = () => {
       case 'tech_learner':
         return <TechAcademyView />;
       default:
-        return <StudentView />;
+        return <AccessDeniedCard
+          title="Account Access Restricted"
+          description="This area is not available to your authenticated role."
+          requiredRole="student"
+          onSignIn={() => setShowAuthModal(true)}
+        />;
     }
   };
 
