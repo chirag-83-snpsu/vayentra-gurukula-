@@ -46,7 +46,7 @@ export function authenticateToken(req, res, next) {
     if (user.role === 'parent') {
       guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
     } else if (user.role === 'student') {
-      student = db.prepare('SELECT * FROM students WHERE id = ? OR name = ?').get(decoded.studentId || 'stu-001', user.name);
+      student = db.prepare('SELECT s.* FROM learner_student_accounts a JOIN students s ON s.id=a.student_id WHERE a.user_id=?').get(user.id);
     } else if (user.role === 'teacher') {
       teacher = db.prepare('SELECT * FROM teachers WHERE user_id = ?').get(user.id);
     }
@@ -139,7 +139,7 @@ export function requireChildOwnership(req, res, next) {
   }
 
   if (req.user.role === 'student') {
-    if (req.user.studentId && req.user.studentId !== requestedStudentId) {
+    if (!req.user.studentId || req.user.studentId !== requestedStudentId) {
       return res.status(403).json({
         code: 'FORBIDDEN',
         message: 'Students may only access their own enrolled coursework and notebooks.'
