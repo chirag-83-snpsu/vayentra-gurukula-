@@ -10,6 +10,7 @@ import { attendanceRouter } from './routes/attendance.js';
 import { assignmentsRouter } from './routes/assignments.js';
 import { parentRouter } from './routes/parent.js';
 import { diagnosticsRouter } from './routes/diagnostics.js';
+import { cbseLibraryRouter } from './routes/cbseLibrary.js';
 
 // Initialize SQLite database and seed records
 initDatabase();
@@ -66,6 +67,7 @@ app.use('/api/v1/attendance', attendanceRouter);
 app.use('/api/v1/assignments', assignmentsRouter);
 app.use('/api/v1/parent', parentRouter);
 app.use('/api/v1/diagnostics', diagnosticsRouter);
+app.use('/api/v1/cbse', cbseLibraryRouter);
 app.use('/api/v1', apiRouter);
 
 // Fallback 404 handler
