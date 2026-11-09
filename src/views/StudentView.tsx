@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Episode, CheckpointQuestion } from '../types';
 import { UniversalStateWrapper } from '../components/UniversalStateWrapper';
 import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
+import { LearningCompass } from '../components/LearningCompass';
 import confetti from 'canvas-confetti';
 import { 
   Play, 
@@ -41,7 +42,7 @@ export const StudentView: React.FC = () => {
   const isPrimary = activeChild.grade <= 4;
 
   // Navigation tab within student hub
-  const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map' | 'homework'>('learn');
+  const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map' | 'homework' | 'diagnostics'>('learn');
 
   // Currently selected chapter & episode
   const currentChapter = chapters[0];
@@ -204,7 +205,10 @@ export const StudentView: React.FC = () => {
         >
           <FileText size={16} /> Homework & Assessments
         </button>
+        <button type="button" className={activeTab === 'diagnostics' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('diagnostics')}>Learning Compass</button>
       </div>
+
+      {activeTab === 'diagnostics' && <LearningCompass mode="student" />}
 
       {/* TAB 1: LEARN (Episode Player / Story Mode) */}
       {activeTab === 'learn' && (
