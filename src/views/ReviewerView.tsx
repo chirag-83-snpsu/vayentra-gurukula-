@@ -101,7 +101,7 @@ export const ReviewerView: React.FC = () => {
             <input type="checkbox" defaultChecked /> 3 Checkpoint questions include complete explanations (no raw answer keys).
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-            <input type="checkbox" defaultChecked /> Media license rights and Kannada translation paired.
+            <input type="checkbox" defaultChecked /> Media licensing and English copy verified.
           </label>
         </div>
       </div>
