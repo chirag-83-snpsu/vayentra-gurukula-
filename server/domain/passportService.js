@@ -86,8 +86,7 @@ export function verifyStudentYear(db,{studentId,adminUserId,grade,board,yearKey}
   db.prepare(
    "UPDATE learner_academic_years SET grade=?,board=?,year_key=?,status='active',verified_by=?,verified_at=datetime('now') WHERE id=? AND status='pending_review'"
   ).run(grade,board,yearKey,adminUserId,open.id);
-  db.prepare("UPDATE learner_guardian_links SET verification_status='verified' WHERE learner_id=? AND guardian_id=? AND verification_status='legacy_unverified'")
-   .run(p.learner_id,student.guardian_id);
+  // Academic-year verification must NOT independently certify a guardian relationship.
   db.prepare('INSERT INTO learner_passport_audit(id,learner_id,actor_user_id,action,event_json) VALUES(?,?,?,?,?)')
    .run('p-aud-'+randomUUID(),p.learner_id,adminUserId,'ACADEMIC_YEAR_VERIFIED',
     JSON.stringify({yearId:open.id,yearKey,grade,board}));
