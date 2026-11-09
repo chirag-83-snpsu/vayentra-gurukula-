@@ -94,6 +94,52 @@ cbseLibraryRouter.get('/topics',(req,res)=>{
   });
  }catch(err){console.error('[CBSE Topics]',err);res.status(500).json({code:'TOPICS_ERROR'});}
 });
+// Low-stakes anonymous practice for published Vayentra ORIGINAL lessons only.
+// No personal information is collected or stored by this endpoint.
+cbseLibraryRouter.get('/topics/:id/practice',(req,res)=>{
+ try{
+  const topic=lookupTopic(req.params.id);
+  if(!topic||topic.status!=='published'||topic.production_status!=='ready'||!topic.media_url)
+   return res.status(404).json({code:'LESSON_NOT_PUBLISHED'});
+  const questions=db.prepare(`
+   SELECT id,question,options_json,position FROM cbse_topic_practice_items
+   WHERE topic_id=? AND status='published' ORDER BY position
+  `).all(topic.id);
+  return res.json({topicId:topic.id,questions:questions.map(q=>({
+   id:q.id,question:q.question,options:JSON.parse(q.options_json),position:q.position
+  })),message:'This check is for learning, not a ranked test. Answers are shown after submission.'});
+ }catch(err){console.error('[Practice get]',err);return res.status(500).json({code:'SERVER_ERROR'});}
+});
+cbseLibraryRouter.post('/topics/:id/practice/check',(req,res)=>{
+ try{
+  const topic=lookupTopic(req.params.id);
+  if(!topic||topic.status!=='published'||topic.production_status!=='ready'||!topic.media_url)
+   return res.status(404).json({code:'LESSON_NOT_PUBLISHED'});
+  const items=db.prepare(`
+   SELECT * FROM cbse_topic_practice_items
+   WHERE topic_id=? AND status='published' ORDER BY position
+  `).all(topic.id);
+  if(!items.length)return res.status(404).json({code:'PRACTICE_NOT_AVAILABLE'});
+  const responses=req.body?.responses;
+  if(!Array.isArray(responses)||responses.length!==items.length)
+   return res.status(400).json({code:'INCOMPLETE_RESPONSES'});
+  const answerMap=new Map();
+  for(const row of responses){
+   if(typeof row?.itemId!=='string'||!Number.isInteger(row.selectedIndex)||
+      row.selectedIndex<0||row.selectedIndex>3||answerMap.has(row.itemId))
+     return res.status(400).json({code:'INVALID_RESPONSES'});
+   answerMap.set(row.itemId,row.selectedIndex);
+  }
+  if(items.some(i=>!answerMap.has(i.id)))return res.status(400).json({code:'WRONG_ITEM_IDS'});
+  const feedback=items.map(i=>({
+   itemId:i.id,isCorrect:answerMap.get(i.id)===i.correct_index,
+   correctIndex:i.correct_index,explanation:i.explanation,
+   focusSignal:answerMap.get(i.id)===i.correct_index?null:i.misconception_code
+  }));
+  return res.json({correct:feedback.filter(f=>f.isCorrect).length,total:items.length,feedback,
+   message:'Review the explanations and ask your teacher about any unclear concept.'});
+ }catch(err){console.error('[Practice check]',err);return res.status(500).json({code:'SERVER_ERROR'});}
+});
 cbseLibraryRouter.use('/teacher',authenticateToken,requireRole(['teacher','admin']));
 cbseLibraryRouter.get('/teacher/topics',(req,res)=>{
  const grade=parseGrade(req.query.grade);
@@ -105,6 +151,20 @@ cbseLibraryRouter.get('/teacher/topics',(req,res)=>{
  const topics=db.prepare('SELECT id FROM cbse_topics WHERE source_id=? ORDER BY chapter_title,lesson_order').all(source.id);
  res.json({topics:topics.map(t=>lookupTopic(t.id)).map(row=>({...safePublicTopic(row),
   status:row.status,scriptOutline:row.script_outline||'',productionStatus:row.production_status||'not_started'
+ }))});
+});
+cbseLibraryRouter.get('/teacher/topics/:id/practice',(req,res)=>{
+ const topic=lookupTopic(req.params.id);
+ if(!topic)return res.status(404).json({code:'TOPIC_NOT_FOUND'});
+ if(!hasContentPermission(req.user,topic))return res.status(403).json({code:'FORBIDDEN'});
+ const rows=db.prepare(`
+  SELECT id,question,options_json,correct_index,explanation,misconception_code,position,status
+  FROM cbse_topic_practice_items WHERE topic_id=? ORDER BY position
+ `).all(topic.id);
+ res.json({topicId:topic.id,reviewStatus:topic.status,questions:rows.map(i=>({
+  id:i.id,question:i.question,options:JSON.parse(i.options_json),
+  correctIndex:i.correct_index,explanation:i.explanation,
+  misconceptionCode:i.misconception_code,position:i.position,status:i.status
  }))});
 });
 cbseLibraryRouter.post('/teacher/topics',(req,res)=>{
@@ -152,6 +212,8 @@ cbseLibraryRouter.post('/teacher/topics/:id/publish',(req,res)=>{
  if(teacherReviewed!==true||originalContentConfirmed!==true||sourceChecked!==true)
   return res.status(400).json({code:'REVIEW_REQUIRED',message:'Confirm academic alignment and ownership of original video content.'});
  if(!topic.script_outline||topic.script_outline.length<60)return res.status(400).json({code:'SCRIPT_REQUIRED'});
+ const questionCount=db.prepare('SELECT COUNT(*) AS n FROM cbse_topic_practice_items WHERE topic_id=?').get(topic.id).n;
+ if(questionCount>0&&questionCount<3)return res.status(400).json({code:'PRACTICE_REVIEW_REQUIRED',message:'Prepare three checked questions before publication.'});
  if(!isOriginalMediaUrl(mediaUrl)||!['mp4','webm'].includes(mediaType)||!Number.isInteger(durationSeconds)||durationSeconds<10||durationSeconds>3600)
   return res.status(400).json({code:'INVALID_MEDIA',message:'Provide a reviewed video URL from an approved host and duration.'});
  if(!mediaUrl.toLowerCase().split('?')[0].endsWith('.'+mediaType))
@@ -165,6 +227,7 @@ cbseLibraryRouter.post('/teacher/topics/:id/publish',(req,res)=>{
     production_status='ready',reviewed_by_user_id=?,reviewed_at=datetime('now'),
     published_at=datetime('now'),updated_at=datetime('now') WHERE topic_id=?
   `).run(mediaUrl,mediaType,durationSeconds,req.user.id,topic.id);
+  db.prepare("UPDATE cbse_topic_practice_items SET status='published' WHERE topic_id=? AND status='draft'").run(topic.id);
   db.exec('COMMIT');
   res.json({success:true,status:'published',videoStatus:'ready'});
  }catch(err){try{db.exec('ROLLBACK')}catch{}console.error('[CBSE video publish]',err);res.status(500).json({code:'PUBLISH_FAILED'});}
