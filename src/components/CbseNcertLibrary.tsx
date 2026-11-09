@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {BookOpen,ExternalLink,Film,GraduationCap,PlayCircle,ShieldCheck} from 'lucide-react';
 import {useApp} from '../context/AppContext';
+import {CbseLessonCheck} from './CbseLessonCheck';
 
 type SubjectSource={id:string;grade:number;subject:string;publisher:string;source_portal:string;source_status:string;curriculum_status:string;academic_year:string};
 type LibraryTopic={
@@ -108,6 +109,7 @@ export const CbseNcertLibrary:React.FC=()=>{
          Your browser does not support this video playback.
         </video>
        :<div className="vg-ncert-no-video"><PlayCircle size={42}/><strong>Original AI-assisted video not published</strong><p>Teacher approval and a verified video asset are required. Continue learning through class teaching and the official textbook.</p></div>}
+      {selected.video.status==='ready'&&selected.video.url&&<CbseLessonCheck topicId={selected.id}/>}
       <div className="t-tiny" style={{marginTop:12}}>Vayentra-created content, independently reviewed by faculty. NCERT is a reference publisher, not a video production partner.</div>
      </>:<div className="vg-ncert-no-video"><Film size={42}/><strong>Select a published topic</strong><p>Available video lessons appear here after teacher review and media approval.</p></div>}
     </div>
