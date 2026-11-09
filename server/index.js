@@ -14,6 +14,7 @@ import { cbseLibraryRouter } from './routes/cbseLibrary.js';
 import { admissionsRouter } from './routes/admissions.js';
 import { journeyRouter } from './routes/journey.js';
 import { oneContentRouter } from './routes/oneContent.js';
+import { oneOnboardingRouter } from './routes/oneOnboarding.js';
 
 // Phase 0 safety gate: production must never seed demo students, default passwords,
 // pseudo-consent, or unverified third-party identity. Release requires independent audit.
@@ -83,6 +84,7 @@ app.use('/api/v1/diagnostics', diagnosticsRouter);
 app.use('/api/v1/cbse', cbseLibraryRouter);
 app.use('/api/v1/admissions', admissionsRouter);
 app.use('/api/v1/journey', journeyRouter);
+app.use('/api/v1/one-onboarding', oneOnboardingRouter);
 app.use('/api/v1/one-content', oneContentRouter);
 app.use('/api/v1', apiRouter);
 
