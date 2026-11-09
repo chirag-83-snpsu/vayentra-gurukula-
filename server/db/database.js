@@ -5,7 +5,10 @@ import { runMigrations } from './migrations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_PATH = path.join(__dirname, 'vayentra.sqlite');
+// A separate DB can be selected for isolated test runs and data-safe migration rehearsal.
+const DB_PATH = process.env.VAYENTRA_DB_PATH
+  ? path.resolve(process.env.VAYENTRA_DB_PATH)
+  : path.join(__dirname, 'vayentra.sqlite');
 
 export const db = new DatabaseSync(DB_PATH);
 
