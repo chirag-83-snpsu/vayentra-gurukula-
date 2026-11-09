@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
+import { AuthModal } from './components/AuthModal';
 import { StudentView } from './views/StudentView';
 import { ParentView } from './views/ParentView';
 import { TeacherView } from './views/TeacherView';
@@ -9,6 +10,8 @@ import { AdminView } from './views/AdminView';
 import { SafeguardingView } from './views/SafeguardingView';
 import { TechAcademyView } from './views/TechAcademyView';
 import { PublicView } from './views/PublicView';
+import { LandingPage } from './views/LandingPage';
+import { StudentLoginPage } from './views/StudentLoginPage';
 
 import { 
   BookOpen, 
@@ -17,16 +20,106 @@ import {
   ClipboardCheck, 
   SlidersHorizontal, 
   ShieldCheck, 
+  ShieldAlert,
   Sparkles,
   Compass,
-  RotateCcw,
-  HelpCircle,
-  Home
+  Home,
+  Lock,
+  WifiOff,
+  RefreshCw
 } from 'lucide-react';
 
+const AccessDeniedCard: React.FC<{
+  title: string;
+  description: string;
+  requiredRole: string;
+  onSignIn: () => void;
+}> = ({ title, description, requiredRole, onSignIn }) => (
+  <div className="b" style={{
+    maxWidth: '520px',
+    margin: '60px auto',
+    padding: '36px 32px',
+    textAlign: 'center',
+    background: 'var(--color-paper-card)',
+    borderRadius: '16px',
+    boxShadow: 'var(--shadow-md)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '16px'
+  }}>
+    <div style={{
+      width: '64px',
+      height: '64px',
+      borderRadius: '50%',
+      background: 'rgba(239, 68, 68, 0.1)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--color-error)'
+    }}>
+      <ShieldAlert size={32} />
+    </div>
+    <div className="h2" style={{ fontSize: '22px', fontWeight: 800 }}>
+      {title}
+    </div>
+    <p className="t-muted" style={{ fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
+      {description}
+    </p>
+    <div className="chip chip-saffron" style={{ fontSize: '11px', fontWeight: 700 }}>
+      REQUIRED PERMISSION: {requiredRole.toUpperCase()}
+    </div>
+    <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '8px' }}>
+      <button
+        type="button"
+        className="btn btn-navy"
+        onClick={onSignIn}
+        style={{ flex: 1, justifyContent: 'center' }}
+      >
+        Sign In with Authorized Account
+      </button>
+    </div>
+  </div>
+);
+
 export const App: React.FC = () => {
-  const { role, setRole, isChildModeLocked, activeChild } = useApp();
-  const [showPublicPortal, setShowPublicPortal] = useState(false);
+  const {
+    role,
+    setRole,
+    currentUser,
+    isAuthenticated,
+    isChildModeLocked,
+    showPublicPortal,
+    setShowPublicPortal,
+    isOfflineMode,
+    toggleOfflineMode
+  } = useApp();
+
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  // Public routes are distinct from the authenticated application shell.
+  // Never grant portal access based only on a URL parameter or class selector.
+  const [page, setPage] = useState<'home'|'login'|'explore'|'portal'>(() => {
+    const path = window.location.pathname;
+    if (path === '/login') return 'login';
+    if (path === '/explore') return 'explore';
+    if (path === '/app') return 'portal';
+    return 'home';
+  });
+  const navigate = (next: 'home'|'login'|'explore'|'portal') => {
+    const path = next === 'home' ? '/' : next === 'portal' ? '/app' : '/' + next;
+    window.history.pushState({}, '', path);
+    setPage(next);
+    if (next === 'portal') setShowPublicPortal(false);
+  };
+  useEffect(() => {
+    const onPop = () => {
+      const path = window.location.pathname;
+      setPage(path === '/login' ? 'login' : path === '/explore' ? 'explore' : path === '/app' ? 'portal' : 'home');
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
 
   const navItems = [
     { id: 'student', label: 'Learn Hub', icon: BookOpen },
@@ -38,6 +131,11 @@ export const App: React.FC = () => {
     { id: 'tech_learner', label: 'Tech Academy', icon: Sparkles }
   ];
 
+  const hasAccess = (allowedRoles: string[]) => {
+    if (!isAuthenticated || !currentUser) return false;
+    return allowedRoles.includes(currentUser.role);
+  };
+
   const renderActiveView = () => {
     if (showPublicPortal) return <PublicView />;
 
@@ -45,14 +143,64 @@ export const App: React.FC = () => {
       case 'student':
         return <StudentView />;
       case 'parent':
+        if (!hasAccess(['parent', 'admin'])) {
+          return (
+            <AccessDeniedCard
+              title="Parent Family Portal Restricted"
+              description="Access to family settings, progress analytics, and child screen-time locks requires a verified Parent or Guardian account."
+              requiredRole="parent"
+              onSignIn={() => setShowAuthModal(true)}
+            />
+          );
+        }
         return <ParentView />;
       case 'teacher':
+        if (!hasAccess(['teacher', 'admin'])) {
+          return (
+            <AccessDeniedCard
+              title="Teacher Studio Access Restricted"
+              description="The Teacher Studio is restricted to certified faculty members for curriculum sequencing and student mastery reviews."
+              requiredRole="teacher"
+              onSignIn={() => setShowAuthModal(true)}
+            />
+          );
+        }
         return <TeacherView />;
       case 'reviewer':
+        if (!hasAccess(['reviewer', 'admin'])) {
+          return (
+            <AccessDeniedCard
+              title="Editorial Review Desk Restricted"
+              description="The Editorial Review Desk requires Board Examiner credentials to verify syllabus alignment and AI checkpoints."
+              requiredRole="reviewer"
+              onSignIn={() => setShowAuthModal(true)}
+            />
+          );
+        }
         return <ReviewerView />;
       case 'admin':
+        if (!hasAccess(['admin'])) {
+          return (
+            <AccessDeniedCard
+              title="Admin & Finance Console Restricted"
+              description="Access to the institution's financial ledger, plan configuration, and user audits requires Principal or Administrator clearance."
+              requiredRole="admin"
+              onSignIn={() => setShowAuthModal(true)}
+            />
+          );
+        }
         return <AdminView />;
       case 'safeguarding':
+        if (!hasAccess(['safeguarding', 'admin'])) {
+          return (
+            <AccessDeniedCard
+              title="Safeguarding Vault Restricted"
+              description="Confidential child welfare reports and legal escalation dossiers are restricted to designated Safeguarding Officers."
+              requiredRole="safeguarding"
+              onSignIn={() => setShowAuthModal(true)}
+            />
+          );
+        }
         return <SafeguardingView />;
       case 'tech_learner':
         return <TechAcademyView />;
@@ -61,14 +209,49 @@ export const App: React.FC = () => {
     }
   };
 
+  if (page === 'home') return <LandingPage onLogin={() => navigate('login')} onExplore={() => navigate('explore')} />;
+  if (page === 'login') return <StudentLoginPage onBack={() => navigate('home')} onSuccess={() => navigate('portal')} />;
+  if (page === 'explore') return <div className="vg-public-explore">
+    <header style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:15,padding:'18px 28px',borderBottom:'1px solid #e4e8f1',background:'#fff'}}>
+      <button className="ghost" onClick={() => navigate('home')}><Home size={17}/> Back to Home</button>
+      <button className="btn btn-navy" onClick={() => navigate('login')}>Student Login</button>
+    </header>
+    <PublicView />
+  </div>;
+  // The existing portal shell remains private, including during local development.
+  if (!isAuthenticated || !currentUser) return <StudentLoginPage onBack={() => navigate('home')} onSuccess={() => navigate('portal')} />;
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
       {/* Top Navbar */}
       <Navbar />
 
-      {/* Responsive App Shell (31_ResponsiveLayouts.html) */}
-      <div className="app-shell" style={{ flex: 1, display: 'flex' }}>
+      {/* Truthful Global Offline State Indicator */}
+      {isOfflineMode && (
+        <div className="global-offline-banner" role="status">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <WifiOff size={16} color="var(--color-gold-bright)" />
+            <span>Low-Bandwidth Offline Mode: Showing cached materials. Attendance commits and server actions require connectivity.</span>
+          </div>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => {
+              if (typeof navigator !== 'undefined' && navigator.onLine) {
+                toggleOfflineMode();
+              } else {
+                window.location.reload();
+              }
+            }}
+            style={{ color: '#ffffff', borderColor: '#475569', fontSize: '11px', padding: '3px 8px', minHeight: '28px' }}
+          >
+            <RefreshCw size={12} /> Sync Status
+          </button>
+        </div>
+      )}
+
+      {/* Responsive App Shell */}
+      <div className="app-shell" style={{ flex: 1 }}>
         
         {/* Tablet Left Rail (768px - 1279px) */}
         {!isChildModeLocked && (
@@ -134,47 +317,24 @@ export const App: React.FC = () => {
               })}
             </div>
 
-            {/* Bottom Quick Context Card */}
+            {/* Bottom Platform Info Card */}
             <div style={{ marginTop: 'auto', padding: '14px', borderRadius: '8px', background: 'var(--color-paper-subtle)', border: '1px solid var(--color-border-subtle)' }}>
-              <div className="t-tiny" style={{ fontWeight: 700 }}>VAYENTRA PILOT R1</div>
-              <div className="t-tiny" style={{ marginTop: '2px' }}>
-                All 100 Developer Design Diagrams & 83 Wireframes Implemented.
+              <div className="t-tiny" style={{ fontWeight: 700, color: 'var(--color-navy-primary)' }}>VAYENTRA GURUKULA</div>
+              <div className="t-tiny" style={{ marginTop: '2px', color: 'var(--color-text-muted)' }}>
+                Concept-Based Academic Coaching & Learning Platform
               </div>
             </div>
           </aside>
         )}
 
         {/* Central Main Learning Canvas */}
-        <main style={{ flex: 1, padding: '24px 20px', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+        <main className="app-canvas">
           {renderActiveView()}
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation Bar (Phones < 768px: Wireframe 31) */}
-      <nav className="app-bottom-nav">
-        <div
-          className={`bottom-nav-item ${role === 'student' && !showPublicPortal ? 'active' : ''}`}
-          onClick={() => { setRole('student'); setShowPublicPortal(false); }}
-        >
-          <Home size={20} />
-          <span>Home</span>
-        </div>
-        <div
-          className={`bottom-nav-item ${role === 'student' ? 'active' : ''}`}
-          onClick={() => { setRole('student'); setShowPublicPortal(false); }}
-        >
-          <BookOpen size={20} />
-          <span>Learn</span>
-        </div>
-        {!isChildModeLocked && (
-          <div
-            className={`bottom-nav-item ${role === 'parent' ? 'active' : ''}`}
-            onClick={() => { setRole('parent'); setShowPublicPortal(false); }}
-          >
-            <Users size={20} />
-            <span>Family</span>
-          </div>
-        )}
+      {/* Mobile Bottom Navigation Bar (< 768px) */}
+      <nav className="app-bottom-nav" aria-label="Mobile Navigation">
         <div
           className={`bottom-nav-item ${showPublicPortal ? 'active' : ''}`}
           onClick={() => setShowPublicPortal(true)}
@@ -182,7 +342,65 @@ export const App: React.FC = () => {
           <Compass size={20} />
           <span>Explore</span>
         </div>
+
+        {/* Dynamic Role Primary Tab */}
+        {role === 'teacher' ? (
+          <div
+            className={`bottom-nav-item ${role === 'teacher' && !showPublicPortal ? 'active' : ''}`}
+            onClick={() => { setRole('teacher'); setShowPublicPortal(false); }}
+          >
+            <GraduationCap size={20} />
+            <span>Faculty</span>
+          </div>
+        ) : role === 'admin' ? (
+          <div
+            className={`bottom-nav-item ${role === 'admin' && !showPublicPortal ? 'active' : ''}`}
+            onClick={() => { setRole('admin'); setShowPublicPortal(false); }}
+          >
+            <SlidersHorizontal size={20} />
+            <span>Admin</span>
+          </div>
+        ) : role === 'reviewer' ? (
+          <div
+            className={`bottom-nav-item ${role === 'reviewer' && !showPublicPortal ? 'active' : ''}`}
+            onClick={() => { setRole('reviewer'); setShowPublicPortal(false); }}
+          >
+            <ClipboardCheck size={20} />
+            <span>Review</span>
+          </div>
+        ) : (
+          <div
+            className={`bottom-nav-item ${role === 'student' && !showPublicPortal ? 'active' : ''}`}
+            onClick={() => { setRole('student'); setShowPublicPortal(false); }}
+          >
+            <BookOpen size={20} />
+            <span>Learn</span>
+          </div>
+        )}
+
+        {/* Family Portal Tab */}
+        {!isChildModeLocked && (
+          <div
+            className={`bottom-nav-item ${role === 'parent' && !showPublicPortal ? 'active' : ''}`}
+            onClick={() => { setRole('parent'); setShowPublicPortal(false); }}
+          >
+            <Users size={20} />
+            <span>Family</span>
+          </div>
+        )}
+
+        {/* Tech Academy or Student Tab */}
+        <div
+          className={`bottom-nav-item ${role === 'tech_learner' && !showPublicPortal ? 'active' : ''}`}
+          onClick={() => { setRole('tech_learner'); setShowPublicPortal(false); }}
+        >
+          <Sparkles size={20} />
+          <span>Academy</span>
+        </div>
       </nav>
+
+      {/* Auth Modal Triggered by Access Denied Card or Actions */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
     </div>
   );
