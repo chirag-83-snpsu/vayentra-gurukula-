@@ -50,6 +50,7 @@ export function authenticateToken(req, res, next) {
       student = db.prepare(
         'SELECT s.* FROM students s JOIN one_student_account_links l ON l.student_id=s.id WHERE l.user_id=?'
       ).get(user.id);
+      if (!student) return res.status(403).json({code:'STUDENT_LINK_REQUIRED',message:'Student account is not linked to a verified learner profile.'});
     } else if (user.role === 'teacher') {
       teacher = db.prepare('SELECT * FROM teachers WHERE user_id = ?').get(user.id);
     }
