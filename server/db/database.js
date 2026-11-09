@@ -273,7 +273,8 @@ export function initDatabase() {
     );
   `);
 
-  seedInitialData();
+  // Foundation branch is development-only. Never seed demo accounts into production.
+  if(process.env.NODE_ENV !== 'production') seedInitialData();
   runMigrations();
 }
 
