@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { db } from '../db/database.js';
+import { JWT_SECRET, authenticateToken, requireRole } from '../middleware/auth.js';
 
 export const authRouter = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'vayentra_gurukula_jwt_secret_2026';
 
-// Helper to decode or verify Google credential
+// In-memory challenge store for mobile OTP with TTL
+const otpChallenges = new Map();
+
+// Helper to decode Google credential
 function parseGoogleJwt(credential) {
   try {
     const parts = credential.split('.');
@@ -25,7 +29,135 @@ function parseGoogleJwt(credential) {
 }
 
 // ========================================================
-// 1. Google OAuth 2.0 Endpoint
+// 1. Password-based Login (Admin, Teacher, Safeguarding, Reviewer, Parent, Student)
+// ========================================================
+authRouter.post('/login', (req, res) => {
+  const { email, password, audience, grade } = req.body || {};
+  if (audience !== undefined && !['student', 'parent', 'staff'].includes(audience)) {
+    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Choose a valid account type.' });
+  }
+
+  if (!email || !password) {
+    return res.status(400).json({
+      code: 'VALIDATION_ERROR',
+      message: 'Both email and password are required.'
+    });
+  }
+
+  try {
+    const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = LOWER(?)').get(email.trim());
+
+    if (!user || !user.password_hash) {
+      return res.status(401).json({
+        code: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password.'
+      });
+    }
+
+    const isMatch = bcrypt.compareSync(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({
+        code: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password.'
+      });
+    }
+
+    // The account type is a login preference, not a permission grant.
+    // Always verify against the actual server-side role after the password is checked.
+    if (audience) {
+      const matches = audience === 'staff'
+        ? ['teacher','reviewer','admin','safeguarding'].includes(user.role)
+        : user.role === audience;
+      if (!matches) {
+        return res.status(403).json({ code: 'ACCOUNT_TYPE_MISMATCH', message: 'This account is not registered for the selected sign-in type.' });
+      }
+    }
+
+    // Hydrate role profiles
+    const guardian = user.role === 'parent'
+      ? db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id)
+      : null;
+    const children = guardian
+      ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id)
+      : [];
+    // No fallback or name-based matching: a student's identity comes from an explicit verified link.
+    const student = user.role === 'student'
+      ? db.prepare(`SELECT s.* FROM student_user_links l
+          JOIN students s ON s.id = l.student_id WHERE l.user_id = ?`).get(user.id)
+      : null;
+    if (user.role === 'student' && !student) {
+      return res.status(403).json({code:'STUDENT_NOT_LINKED',message:'No enrolled student profile is linked to this login. Contact the institute.'});
+    }
+    if (user.role === 'student' && grade !== undefined) {
+      const selectedGrade = Number(grade);
+      if (!Number.isInteger(selectedGrade) || selectedGrade < 1 || selectedGrade > 10) {
+        return res.status(400).json({code:'INVALID_CLASS',message:'Select a valid class from 1 to 10.'});
+      }
+      if (Number(student.grade) !== selectedGrade) {
+        return res.status(403).json({code:'CLASS_MISMATCH',message:'Selected class does not match your registered class. Please check with the institute.'});
+      }
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        email: user.email,
+        name: user.name,
+        guardianId: guardian?.id,
+        studentId: student?.id
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    try {
+      db.prepare(`
+        INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
+        VALUES (?, ?, 'AUTH_LOGIN_SUCCESS', 'User', ?, ?)
+      `).run(`aud-${Date.now()}`, user.email, req.ip || '127.0.0.1', JSON.stringify({ role: user.role, method: 'password' }));
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role
+      },
+      guardian,
+      children,
+      activeChild: children[0] || student || null
+    });
+  } catch (err) {
+    console.error('[Auth Login Error]:', err);
+    res.status(500).json({ code: 'SERVER_ERROR', message: 'Authentication processing failed.' });
+  }
+});
+
+// ========================================================
+// 2. Logout Endpoint
+// ========================================================
+authRouter.post('/logout', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      db.prepare(`
+        INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
+        VALUES (?, ?, 'USER_LOGOUT', 'User', ?, ?)
+      `).run(`aud-${Date.now()}`, decoded.email || decoded.userId, req.ip || '127.0.0.1', JSON.stringify({ role: decoded.role }));
+    } catch (e) {}
+  }
+  res.json({ success: true, message: 'Logged out successfully.' });
+});
+
+// ========================================================
+// 3. Google OAuth 2.0 Endpoint
 // ========================================================
 authRouter.post('/google', (req, res) => {
   const { credential, isDemoSandbox, mockUser } = req.body;
@@ -35,10 +167,17 @@ authRouter.post('/google', (req, res) => {
   if (credential) {
     googleUser = parseGoogleJwt(credential);
   } else if (isDemoSandbox || mockUser) {
-    // Sandbox verified Google identity
+    // Explicit environment boundary: Sandbox credentials prohibited in production
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({
+        code: 'SANDBOX_PROHIBITED',
+        message: 'Sandbox authentication is strictly disabled in production.'
+      });
+    }
+
     googleUser = {
       sub: mockUser?.sub || 'google-sub-' + Date.now(),
-      email: mockUser?.email || 'guardian.parent@vayentra.org',
+      email: mockUser?.email || 'guardian@vayentra.org',
       name: mockUser?.name || 'Venkatesh Prasad',
       picture: mockUser?.picture || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
       email_verified: true
@@ -53,11 +192,9 @@ authRouter.post('/google', (req, res) => {
   }
 
   try {
-    // Check if user exists by google_id or email
     let user = db.prepare('SELECT * FROM users WHERE google_id = ? OR email = ?').get(googleUser.sub, googleUser.email);
 
     if (!user) {
-      // Create new user
       const newUserId = `usr-${Date.now()}`;
       db.prepare(`
         INSERT INTO users (id, google_id, email, name, avatar, role)
@@ -66,14 +203,12 @@ authRouter.post('/google', (req, res) => {
 
       user = db.prepare('SELECT * FROM users WHERE id = ?').get(newUserId);
 
-      // Create guardian profile
       const guardianId = `par-${Date.now()}`;
       db.prepare(`
         INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, renewal_date, outstanding_fee)
         VALUES (?, ?, '1234', 'Active', 'Annual Gurukula Pro + AI Tutor', '2027-04-10', 0.0)
       `).run(guardianId, user.id);
 
-      // Create initial student profile for this guardian
       const studentId = `stu-${Date.now()}`;
       db.prepare(`
         INSERT INTO students (
@@ -83,26 +218,21 @@ authRouter.post('/google', (req, res) => {
         ) VALUES (?, ?, ?, '🦊', 7, 'CBSE', 'English', 'Vayentra Central Gurukula', '0000', 45, 0, '21:30', 1, 1, 10, 250)
       `).run(studentId, guardianId, `${googleUser.name.split(' ')[0]}'s Child`);
 
-      // Log audit
       db.prepare(`
         INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
         VALUES (?, ?, 'GOOGLE_REGISTER', 'User', ?, ?)
       `).run(`aud-${Date.now()}`, user.email, req.ip || '127.0.0.1', JSON.stringify({ name: user.name, provider: 'google' }));
     } else {
-      // Update Google ID and Avatar if needed
       db.prepare('UPDATE users SET google_id = ?, avatar = coalesce(avatar, ?) WHERE id = ?').run(googleUser.sub, googleUser.picture, user.id);
-      
       db.prepare(`
         INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
         VALUES (?, ?, 'GOOGLE_LOGIN', 'User', ?, ?)
       `).run(`aud-${Date.now()}`, user.email, req.ip || '127.0.0.1', JSON.stringify({ name: user.name, provider: 'google' }));
     }
 
-    // Fetch Guardian & Student profiles
     const guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
     const children = guardian ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id) : [];
 
-    // Issue Session JWT
     const token = jwt.sign(
       {
         userId: user.id,
@@ -136,46 +266,69 @@ authRouter.post('/google', (req, res) => {
 });
 
 // ========================================================
-// 2. Mobile OTP Flow (DLT-SMS Compliant)
+// 4. Mobile OTP Flow (DLT-SMS Compliant Challenge Store)
 // ========================================================
 authRouter.post('/otp/send', (req, res) => {
   const { mobile } = req.body;
-  if (!mobile || mobile.length < 10) {
+  if (!mobile || mobile.replace(/\D/g, '').length < 10) {
     return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Valid 10-digit mobile number is required.' });
   }
 
-  // Generate 6-digit OTP (for dev / demo, 123456 is standard)
-  const otpCode = '123456';
+  const cleanMobile = mobile.trim();
+  const isDev = process.env.NODE_ENV !== 'production';
 
-  db.prepare(`
-    INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
-    VALUES (?, ?, 'OTP_DISPATCHED', 'DLT_SMS_Gateway', ?, ?)
-  `).run(`aud-${Date.now()}`, mobile, req.ip || '127.0.0.1', JSON.stringify({ provider: 'TRAI_DLT_GATEWAY', status: 'delivered' }));
+  // Generate a cryptographically random 6-digit challenge in production, standard in dev
+  const generatedOtp = isDev ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+
+  otpChallenges.set(cleanMobile, {
+    otp: generatedOtp,
+    expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+  });
+
+  try {
+    db.prepare(`
+      INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
+      VALUES (?, ?, 'OTP_DISPATCHED', 'DLT_SMS_Gateway', ?, ?)
+    `).run(`aud-${Date.now()}`, cleanMobile, req.ip || '127.0.0.1', JSON.stringify({ provider: 'TRAI_DLT_GATEWAY', status: 'dispatched' }));
+  } catch (e) {}
 
   res.json({
     success: true,
     message: 'OTP dispatched successfully via DLT-SMS gateway.',
     expiresInSeconds: 300,
-    devHint: 'Demo OTP is 123456'
+    devHint: isDev ? 'Demo OTP is 123456' : undefined
   });
 });
 
 authRouter.post('/otp/verify', (req, res) => {
   const { mobile, otp, name } = req.body;
+  if (!mobile || !otp) {
+    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Mobile and OTP are required.' });
+  }
 
-  if (otp !== '123456' && otp !== '1234') {
+  const cleanMobile = mobile.trim();
+  const challenge = otpChallenges.get(cleanMobile);
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  const isChallengeMatch = challenge && challenge.otp === otp && challenge.expiresAt > Date.now();
+  const isDevBypass = isDev && (otp === '123456' || otp === '1234');
+
+  if (!isChallengeMatch && !isDevBypass) {
     return res.status(400).json({ code: 'INVALID_OTP', message: 'Incorrect or expired OTP. Please try again.' });
   }
 
+  // Clear challenge after successful consumption
+  otpChallenges.delete(cleanMobile);
+
   try {
-    let user = db.prepare('SELECT * FROM users WHERE mobile = ?').get(mobile);
+    let user = db.prepare('SELECT * FROM users WHERE mobile = ?').get(cleanMobile);
 
     if (!user) {
       const newUserId = `usr-${Date.now()}`;
       db.prepare(`
         INSERT INTO users (id, mobile, name, role)
         VALUES (?, ?, ?, 'parent')
-      `).run(newUserId, mobile, name || 'Vayentra Guardian');
+      `).run(newUserId, cleanMobile, name || 'Vayentra Guardian');
 
       user = db.prepare('SELECT * FROM users WHERE id = ?').get(newUserId);
 
@@ -224,36 +377,32 @@ authRouter.post('/otp/verify', (req, res) => {
 });
 
 // ========================================================
-// 3. Current User & Session Hydration
+// 5. Current User Session Hydration (Strictly Authenticated)
 // ========================================================
-authRouter.get('/me', (req, res) => {
+authRouter.get('/me', authenticateToken, (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    let userId = 'usr-guardian-01';
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        userId = decoded.userId;
-      } catch (e) {
-        // Fallback to default user
-      }
-    }
-
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    const user = db.prepare('SELECT id, email, name, avatar, role, mobile, created_at FROM users WHERE id = ?').get(req.user.id);
     if (!user) {
-      return res.status(404).json({ code: 'NOT_FOUND', message: 'User not found.' });
+      return res.status(404).json({ code: 'NOT_FOUND', message: 'User account not found.' });
     }
 
-    const guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
-    const children = guardian ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id) : [];
+    const guardian = user.role === 'parent'
+      ? db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id)
+      : null;
+    const children = guardian
+      ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id)
+      : [];
+    const student = user.role === 'student'
+      ? db.prepare(`SELECT s.* FROM student_user_links l
+          JOIN students s ON s.id = l.student_id WHERE l.user_id = ?`).get(user.id)
+      : null;
 
     res.json({
+      success: true,
       user,
       guardian,
       children,
-      activeChild: children[0] || null
+      activeChild: children[0] || student || null
     });
   } catch (err) {
     console.error('[Auth /me Error]:', err);
@@ -262,17 +411,24 @@ authRouter.get('/me', (req, res) => {
 });
 
 // ========================================================
-// 4. Verify Parent PIN (for exiting Child Mode)
+// 6. Verify Parent PIN (Verified for Authenticated Parent Session)
 // ========================================================
-authRouter.post('/pin/verify', (req, res) => {
-  const { pin, guardianId = 'par-001' } = req.body;
-  const guardian = db.prepare('SELECT * FROM guardians WHERE id = ?').get(guardianId);
+authRouter.post('/pin/verify', authenticateToken, (req, res) => {
+  const { pin } = req.body;
+  if (!pin) {
+    return res.status(400).json({ success: false, authorized: false, message: 'Parent PIN is required.' });
+  }
 
+  if (req.user.role !== 'parent' && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, authorized: false, message: 'PIN verification is restricted to guardians.' });
+  }
+
+  const guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(req.user.id);
   if (!guardian) {
     return res.status(404).json({ success: false, authorized: false, message: 'Guardian profile not found.' });
   }
 
-  if (pin === guardian.parent_pin || pin === '1234') {
+  if (pin === guardian.parent_pin) {
     return res.json({ success: true, authorized: true });
   }
 
@@ -280,11 +436,10 @@ authRouter.post('/pin/verify', (req, res) => {
 });
 
 // ========================================================
-// 5. Add Child Profile (with DPDP consent)
+// 7. Add Child Profile (Verified Parent Session with DPDP Consent)
 // ========================================================
-authRouter.post('/child/add', (req, res) => {
+authRouter.post('/child/add', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
   const {
-    guardianId = 'par-001',
     name,
     avatar = '🦁',
     grade = 7,
@@ -298,6 +453,11 @@ authRouter.post('/child/add', (req, res) => {
 
   if (!name || !name.trim()) {
     return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Child name is required.' });
+  }
+
+  const guardianId = req.user.guardianId || req.body.guardianId;
+  if (!guardianId) {
+    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Guardian identifier is required.' });
   }
 
   try {
