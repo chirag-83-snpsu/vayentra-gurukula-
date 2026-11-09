@@ -11,6 +11,11 @@ const fail=(res,code,status=400,message='Request could not be completed.')=>
 const str=(value,max=120)=>typeof value==='string'?value.trim().slice(0,max+1):'';
 const check=(value,max,min=2)=>value.length>=min&&value.length<=max&&!/[<>]/.test(value);
 const id=prefix=>prefix+'-'+randomUUID();
+function editorialLog(req,type,item,ref,rights=false,decision='approved'){
+ db.prepare("INSERT INTO one_content_review_logs(id,item_type,item_id,reviewer_id,editorial_reference,rights_attested,decision) VALUES(?,?,?,?,?,?,?)")
+  .run(id('onereview'),type,item,req.user.id,ref,rights?1:0,decision);
+}
+
 function audit(req,studentId,action,detail){
  if(studentId)db.prepare('INSERT INTO one_journey_audit(id,actor_user_id,student_id,action,detail_code) VALUES(?,?,?,?,?)')
    .run(id('oneaudit'),req.user.id,studentId,action,detail);
@@ -64,6 +69,7 @@ oneContentRouter.post('/admin/tracks/:trackId/verify',(req,res)=>{
   const track=db.prepare('SELECT * FROM one_curriculum_tracks WHERE id=?').get(req.params.trackId);
   if(!track)return fail(res,'TRACK_NOT_FOUND',404);
   db.prepare("UPDATE one_curriculum_tracks SET catalogue_status='verified',verified_at=datetime('now') WHERE id=?").run(track.id);
+  editorialLog(req,'track',track.id,ticket);
   return res.json({verified:true,warning:'Only verify after comparing the current edition against the official publisher curriculum and recording the external review evidence.'});
  }catch(err){console.error('[ONE track verify]',err);return fail(res,'UPDATE_FAILED',500);}
 });
@@ -88,6 +94,7 @@ oneContentRouter.post('/admin/subjects/:subjectId/approve',(req,res)=>{
   if(!subject)return fail(res,'SUBJECT_NOT_FOUND',404);
   if(subject.catalogue_status!=='verified')return fail(res,'TRACK_NOT_VERIFIED',409);
   db.prepare("UPDATE one_subjects SET review_status='reviewed' WHERE id=?").run(subject.id);
+  editorialLog(req,'subject',subject.id,evidence);
   return res.json({approved:true});
  }catch(err){console.error('[ONE subject review]',err);return fail(res,'UPDATE_FAILED',500);}
 });
@@ -118,6 +125,7 @@ oneContentRouter.post('/admin/chapters/:chapterId/approve',(req,res)=>{
   if(!row)return fail(res,'CHAPTER_NOT_FOUND',404);
   if(row.subject_review!=='reviewed')return fail(res,'SUBJECT_NOT_REVIEWED',409);
   db.prepare("UPDATE one_chapters SET review_status='reviewed' WHERE id=?").run(row.id);
+  editorialLog(req,'chapter',row.id,evidence);
   return res.json({approved:true});
  }catch(err){console.error('[ONE chapter review]',err);return fail(res,'UPDATE_FAILED',500);}
 });
@@ -170,6 +178,7 @@ oneContentRouter.post('/admin/concepts/:conceptId/publish',(req,res)=>{
    UPDATE one_concepts SET content_status='published',reviewer_id=?,reviewed_at=datetime('now')
    WHERE id=?
   `).run(req.user.id,row.id);
+  editorialLog(req,'concept',row.id,reviewRef,true,'published');
   return res.json({published:true,message:'Original Vayentra explanation is now available to appropriately entitled learners.'});
  }catch(err){console.error('[ONE concept publish]',err);return fail(res,'PUBLISH_FAILED',500);}
 });
