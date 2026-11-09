@@ -1222,6 +1222,179 @@ export function runMigrations() {
       console.log('[Vayentra DB] Guardian-only admissions enquiry inbox prepared.');
     }
 
+
+    // 011: Vayentra ONE longitudinal learner spine.
+    // No changes to current student grade, existing marks, attendance, guardians or fee plans.
+    const exists011=db.prepare("SELECT id FROM migrations WHERE name='011_vayentra_one_longitudinal_spine'").get();
+    if(!exists011){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS one_memberships (
+          student_id TEXT PRIMARY KEY REFERENCES students(id) ON DELETE CASCADE,
+          guardian_id TEXT NOT NULL REFERENCES guardians(id),
+          initial_grade INTEGER NOT NULL CHECK(initial_grade BETWEEN 1 AND 10),
+          initial_year TEXT NOT NULL CHECK(length(initial_year)=7),
+          target_grade INTEGER NOT NULL DEFAULT 10 CHECK(target_grade=10),
+          membership_status TEXT NOT NULL DEFAULT 'pending_consent'
+            CHECK(membership_status IN ('pending_consent','active','paused','graduated','withdrawn')),
+          entitlement_status TEXT NOT NULL DEFAULT 'not_configured'
+            CHECK(entitlement_status IN ('not_configured','pending','enabled','expired')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS one_memberships_guardian ON one_memberships(guardian_id);
+
+        CREATE TABLE IF NOT EXISTS one_consent_reviews (
+          student_id TEXT PRIMARY KEY REFERENCES one_memberships(student_id) ON DELETE CASCADE,
+          guardian_id TEXT NOT NULL REFERENCES guardians(id),
+          notice_version TEXT NOT NULL,
+          verification_method TEXT NOT NULL CHECK(verification_method IN
+            ('verified_in_person','verified_parent_records','verified_digilocker')),
+          evidence_reference TEXT NOT NULL,
+          verified_by TEXT NOT NULL REFERENCES users(id),
+          verified_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS one_academic_years (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES one_memberships(student_id) ON DELETE CASCADE,
+          academic_year TEXT NOT NULL CHECK(length(academic_year)=7),
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL CHECK(board IN ('CBSE','STATE')),
+          status TEXT NOT NULL DEFAULT 'pending'
+            CHECK(status IN ('pending','active','completed','withdrawn')),
+          started_at TEXT,
+          completed_at TEXT,
+          UNIQUE(student_id,academic_year)
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS one_year_active_unique
+          ON one_academic_years(student_id) WHERE status='active';
+
+        CREATE TABLE IF NOT EXISTS one_mark_entries (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES one_memberships(student_id) ON DELETE CASCADE,
+          academic_year_id TEXT NOT NULL REFERENCES one_academic_years(id) ON DELETE CASCADE,
+          subject TEXT NOT NULL CHECK(length(subject) BETWEEN 2 AND 80),
+          exam_label TEXT NOT NULL CHECK(length(exam_label) BETWEEN 2 AND 80),
+          marks_obtained REAL NOT NULL CHECK(marks_obtained>=0),
+          marks_maximum REAL NOT NULL CHECK(marks_maximum>0 AND marks_maximum<=1000),
+          evidence_status TEXT NOT NULL DEFAULT 'self_reported'
+            CHECK(evidence_status IN ('self_reported','school_verified')),
+          verified_by TEXT REFERENCES users(id),
+          verified_at TEXT,
+          created_by TEXT NOT NULL REFERENCES users(id),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          CHECK(marks_obtained<=marks_maximum)
+        );
+        CREATE INDEX IF NOT EXISTS one_marks_year ON one_mark_entries(academic_year_id);
+        CREATE INDEX IF NOT EXISTS one_marks_student ON one_mark_entries(student_id);
+
+        -- Metadata-only vault: binary upload requires approved encrypted object storage.
+        CREATE TABLE IF NOT EXISTS one_document_metadata (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES one_memberships(student_id) ON DELETE CASCADE,
+          academic_year_id TEXT REFERENCES one_academic_years(id),
+          document_kind TEXT NOT NULL CHECK(document_kind IN
+            ('mark_card','school_report','identity_support','other')),
+          original_name TEXT NOT NULL,
+          storage_key TEXT UNIQUE NOT NULL,
+          file_sha256 TEXT NOT NULL,
+          file_size_bytes INTEGER NOT NULL CHECK(file_size_bytes>0),
+          review_status TEXT NOT NULL DEFAULT 'quarantined'
+            CHECK(review_status IN ('quarantined','available','rejected')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          reviewed_at TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS one_curriculum_tracks (
+          id TEXT PRIMARY KEY,
+          board TEXT NOT NULL CHECK(board IN ('CBSE','STATE')),
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          edition_year TEXT NOT NULL,
+          medium TEXT NOT NULL DEFAULT 'English',
+          publisher_reference TEXT NOT NULL,
+          catalogue_status TEXT NOT NULL DEFAULT 'needs_teacher_mapping'
+            CHECK(catalogue_status IN ('needs_teacher_mapping','in_review','verified')),
+          verified_at TEXT,
+          UNIQUE(board,grade,edition_year,medium)
+        );
+        CREATE TABLE IF NOT EXISTS one_subjects (
+          id TEXT PRIMARY KEY,
+          track_id TEXT NOT NULL REFERENCES one_curriculum_tracks(id) ON DELETE CASCADE,
+          subject_title TEXT NOT NULL,
+          review_status TEXT NOT NULL DEFAULT 'draft'
+            CHECK(review_status IN ('draft','reviewed')),
+          UNIQUE(track_id,subject_title)
+        );
+        CREATE TABLE IF NOT EXISTS one_chapters (
+          id TEXT PRIMARY KEY,
+          subject_id TEXT NOT NULL REFERENCES one_subjects(id) ON DELETE CASCADE,
+          chapter_number INTEGER NOT NULL CHECK(chapter_number>=1),
+          chapter_title TEXT NOT NULL,
+          textbook_edition TEXT NOT NULL,
+          review_status TEXT NOT NULL DEFAULT 'draft'
+            CHECK(review_status IN ('draft','reviewed')),
+          UNIQUE(subject_id,chapter_number,textbook_edition)
+        );
+        CREATE TABLE IF NOT EXISTS one_concepts (
+          id TEXT PRIMARY KEY,
+          chapter_id TEXT NOT NULL REFERENCES one_chapters(id) ON DELETE CASCADE,
+          position INTEGER NOT NULL CHECK(position>=1),
+          title TEXT NOT NULL,
+          explanation_original TEXT,
+          prerequisite_concept_id TEXT REFERENCES one_concepts(id),
+          misconception_tip TEXT,
+          content_status TEXT NOT NULL DEFAULT 'draft'
+            CHECK(content_status IN ('draft','teacher_review','published')),
+          reviewer_id TEXT REFERENCES users(id),
+          reviewed_at TEXT,
+          UNIQUE(chapter_id,position)
+        );
+        CREATE TABLE IF NOT EXISTS one_concept_assets (
+          id TEXT PRIMARY KEY,
+          concept_id TEXT NOT NULL REFERENCES one_concepts(id) ON DELETE CASCADE,
+          asset_type TEXT NOT NULL CHECK(asset_type IN
+            ('original_video','diagram','worksheet','practice','teacher_note')),
+          asset_location TEXT,
+          status TEXT NOT NULL DEFAULT 'draft'
+            CHECK(status IN ('draft','teacher_review','published')),
+          verified_by TEXT REFERENCES users(id),
+          verified_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS one_concept_mastery (
+          student_id TEXT NOT NULL REFERENCES one_memberships(student_id) ON DELETE CASCADE,
+          concept_id TEXT NOT NULL REFERENCES one_concepts(id) ON DELETE CASCADE,
+          mastery TEXT NOT NULL DEFAULT 'not_started'
+            CHECK(mastery IN ('not_started','practising','needs_help','teacher_confirmed')),
+          teacher_id TEXT REFERENCES users(id),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          PRIMARY KEY(student_id,concept_id)
+        );
+        CREATE TABLE IF NOT EXISTS one_journey_audit (
+          id TEXT PRIMARY KEY,
+          actor_user_id TEXT NOT NULL REFERENCES users(id),
+          student_id TEXT NOT NULL REFERENCES students(id),
+          action TEXT NOT NULL,
+          detail_code TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+
+      // Every class/board pair exists as a DRAFT catalogue shell, not as fabricated course material.
+      const seedTrack=db.prepare(`
+        INSERT OR IGNORE INTO one_curriculum_tracks
+         (id,board,grade,edition_year,medium,publisher_reference)
+        VALUES(?,?,?,'2026-27','English',?)
+      `);
+      for(const board of ['CBSE','STATE']){
+        for(let grade=1;grade<=10;grade++){
+          seedTrack.run('one-2026-'+board.toLowerCase()+'-'+grade,board,grade,
+            board==='CBSE'?'NCERT / CBSE official academic reference':'Karnataka Textbook Society official academic reference');
+        }
+      }
+      db.prepare("INSERT INTO migrations(name) VALUES('011_vayentra_one_longitudinal_spine')").run();
+      console.log('[Vayentra ONE] Longitudinal student identity and 20 draft board/class catalogue shells created.');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');
