@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
+import { ParentLearningCompass } from '../components/ParentLearningCompass';
 import { 
   Users, 
   Clock, 
@@ -167,7 +168,7 @@ export const ParentView: React.FC = () => {
   const token = authToken || localStorage.getItem('vayentra_token');
 
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'attendance' | 'homework' | 'communication' | 'report' | 'controls' | 'fees' | 'consent'
+    'overview' | 'attendance' | 'homework' | 'communication' | 'report' | 'controls' | 'fees' | 'consent' | 'diagnostics'
   >('overview');
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -495,6 +496,7 @@ export const ParentView: React.FC = () => {
         >
           <FileText size={16} /> Homework & Concept Mastery
         </button>
+        <button type="button" className={activeTab === 'diagnostics' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('diagnostics')}>Learning Compass</button>
         <button
           type="button"
           className={activeTab === 'communication' ? 'btn btn-teal' : 'ghost'}
@@ -531,6 +533,8 @@ export const ParentView: React.FC = () => {
           DPDP Privacy
         </button>
       </div>
+
+      {activeTab === 'diagnostics' && <ParentLearningCompass />}
 
       {/* ERROR BANNER */}
       {dashboardError && (
