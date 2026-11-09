@@ -28,6 +28,20 @@ export function runMigrations() {
       );
     `);
 
+    // Never apply the Vayentra ONE identity model on top of a competing
+    // 011 migration. Schema reconciliation requires an explicit migration plan.
+    const competingPassport=db.prepare(
+      "SELECT name FROM migrations WHERE name IN ('011_learner_passport_year_history')"
+    ).get();
+    if(competingPassport){
+      throw new Error(
+        'SCHEMA_CONFLICT_011: Existing Learner Passport schema detected. '
+        + 'Stop and reconcile your database on a verified backup. '
+        + 'Do not run the Vayentra ONE migration or merge the branches blindly.'
+      );
+    }
+
+
     // 2. Migration 001: Staff & Verified Accounts with bcrypt passwords
     const applied001 = db.prepare('SELECT id FROM migrations WHERE name = ?').get('001_auth_staff_accounts');
     if (!applied001) {
