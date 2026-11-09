@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {useApp} from '../context/AppContext';
 
 type Q={id:string;stem:string;options:string[];position:number;conceptId:string};
-type DForm={id:string;title:string;status?:string;questions:Q[]};
+type DForm={id:string;title:string;status?:string;questions:Q[];answerKey?:{id:string;correctIndex:number;explanation:string;misconceptionCodes:string[]}[]};
 type Result={id:string;student_name:string;correct_count:number;question_count:number;approved:boolean;concepts:{conceptId:string;correct:number;total:number;misconceptions:Record<string,number>}[]};
 const pilotId='vg-lc-7-cbse-math-v1';
 async function call(url:string,token:string,options:RequestInit={}){
@@ -61,9 +61,9 @@ export const LearningCompass:React.FC<{mode:'student'|'teacher'}>=({mode})=>{
   {!loading&&form&&mode==='teacher'&&<>
    <div className="b">
     <div className="h3">Teacher question-bank review</div>
-    <p className="t-muted">Status: {form.status}. Before publishing, review grade alignment, distractor meaning, answer key and explanations in the API's answerKey. Do not send an unchecked test to students.</p>
+    <p className="t-muted">Status: {form.status}. Review every answer, explanation, and distractor against the relevant textbook before publishing.</p>
     {form.questions.map(q=><div key={q.id} style={{padding:10,borderBottom:'1px solid var(--color-border-subtle)'}}>
-     <strong>{q.position}. {q.stem}</strong><p className="t-muted">{q.options.join(' | ')}</p>
+     <strong>{q.position}. {q.stem}</strong><p className="t-muted">{q.options.join(' | ')}</p><p className="t-muted">Correct: {q.options[form.answerKey?.find(x=>x.id===q.id)?.correctIndex??0]} · {form.answerKey?.find(x=>x.id===q.id)?.explanation||'Answer key unavailable'}</p>
     </div>)}
     {form.status==='draft'&&<button className="btn btn-teal" type="button" disabled={busy} onClick={()=>void action(async()=>{
      if(!window.confirm('Confirm you have checked the question set and answer key?'))return;
