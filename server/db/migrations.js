@@ -1367,6 +1367,18 @@ export function runMigrations() {
           verified_by TEXT REFERENCES users(id),
           verified_at TEXT
         );
+        CREATE TABLE IF NOT EXISTS one_content_review_logs (
+          id TEXT PRIMARY KEY,
+          item_type TEXT NOT NULL CHECK(item_type IN ('track','subject','chapter','concept')),
+          item_id TEXT NOT NULL,
+          reviewer_id TEXT NOT NULL REFERENCES users(id),
+          editorial_reference TEXT NOT NULL,
+          rights_attested INTEGER NOT NULL DEFAULT 0 CHECK(rights_attested IN (0,1)),
+          decision TEXT NOT NULL CHECK(decision IN ('approved','published')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS one_reviews_item ON one_content_review_logs(item_type,item_id);
+
         CREATE TABLE IF NOT EXISTS one_concept_mastery (
           student_id TEXT NOT NULL REFERENCES one_memberships(student_id) ON DELETE CASCADE,
           concept_id TEXT NOT NULL REFERENCES one_concepts(id) ON DELETE CASCADE,
