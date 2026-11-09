@@ -226,11 +226,13 @@ journeyRouter.post('/admin/students/:studentId/advance-year',(req,res)=>{
     INSERT INTO one_academic_years(id,student_id,academic_year,grade,board,status,started_at)
     VALUES(?,?,?,?,?,'active',datetime('now'))
    `).run(newRecordId,id,year,current.grade+1,current.board);
+   // Close old-grade batches; preserve historical attendance and records.
+   db.prepare("UPDATE batch_enrollments SET status='completed',notes='Completed academic year via Vayentra ONE' WHERE student_id=? AND status='active' AND batch_id IN (SELECT id FROM batches WHERE grade=?)").run(id,current.grade);
    db.prepare('UPDATE students SET grade=? WHERE id=?').run(current.grade+1,id);
    db.prepare("UPDATE one_memberships SET updated_at=datetime('now') WHERE student_id=?").run(id);
    audit(req.user.id,id,'ANNUAL_ADVANCEMENT','GRADE_PLUS_ONE');
   });
   return res.json({advanced:true,grade:current.grade+1,academicYear:year,
-   message:'Previous academic year preserved; current grade advanced by one.'});
+   message:'Previous academic year and attendance preserved. Old-grade batch enrolments completed; allocate next-grade batches separately.'});
  }catch(err){console.error('[ONE yearly advancement]',err);return fail(res,'ADVANCEMENT_FAILED',500);}
 });
