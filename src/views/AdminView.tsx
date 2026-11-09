@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CbseVideoStudio } from '../components/CbseVideoStudio';
 import { AdmissionsInbox } from '../components/AdmissionsInbox';
+import { OneJourneyAdmin } from '../components/OneJourneyAdmin';
 import { 
   SlidersHorizontal, 
   Upload, 
@@ -90,7 +91,7 @@ interface TeacherData {
 export const AdminView: React.FC = () => {
   const { authToken } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'one_journey'>('students');
 
   // Students State
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -708,6 +709,9 @@ export const AdminView: React.FC = () => {
         </button>
         <button type="button" className={activeTab === 'enquiries' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('enquiries')}>
           <UserPlus size={16} /> Admissions Enquiries
+        </button>
+        <button type="button" className={activeTab === 'one_journey' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_journey')}>
+          <GraduationCap size={16} /> Vayentra ONE
         </button>
       </div>
 
@@ -1463,6 +1467,7 @@ export const AdminView: React.FC = () => {
       {/* Video production and verified lesson question review */}
       {activeTab === 'video_library' && <CbseVideoStudio />}
       {activeTab === 'enquiries' && <AdmissionsInbox />}
+      {activeTab === 'one_journey' && <OneJourneyAdmin />}
 
       {/* MODAL: REGISTER STUDENT & LINK GUARDIAN */}
       {/* ======================================================== */}
