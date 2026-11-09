@@ -330,3 +330,43 @@
 .vgp-floating-note{animation:vgp-float-note 5s ease-in-out infinite}
 .vgp-sample-insight{animation:vgp-fade-up .22s ease-out both}
 @media(max-width:680px){#why-vayentra,#our-programmes,#the-experience,#common-questions{scroll-margin-top:78px}}
+
+
+/* Premium Homepage V3 — shorter first impression, truthful quiz feedback. */
+.vgp-hero-inner{min-height:615px;padding:39px 0 43px;gap:clamp(25px,4vw,65px)}
+.vgp-hero h1{font-size:clamp(47px,4.85vw,75px)}
+.vgp-hero-stage{padding:24px 26px 27px;max-width:550px}
+.vgp-stage-tag{margin-bottom:11px}
+.vgp-sample-stack{inset:45px 26px 24px}
+.vgp-sample-body{padding:19px 24px 15px}
+.vgp-sample-category{margin-bottom:8px}
+.vgp-sample-question{margin-top:9px;min-height:45px}
+.vgp-sample-options{gap:6px;margin-top:10px}
+.vgp-sample-option{min-height:38px;padding:8px 12px}
+.vgp-sample-footer{min-height:58px}
+.vgp-sample-option.incorrect{border-color:#da9894;background:#fff1ef}
+.vgp-sample-option.incorrect>span{background:#f8d8d4;color:#a8423c}
+.vgp-sample-step-indicator{color:#966b33;font-weight:850;font-size:10px;letter-spacing:.09em;margin-top:9px}
+.vgp-sample-summary{margin-top:9px!important;border-top:1px solid #e2d5bb;padding-top:8px}
+.vgp-sample-insight{margin-top:10px;padding:11px 12px}
+.vgp-sample-insight p{margin-top:5px}
+.vgp-sample-help{margin-top:11px}
+.vgp .vgp-method{scroll-margin-top:88px}
+.vgp-hero-bottom span,.vgp-hero-bottom button{letter-spacing:.08em}
+@media(max-width:920px){
+ .vgp-hero-inner{min-height:0;padding:66px 0 56px;gap:22px}
+ .vgp-hero-stage{max-width:610px;padding:21px 10px 17px}
+ .vgp-sample-stack{inset:40px 10px 15px}
+}
+@media(max-width:680px){
+ .vgp-hero-inner{padding:50px 0 42px}
+ .vgp-hero h1{font-size:clamp(43px,10.5vw,65px)}
+ .vgp-hero-stage{padding:21px 3px 13px}
+ .vgp-sample-body{padding:16px}
+ .vgp-sample-math{font-size:35px}
+ .vgp-sample-insight{padding:10px}
+ .vgp-sample-footer button{min-width:118px}
+}
+@media(prefers-reduced-motion:reduce){
+ .vgp-floating-note,.vgp-sample-insight{animation:none!important}
+}
