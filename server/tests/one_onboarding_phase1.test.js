@@ -70,6 +70,16 @@ test('ONE admission: parent-only application, consent review, one learner, no pa
   assert.equal(fresh.grade,4);assert.equal(fresh.board,'CBSE');
   assert.equal(fresh.name,payload.childName);
   assert.equal(fresh.enrollment_number,approved.body.learnerNumber);
+  const guardianHome=await call('/api/v1/one-onboarding/guardian/learners/'+encodeURIComponent(studentId)+'/home',parent);
+  assert.equal(guardianHome.status,200,JSON.stringify(guardianHome.body));
+  assert.equal(guardianHome.body.viewMode,'guardian_supervised');
+  assert.equal(guardianHome.body.learner.currentYear.grade,4);
+  assert.equal(guardianHome.body.learner.entitlementStatus,'not_configured');
+  assert.equal(guardianHome.body.learner.subjects.length,0,'Unreviewed course shells never become published lessons.');
+  const refused=await call('/api/v1/one-onboarding/guardian/learners/'+encodeURIComponent(studentId)+'/home',student);
+  assert.equal(refused.status,403);
+  const unrelated=await call('/api/v1/one-onboarding/guardian/learners/not-an-authorised-id/home',parent);
+  assert.equal(unrelated.status,403);
   const membership=db.prepare('SELECT * FROM one_memberships WHERE student_id=?').get(studentId);
   assert.equal(membership.membership_status,'active');
   assert.equal(membership.entitlement_status,'not_configured');
