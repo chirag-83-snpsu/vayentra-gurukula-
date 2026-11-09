@@ -67,9 +67,10 @@ authRouter.post('/login', (req, res) => {
       ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id)
       : [];
     const student = user.role === 'student'
-      ? db.prepare('SELECT * FROM students WHERE id = ? OR name = ?').get('stu-001', user.name)
+      ? db.prepare('SELECT s.* FROM learner_student_accounts a JOIN students s ON s.id=a.student_id WHERE a.user_id=?').get(user.id)
       : null;
 
+    if(user.role==='student'&&!student){return res.status(403).json({code:'STUDENT_LINK_REQUIRED',message:'Student account has no verified record link.'});}
     const token = jwt.sign(
       {
         userId: user.id,
@@ -365,7 +366,7 @@ authRouter.get('/me', authenticateToken, (req, res) => {
       ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id)
       : [];
     const student = user.role === 'student'
-      ? db.prepare('SELECT * FROM students WHERE id = ? OR name = ?').get(req.user.studentId || 'stu-001', user.name)
+      ? db.prepare('SELECT * FROM students WHERE id = ?').get(req.user.studentId)
       : null;
 
     res.json({
