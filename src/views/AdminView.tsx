@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { CbseVideoStudio } from '../components/CbseVideoStudio';
 import { 
   SlidersHorizontal, 
   Upload, 
@@ -88,7 +89,7 @@ interface TeacherData {
 export const AdminView: React.FC = () => {
   const { authToken } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library'>('students');
 
   // Students State
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -700,6 +701,9 @@ export const AdminView: React.FC = () => {
           onClick={() => setActiveTab('ai_gov')}
         >
           <Cpu size={16} /> AI Governance
+        </button>
+        <button type="button" className={activeTab === 'video_library' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('video_library')}>
+          <BookOpen size={16} /> CBSE Video Library
         </button>
       </div>
 
@@ -1452,6 +1456,9 @@ export const AdminView: React.FC = () => {
       )}
 
       {/* ======================================================== */}
+      {/* Video production and verified lesson question review */}
+      {activeTab === 'video_library' && <CbseVideoStudio />}
+
       {/* MODAL: REGISTER STUDENT & LINK GUARDIAN */}
       {/* ======================================================== */}
       {showRegisterModal && (
