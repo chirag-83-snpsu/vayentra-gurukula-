@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 // A separate DB can be selected for isolated test runs and data-safe migration rehearsal.
 const DB_PATH = process.env.VAYENTRA_DB_PATH
   ? path.resolve(process.env.VAYENTRA_DB_PATH)
-  : path.join(__dirname, 'vayentra.sqlite');
+  : path.join(__dirname, process.env.NODE_ENV === 'test' ? 'vayentra.test.sqlite' : 'vayentra.sqlite');
 
 export const db = new DatabaseSync(DB_PATH);
 
