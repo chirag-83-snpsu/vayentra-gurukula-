@@ -62,6 +62,37 @@ oneContentRouter.get('/students/:studentId/outline',requireRole(['parent','admin
 });
 
 oneContentRouter.use('/admin',requireRole('admin'));
+// Authoring state, visible only to the institutional administrator.
+oneContentRouter.get('/admin/tracks/:trackId/map',(req,res)=>{
+ try{
+  const track=db.prepare('SELECT * FROM one_curriculum_tracks WHERE id=?').get(req.params.trackId);
+  if(!track)return fail(res,'TRACK_NOT_FOUND',404);
+  const subjects=db.prepare('SELECT * FROM one_subjects WHERE track_id=? ORDER BY subject_title').all(track.id);
+  const chapters=db.prepare(`
+    SELECT ch.* FROM one_chapters ch JOIN one_subjects s ON s.id=ch.subject_id
+    WHERE s.track_id=? ORDER BY s.subject_title,ch.chapter_number
+  `).all(track.id);
+  const concepts=db.prepare(`
+    SELECT c.* FROM one_concepts c JOIN one_chapters ch ON ch.id=c.chapter_id
+    JOIN one_subjects s ON s.id=ch.subject_id WHERE s.track_id=?
+    ORDER BY ch.chapter_number,c.position
+  `).all(track.id);
+  return res.json({
+   track:{id:track.id,grade:track.grade,board:track.board,editionYear:track.edition_year,
+    publisherReference:track.publisher_reference,status:track.catalogue_status},
+   subjects:subjects.map(subject=>({
+    id:subject.id,title:subject.subject_title,status:subject.review_status,
+    chapters:chapters.filter(ch=>ch.subject_id===subject.id).map(ch=>({
+     id:ch.id,number:ch.chapter_number,title:ch.chapter_title,edition:ch.textbook_edition,status:ch.review_status,
+     concepts:concepts.filter(c=>c.chapter_id===ch.id).map(c=>({
+      id:c.id,position:c.position,title:c.title,status:c.content_status,
+      hasExplanation:Boolean(c.explanation_original),reviewedAt:c.reviewed_at
+     }))
+    }))
+   }))
+  });
+ }catch(err){console.error('[ONE curriculum map]',err);return fail(res,'MAP_LOAD_FAILED',500);}
+});
 oneContentRouter.post('/admin/tracks/:trackId/verify',(req,res)=>{
  const ticket=str(req.body?.editorialReference,120);
  if(!check(ticket,120,6))return fail(res,'EDITORIAL_REFERENCE_REQUIRED');
