@@ -13,9 +13,9 @@
 The homepage should demonstrate understanding, not list unrealistic content counts or outcomes.
 
 ### Private membership offer
-The founder's current intended price is ₹599, **not to appear anywhere in public site copy, public APIs, public testimonials or marketing**. A public GitHub repository should not contain the private price/fee settings either. Use a secure server-side pricing configuration at launch, accessible only to admins and then displayed to an authenticated verified guardian on a documented offer and checkout screen.
-**Commercial policy still undecided:** Is ₹599 one-time, monthly, annually, term-based, or another plan? "Enrol once" is a student-account lifecycle statement, not billing frequency. Do not accept money, send renewal reminders or grant subscription entitlement before the policy, taxes and refund terms are approved.
-A one-time ₹599 for 6–10 years of unlimited AI video/teacher support would need a separate sustainability assessment; server, storage, video delivery, content creation and support are recurring costs.
+The founder's current intended price is the founder's private price, **not to appear anywhere in public site copy, public APIs, public testimonials or marketing**. A public GitHub repository should not contain the private price/fee settings either. Use a secure server-side pricing configuration at launch, accessible only to admins and then displayed to an authenticated verified guardian on a documented offer and checkout screen.
+**Commercial policy still undecided:** Is the founder's private price one-time, monthly, annually, term-based, or another plan? "Enrol once" is a student-account lifecycle statement, not billing frequency. Do not accept money, send renewal reminders or grant subscription entitlement before the policy, taxes and refund terms are approved.
+A one-time the founder's private price for 6–10 years of unlimited AI video/teacher support would need a separate sustainability assessment; server, storage, video delivery, content creation and support are recurring costs.
 Use three independent concepts: (a) institutional identity, (b) academic enrolment, (c) paid entitlement.
 
 ## 2. Class-by-class learning UX
@@ -162,7 +162,7 @@ Review primary government materials and obtain legal advice on launch obligation
 
 **Phase 1 — Vayentra ONE identity spine (current feature branch):** Membership and yearly schema, protected parent timeline, self-reported school marks, admin enrolment/activation/advancement and draft catalogue (20 board/class shells). No paid access or document upload yet.
 
-**Phase 2 — Secure vault + subscription:** Private encrypted object storage, signed upload, type sniffing, malware scan, access log, verified school document review; secure private ₹599 offer configuration; checkout only after commercial policy approved, receipts/refunds, entitlement logic and renewal policy.
+**Phase 2 — Secure vault + subscription:** Private encrypted object storage, signed upload, type sniffing, malware scan, access log, verified school document review; secure private the founder's private price offer configuration; checkout only after commercial policy approved, receipts/refunds, entitlement logic and renewal policy.
 
 **Phase 3 — Content factory:** Verified textbook editions, chapter/concept breakdown across BOTH boards and all 10 classes, authored explanations, videos, diagnosis, rubrics, copyright/editorial review queue, publication controls.
 
@@ -176,7 +176,7 @@ Review primary government materials and obtain legal advice on launch obligation
 Do NOT attempt to generate all actual textbook chapters automatically, create fabricated AI videos, collect school marks without consent, or publish a one-price-for-ten-years claim until the content, parent verification and economics are proven.
 
 ## 11. Next founder decisions (not blockers to architecture)
-- Is ₹599 paid once, monthly, per academic year, or per term? Is there a fair-use teacher support limit?
+- Is the founder's private price paid once, monthly, per academic year, or per term? Is there a fair-use teacher support limit?
 - Is Vayentra ONE online only, offline tuition plus online, or separate tiers?
 - What subjects and mediums are included in each board at each grade? Who verifies each annual textbook edition?
 - Which parent identity verification route and data privacy counsel will approve child-data collection?
