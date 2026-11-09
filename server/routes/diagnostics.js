@@ -18,7 +18,7 @@ function canSeeStudent(user, studentId) {
   }
   if (user.role === 'teacher') {
     return !!db.prepare(
-      "SELECT 1 FROM batch_enrollments be JOIN batches b ON b.id=be.batch_id WHERE be.student_id=? AND be.status='active' AND b.teacher_id=? LIMIT 1"
+      "SELECT 1 FROM batch_enrollments be JOIN batches b ON b.id=be.batch_id WHERE be.student_id=? AND be.status='active' AND b.status='active' AND b.teacher_id=? LIMIT 1"
     ).get(studentId, user.teacherId || '');
   }
   return false;
@@ -148,7 +148,8 @@ diagnosticsRouter.get('/attempts/:attemptId',(req,res)=>{
     correct:attempt.correct_count,total:attempt.question_count,submittedAt:attempt.submitted_at,
     status:plan?'teacher_approved':'pending_teacher_review'};
   if(req.user.role==='teacher'||req.user.role==='admin'){
-    if(!canReviewForm(req.user,attempt.form_id))return res.status(403).json({code:'FORBIDDEN'});
+    if(!canReviewForm(req.user,attempt.form_id)||!canSeeStudent(req.user,attempt.student_id))
+    return res.status(403).json({code:'FORBIDDEN'});
     result.concepts=analysisForAttempt(attempt.id);
   }
   if(plan) result.learningPlan={focusConcepts:safeParse(plan.focus_concepts_json),notes:plan.teacher_notes};
@@ -182,7 +183,7 @@ diagnosticsRouter.get('/forms/:formId/attempts',requireRole(['teacher','admin'])
     SELECT da.id,da.student_id,s.name AS student_name,da.correct_count,da.question_count,da.submitted_at
     FROM diagnostic_attempts da JOIN students s ON s.id=da.student_id
     WHERE da.form_id=? ORDER BY da.submitted_at DESC
-  `).all(req.params.formId);
+  `).all(req.params.formId).filter(a=>canSeeStudent(req.user,a.student_id));
   res.json({attempts:attempts.map(a=>({...a,concepts:analysisForAttempt(a.id),
     approved:!!db.prepare('SELECT 1 FROM diagnostic_learning_plans WHERE attempt_id=?').get(a.id)}))});
 });
