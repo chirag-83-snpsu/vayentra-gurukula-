@@ -1,14 +1,21 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'node:url';
 import { initDatabase } from './db/database.js';
 import { authRouter } from './routes/auth.js';
 import { apiRouter } from './routes/api.js';
+import { adminRouter } from './routes/admin.js';
+import { attendanceRouter } from './routes/attendance.js';
+import { assignmentsRouter } from './routes/assignments.js';
+import { parentRouter } from './routes/parent.js';
+import { diagnosticsRouter } from './routes/diagnostics.js';
 
 // Initialize SQLite database and seed records
 initDatabase();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+export const app = express();
+const PORT = process.env.PORT || 5001;
 
 // Security & Parsing Middlewares
 app.use(cors({
@@ -54,6 +61,11 @@ app.get('/', (req, res) => {
 
 // Mount Authentication & Main API Routers
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/attendance', attendanceRouter);
+app.use('/api/v1/assignments', assignmentsRouter);
+app.use('/api/v1/parent', parentRouter);
+app.use('/api/v1/diagnostics', diagnosticsRouter);
 app.use('/api/v1', apiRouter);
 
 // Fallback 404 handler
@@ -73,15 +85,19 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log('================================================================');
-  console.log(`🚀 VAYENTRA GURUKULA BACKEND SERVER IS RUNNING`);
-  console.log(`📍 Local Gateway: http://localhost:${PORT}`);
-  console.log(`🩺 Health check:  http://localhost:${PORT}/api/v1/health`);
-  console.log(`🔐 Google Auth:   http://localhost:${PORT}/api/v1/auth/google`);
-  console.log(`📚 Catalogue:     http://localhost:${PORT}/api/v1/school/catalogue`);
-  console.log(`💻 Tech Academy:  http://localhost:${PORT}/api/v1/tech/courses`);
-  console.log(`🛡️ Safeguarding:  http://localhost:${PORT}/api/v1/safeguarding/cases`);
-  console.log('================================================================');
-});
+// Start Server if run directly and not in test mode
+const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+const isTest = process.env.NODE_ENV === 'test' || process.env.TEST_RUNNER || process.execArgv.includes('--test');
+if (isDirectRun && !isTest) {
+  app.listen(PORT, () => {
+    console.log('================================================================');
+    console.log(`🚀 VAYENTRA GURUKULA BACKEND SERVER IS RUNNING`);
+    console.log(`📍 Local Gateway: http://localhost:${PORT}`);
+    console.log(`🩺 Health check:  http://localhost:${PORT}/api/v1/health`);
+    console.log(`🔐 Google Auth:   http://localhost:${PORT}/api/v1/auth/google`);
+    console.log(`📚 Catalogue:     http://localhost:${PORT}/api/v1/school/catalogue`);
+    console.log(`💻 Tech Academy:  http://localhost:${PORT}/api/v1/tech/courses`);
+    console.log(`🛡️ Safeguarding:  http://localhost:${PORT}/api/v1/safeguarding/cases`);
+    console.log('================================================================');
+  });
+}
