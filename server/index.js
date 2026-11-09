@@ -12,6 +12,7 @@ import { parentRouter } from './routes/parent.js';
 import { diagnosticsRouter } from './routes/diagnostics.js';
 import { cbseLibraryRouter } from './routes/cbseLibrary.js';
 import { admissionsRouter } from './routes/admissions.js';
+import { passportRouter } from './routes/passport.js';
 
 // Initialize SQLite database and seed records
 initDatabase();
@@ -70,6 +71,7 @@ app.use('/api/v1/parent', parentRouter);
 app.use('/api/v1/diagnostics', diagnosticsRouter);
 app.use('/api/v1/cbse', cbseLibraryRouter);
 app.use('/api/v1/admissions', admissionsRouter);
+app.use('/api/v1/passport', passportRouter);
 app.use('/api/v1', apiRouter);
 
 // Fallback 404 handler
