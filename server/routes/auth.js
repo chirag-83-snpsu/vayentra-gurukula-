@@ -32,7 +32,10 @@ function parseGoogleJwt(credential) {
 // 1. Password-based Login (Admin, Teacher, Safeguarding, Reviewer, Parent, Student)
 // ========================================================
 authRouter.post('/login', (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, audience, grade } = req.body || {};
+  if (audience !== undefined && !['student', 'parent', 'staff'].includes(audience)) {
+    return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Choose a valid account type.' });
+  }
 
   if (!email || !password) {
     return res.status(400).json({
@@ -59,6 +62,17 @@ authRouter.post('/login', (req, res) => {
       });
     }
 
+    // The account type is a login preference, not a permission grant.
+    // Always verify against the actual server-side role after the password is checked.
+    if (audience) {
+      const matches = audience === 'staff'
+        ? ['teacher','reviewer','admin','safeguarding'].includes(user.role)
+        : user.role === audience;
+      if (!matches) {
+        return res.status(403).json({ code: 'ACCOUNT_TYPE_MISMATCH', message: 'This account is not registered for the selected sign-in type.' });
+      }
+    }
+
     // Hydrate role profiles
     const guardian = user.role === 'parent'
       ? db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id)
@@ -66,9 +80,23 @@ authRouter.post('/login', (req, res) => {
     const children = guardian
       ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id)
       : [];
+    // No fallback or name-based matching: a student's identity comes from an explicit verified link.
     const student = user.role === 'student'
-      ? db.prepare('SELECT * FROM students WHERE id = ? OR name = ?').get('stu-001', user.name)
+      ? db.prepare(`SELECT s.* FROM student_user_links l
+          JOIN students s ON s.id = l.student_id WHERE l.user_id = ?`).get(user.id)
       : null;
+    if (user.role === 'student' && !student) {
+      return res.status(403).json({code:'STUDENT_NOT_LINKED',message:'No enrolled student profile is linked to this login. Contact the institute.'});
+    }
+    if (user.role === 'student' && grade !== undefined) {
+      const selectedGrade = Number(grade);
+      if (!Number.isInteger(selectedGrade) || selectedGrade < 1 || selectedGrade > 10) {
+        return res.status(400).json({code:'INVALID_CLASS',message:'Select a valid class from 1 to 10.'});
+      }
+      if (Number(student.grade) !== selectedGrade) {
+        return res.status(403).json({code:'CLASS_MISMATCH',message:'Selected class does not match your registered class. Please check with the institute.'});
+      }
+    }
 
     const token = jwt.sign(
       {
@@ -365,7 +393,8 @@ authRouter.get('/me', authenticateToken, (req, res) => {
       ? db.prepare('SELECT * FROM students WHERE guardian_id = ?').all(guardian.id)
       : [];
     const student = user.role === 'student'
-      ? db.prepare('SELECT * FROM students WHERE id = ? OR name = ?').get(req.user.studentId || 'stu-001', user.name)
+      ? db.prepare(`SELECT s.* FROM student_user_links l
+          JOIN students s ON s.id = l.student_id WHERE l.user_id = ?`).get(user.id)
       : null;
 
     res.json({
