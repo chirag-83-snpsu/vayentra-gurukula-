@@ -29,6 +29,7 @@ import {
 import { Logo } from '../components/Logo';
 import { ScholarshipModal } from '../components/ScholarshipModal';
 import { CoursePathways } from '../components/CoursePathways';
+import { CbseNcertLibrary } from '../components/CbseNcertLibrary';
 
 export const PublicView: React.FC = () => {
   const { setRole, setShowPublicPortal } = useApp();
@@ -219,6 +220,9 @@ export const PublicView: React.FC = () => {
       </section>
 
       <CoursePathways grade={selectedClass} board={selectedBoard} onGradeChange={setSelectedClass} onBoardChange={setSelectedBoard} onBrowse={browseCurriculum} />
+
+      {/* Public CBSE references — only teacher-approved original videos are visible. */}
+      <CbseNcertLibrary />
 
       {/* 3. THE 5 CORE GURUKULA PILLARS (Bento Grid) */}
       <section id="vg-teaching-method" style={{ display: 'flex', flexDirection: 'column', gap: '24px', scrollMarginTop: '110px' }}>
