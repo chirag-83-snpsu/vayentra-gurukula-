@@ -154,6 +154,17 @@ diagnosticsRouter.get('/attempts/:attemptId',(req,res)=>{
   if(plan) result.learningPlan={focusConcepts:safeParse(plan.focus_concepts_json),notes:plan.teacher_notes};
   res.json({attempt:result});
 });
+// Student identity comes from authenticated server context, never a client-supplied child ID.
+diagnosticsRouter.get('/my-attempts',requireRole('student'),(req,res)=>{
+ if(!req.user.studentId)return res.status(403).json({code:'STUDENT_PROFILE_NOT_LINKED'});
+ const rows=db.prepare('SELECT * FROM diagnostic_attempts WHERE student_id=? ORDER BY submitted_at DESC').all(req.user.studentId);
+ res.json({attempts:rows.map(a=>{
+  const plan=db.prepare('SELECT * FROM diagnostic_learning_plans WHERE attempt_id=?').get(a.id);
+  return {id:a.id,formId:a.form_id,correct:a.correct_count,total:a.question_count,
+   submittedAt:a.submitted_at,status:plan?'teacher_approved':'pending_teacher_review',
+   learningPlan:plan?{focusConcepts:safeParse(plan.focus_concepts_json),notes:plan.teacher_notes}:null};
+ })});
+});
 diagnosticsRouter.get('/student/:studentId/attempts',(req,res)=>{
   if(!canSeeStudent(req.user,req.params.studentId))return res.status(403).json({code:'FORBIDDEN'});
   const attempts=db.prepare('SELECT id FROM diagnostic_attempts WHERE student_id=? ORDER BY submitted_at DESC').all(req.params.studentId);
