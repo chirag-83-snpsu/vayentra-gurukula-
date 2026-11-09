@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
-import { AuthModal } from './components/AuthModal';
+import { LandingPage } from './views/LandingPage';
+import { LoginPage } from './views/LoginPage';
 import { StudentView } from './views/StudentView';
 import { ParentView } from './views/ParentView';
 import { TeacherView } from './views/TeacherView';
@@ -86,6 +87,7 @@ export const App: React.FC = () => {
     setRole,
     currentUser,
     isAuthenticated,
+    isAuthReady,
     isChildModeLocked,
     showPublicPortal,
     setShowPublicPortal,
@@ -93,7 +95,12 @@ export const App: React.FC = () => {
     toggleOfflineMode
   } = useApp();
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const path = typeof window === 'undefined' ? '/' : window.location.pathname.replace(/\/+$/, '') || '/';
+  useEffect(() => {
+    if ((path === '/app' || path === '/dashboard') && isAuthReady && !isAuthenticated) {
+      window.location.replace('/login');
+    }
+  }, [path,isAuthReady,isAuthenticated]);
 
   const navItems = [
     { id: 'student', label: 'Learn Hub', icon: BookOpen },
@@ -106,17 +113,23 @@ export const App: React.FC = () => {
   ];
 
   const hasAccess = (allowedRoles: string[]) => {
-    if (import.meta.env.DEV) return true; // Allowed in dev for rapid testing
     if (!isAuthenticated || !currentUser) return false;
     return allowedRoles.includes(currentUser.role);
   };
 
+  // The account role is the server-verified role, not the selected navigation view.
+  const visibleNavItems = navItems.filter(item => item.id === currentUser?.role);
   const renderActiveView = () => {
-    if (showPublicPortal) return <PublicView />;
+    if (showPublicPortal) return <LandingPage />;
 
     switch (role) {
       case 'student':
-        return <StudentView />;
+        return hasAccess(['student']) ? <StudentView /> : <AccessDeniedCard
+          title="Student access required"
+          description="Sign in using your registered student account and selected enrolled class."
+          requiredRole="student"
+          onSignIn={() => window.location.assign('/login')}
+        />;
       case 'parent':
         if (!hasAccess(['parent', 'admin'])) {
           return (
@@ -124,7 +137,7 @@ export const App: React.FC = () => {
               title="Parent Family Portal Restricted"
               description="Access to family settings, progress analytics, and child screen-time locks requires a verified Parent or Guardian account."
               requiredRole="parent"
-              onSignIn={() => setShowAuthModal(true)}
+              onSignIn={() => window.location.assign('/login')}
             />
           );
         }
@@ -178,11 +191,22 @@ export const App: React.FC = () => {
         }
         return <SafeguardingView />;
       case 'tech_learner':
-        return <TechAcademyView />;
+        return hasAccess(['tech_learner']) ? <TechAcademyView /> : <AccessDeniedCard
+          title="Academy access required"
+          description="This learning area requires an authorized account."
+          requiredRole="tech learner"
+          onSignIn={() => window.location.assign('/login')}
+        />;
       default:
         return <StudentView />;
     }
   };
+
+  if (path === '/' || path === '/index.html') return <LandingPage />;
+  if (path === '/login') return <LoginPage />;
+  if (path !== '/app' && path !== '/dashboard') return <LandingPage />;
+  if (!isAuthReady) return <div className="vg-route-loading" role="status">Checking your Vayentra session…</div>;
+  if (!isAuthenticated || !currentUser) return <LoginPage />;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -224,12 +248,12 @@ export const App: React.FC = () => {
               type="button"
               className={`ghost ${showPublicPortal ? 'btn-teal' : ''}`}
               title="Public Admissions"
-              onClick={() => setShowPublicPortal(!showPublicPortal)}
+              onClick={() => window.location.assign('/')}
               style={{ width: '48px', height: '48px', borderRadius: '12px' }}
             >
               <Compass size={20} />
             </button>
-            {navItems.map(item => (
+            {visibleNavItems.map(item => (
               <button
                 key={item.id}
                 type="button"
@@ -254,7 +278,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 className={showPublicPortal ? 'btn btn-teal' : 'ghost'}
-                onClick={() => setShowPublicPortal(true)}
+                onClick={() => window.location.assign('/')}
                 style={{ justifyContent: 'flex-start', minHeight: '40px' }}
               >
                 <Compass size={18} /> Public Admissions Home
@@ -265,7 +289,7 @@ export const App: React.FC = () => {
               <div className="t-tiny" style={{ fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-text-subtle)' }}>
                 PORTAL HUBS
               </div>
-              {navItems.map(item => {
+              {visibleNavItems.map(item => {
                 const isActive = role === item.id && !showPublicPortal;
                 return (
                   <button
@@ -362,9 +386,6 @@ export const App: React.FC = () => {
           <span>Academy</span>
         </div>
       </nav>
-
-      {/* Auth Modal Triggered by Access Denied Card or Actions */}
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
     </div>
   );
