@@ -9,7 +9,8 @@ interface AppContextType {
   setCurrentUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   authToken: string | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<AuthUser>;
+  isAuthReady: boolean;
+  login: (email: string, password: string, options?: { audience?: 'student' | 'parent' | 'staff'; grade?: number }) => Promise<AuthUser>;
   logout: () => Promise<void>;
   parent: ParentUser;
   setParent: React.Dispatch<React.SetStateAction<ParentUser>>;
@@ -59,6 +60,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('vayentra_token'));
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState<boolean>(() => !localStorage.getItem('vayentra_token'));
   const [parent, setParent] = useState<ParentUser>(() => {
     const saved = localStorage.getItem('vayentra_parent');
     return saved ? JSON.parse(saved) : INITIAL_PARENT;
@@ -100,7 +102,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const p = new URLSearchParams(window.location.search).get('portal');
       if (p && p !== 'public') return false;
     }
-    return true;
+    return false;
   });
 
   // Synchronize with genuine browser online / offline network state
@@ -118,6 +120,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
+  // Only a server-verified, linked student profile can populate the Student Learn Hub.
+  // Never carry the previous demo child's identity across a student's sign-in.
+  const loadVerifiedStudent = (student: any, user: AuthUser) => {
+    const child: ChildProfile = {
+      id: student.id,
+      name: student.name,
+      avatar: student.avatar || '📘',
+      grade: Number(student.grade),
+      board: student.board === 'STATE' ? 'STATE_KARNATAKA' : (student.board || 'CBSE'),
+      medium: 'English',
+      pin: '',
+      dailyTimeLimitMins: student.daily_time_limit_mins || 45,
+      minutesUsedToday: student.minutes_used_today || 0,
+      bedtimeLock: student.bedtime_lock || '21:30',
+      hasParentConsent: Boolean(student.has_consent),
+      consentTimestamp: student.consent_timestamp,
+      streakDays: student.streak_days || 0,
+      starsEarned: student.stars_earned || 0,
+      points: student.points || 0
+    };
+    setParent(prev => ({...prev,id:'student-profile',name:user.name,email:user.email,parentPin:'',activeChildId:child.id,children:[child]}));
+  };
+
   // Hydrate session on startup if token is stored
   useEffect(() => {
     const token = localStorage.getItem('vayentra_token');
@@ -133,6 +158,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (data.user) {
             setCurrentUser(data.user);
             setRole(data.user.role);
+            setShowPublicPortal(false);
+            if (data.user.role === 'student' && data.activeChild) loadVerifiedStudent(data.activeChild, data.user);
             if (data.guardian && data.children) {
               setParent(prev => ({
                 ...prev,
@@ -166,15 +193,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           localStorage.removeItem('vayentra_token');
           setAuthToken(null);
           setCurrentUser(null);
-        });
+        })
+        .finally(() => setIsAuthReady(true));
+    } else {
+      setIsAuthReady(true);
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<AuthUser> => {
+  const login = async (
+    email: string, password: string, options?: { audience?: 'student' | 'parent' | 'staff'; grade?: number }
+  ): Promise<AuthUser> => {
     const res = await fetch('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, ...options })
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
@@ -185,6 +217,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthToken(data.token);
     setCurrentUser(data.user);
     setRole(data.user.role);
+    setIsAuthReady(true);
+    if (data.user.role === 'student' && data.activeChild) loadVerifiedStudent(data.activeChild, data.user);
 
     if (data.guardian && data.children) {
       const updatedParent: ParentUser = {
@@ -237,6 +271,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('vayentra_token');
     setAuthToken(null);
     setCurrentUser(null);
+    setIsAuthReady(true);
     setRole('student');
     setShowPublicPortal(true);
   };
@@ -471,6 +506,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser,
         authToken,
         isAuthenticated: Boolean(currentUser && authToken),
+        isAuthReady,
         login,
         logout,
         parent,
