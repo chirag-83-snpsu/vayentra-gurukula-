@@ -9,25 +9,6 @@ export const authRouter = Router();
 // In-memory challenge store for mobile OTP with TTL
 const otpChallenges = new Map();
 
-// Helper to decode Google credential
-function parseGoogleJwt(credential) {
-  try {
-    const parts = credential.split('.');
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-    return {
-      sub: payload.sub,
-      email: payload.email,
-      name: payload.name || payload.email.split('@')[0],
-      picture: payload.picture || null,
-      email_verified: payload.email_verified || true
-    };
-  } catch (err) {
-    console.error('[Google Auth] Failed to parse JWT payload:', err);
-    return null;
-  }
-}
-
 // ========================================================
 // 1. Password-based Login (Admin, Teacher, Safeguarding, Reviewer, Parent, Student)
 // ========================================================
