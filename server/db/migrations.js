@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import { db } from './database.js';
+import { randomUUID, randomBytes } from 'node:crypto';
 import { CBSE_SUBJECTS_BY_GRADE } from '../data/cbseCatalog.js';
 import { CLASS10_PILOT_LESSONS } from '../data/class10PilotLessons.js';
 import { CLASS10_NEXT_LESSON_BATCH } from '../data/class10NextLessonBatch.js';
@@ -1220,6 +1221,114 @@ export function runMigrations() {
       `);
       db.prepare("INSERT INTO migrations(name) VALUES('010_guardian_admission_enquiries')").run();
       console.log('[Vayentra DB] Guardian-only admissions enquiry inbox prepared.');
+    }
+
+
+    // 011: Non-destructive Learner Passport (one identity, versioned academic years).
+    // Legacy grade/year and guardian relationships are PROVISIONAL until staff verification.
+    if(!db.prepare("SELECT id FROM migrations WHERE name='011_learner_passport_year_history'").get()){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS learner_passports(
+          learner_id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL UNIQUE REFERENCES students(id) ON DELETE RESTRICT,
+          public_learner_no TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS learner_guardian_links(
+          learner_id TEXT NOT NULL REFERENCES learner_passports(learner_id) ON DELETE RESTRICT,
+          guardian_id TEXT NOT NULL REFERENCES guardians(id) ON DELETE RESTRICT,
+          relation TEXT NOT NULL DEFAULT 'primary',
+          verification_status TEXT NOT NULL DEFAULT 'legacy_unverified'
+            CHECK(verification_status IN ('legacy_unverified','verified','revoked')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          PRIMARY KEY(learner_id,guardian_id)
+        );
+        CREATE TABLE IF NOT EXISTS learner_academic_years(
+          id TEXT PRIMARY KEY,
+          learner_id TEXT NOT NULL REFERENCES learner_passports(learner_id) ON DELETE RESTRICT,
+          year_key TEXT NOT NULL,
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL CHECK(board IN ('CBSE','STATE','ICSE','OTHER')),
+          medium TEXT NOT NULL DEFAULT 'English',
+          status TEXT NOT NULL DEFAULT 'pending_review'
+            CHECK(status IN ('pending_review','active','completed','cancelled')),
+          verified_by TEXT REFERENCES users(id),
+          verified_at TEXT,
+          opened_at TEXT NOT NULL DEFAULT (datetime('now')),
+          closed_at TEXT,
+          UNIQUE(learner_id,year_key)
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_learner_one_open_year
+          ON learner_academic_years(learner_id)
+          WHERE status IN ('active','pending_review');
+        CREATE INDEX IF NOT EXISTS idx_learner_year_learner
+          ON learner_academic_years(learner_id,year_key);
+        CREATE TABLE IF NOT EXISTS learner_promotion_events(
+          id TEXT PRIMARY KEY,
+          learner_id TEXT NOT NULL REFERENCES learner_passports(learner_id),
+          from_year_id TEXT NOT NULL UNIQUE REFERENCES learner_academic_years(id),
+          to_year_id TEXT NOT NULL UNIQUE REFERENCES learner_academic_years(id),
+          actor_user_id TEXT NOT NULL REFERENCES users(id),
+          idempotency_key TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS learner_student_accounts(
+          user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+          student_id TEXT NOT NULL UNIQUE REFERENCES students(id) ON DELETE RESTRICT,
+          linked_by TEXT REFERENCES users(id),
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS learner_passport_audit(
+          id TEXT PRIMARY KEY,
+          learner_id TEXT REFERENCES learner_passports(learner_id),
+          actor_user_id TEXT REFERENCES users(id),
+          action TEXT NOT NULL,
+          event_json TEXT NOT NULL DEFAULT '{}',
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      const today=new Date();
+      // Academic-year guess is not treated as verified evidence.
+      const startYear=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
+      const provisionalYear=startYear+'-'+String((startYear+1)%100).padStart(2,'0');
+      const legacy=db.prepare('SELECT id,guardian_id,grade,board,medium FROM students').all();
+      const insertPassport=db.prepare(
+        'INSERT OR IGNORE INTO learner_passports(learner_id,student_id,public_learner_no) VALUES(?,?,?)'
+      );
+      const linkGuardian=db.prepare(
+        "INSERT OR IGNORE INTO learner_guardian_links(learner_id,guardian_id,relation,verification_status) VALUES(?,?,'primary','legacy_unverified')"
+      );
+      const insertYear=db.prepare(
+        "INSERT OR IGNORE INTO learner_academic_years(id,learner_id,year_key,grade,board,medium,status) VALUES(?,?,?,?,?,?,'pending_review')"
+      );
+      for(const st of legacy){
+        // student.id stays unchanged so existing attendance, fees and homework still reference it.
+        let passport=db.prepare('SELECT learner_id FROM learner_passports WHERE student_id=?').get(st.id);
+        if(!passport){
+          const learnerId='lr-'+randomUUID();
+          const publicNumber='VG-L-'+randomBytes(8).toString('hex').toUpperCase();
+          insertPassport.run(learnerId,st.id,publicNumber);
+          passport={learner_id:learnerId};
+        }
+        linkGuardian.run(passport.learner_id,st.guardian_id);
+        if(!Number.isInteger(st.grade)||st.grade<1||st.grade>10)continue;
+        const normalized=st.board==='STATE_KARNATAKA'?'STATE':st.board;
+        const board=['CBSE','STATE','ICSE'].includes(normalized)?normalized:'OTHER';
+        insertYear.run('lay-'+randomUUID(),passport.learner_id,provisionalYear,st.grade,board,st.medium||'English');
+      }
+      // Retain a working *explicit* seeded demo mapping only outside production.
+      // NEVER infer learner identity from a name, static student ID or JWT claim at request time.
+      if(process.env.NODE_ENV!=='production'){
+        const demo=db.prepare("SELECT id,name,email FROM users WHERE id='usr-student-01' AND role='student'").get();
+        const st=db.prepare("SELECT id,name FROM students WHERE id='stu-001'").get();
+        if(demo?.email==='student@vayentra.org'&&demo.name===st?.name){
+          db.prepare(
+            'INSERT OR IGNORE INTO learner_student_accounts(user_id,student_id) VALUES(?,?)'
+          ).run(demo.id,st.id);
+        }
+      }
+      db.prepare("INSERT INTO migrations(name) VALUES('011_learner_passport_year_history')").run();
+      console.log('[Vayentra DB] Learner Passports created. Historical class/guardian data awaits authorised verification.');
     }
 
     db.exec('COMMIT;');
