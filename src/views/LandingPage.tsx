@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { TeachingMethodShowcase } from '../components/TeachingMethodShowcase';
 import { ClassDiscoveryPanel } from '../components/ClassDiscoveryPanel';
+import { OnePromiseSection } from '../components/OnePromiseSection';
 import '../styles/premium-home.css';
 
 interface Props { onLogin: () => void; onExplore: () => void; onAdmissions: (grade?: number) => void; }
@@ -116,6 +117,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions})
         <nav className={'vgp-nav'+(mobileMenu?' vgp-nav-open':'')} aria-label="Primary navigation">
           <button onClick={()=>jumpTo('why-vayentra')}>Our difference</button>
           <button onClick={()=>jumpTo('our-programmes')}>Programmes</button>
+          <button onClick={()=>jumpTo('vayentra-one')}>Vayentra ONE</button>
           <button onClick={()=>jumpTo('the-experience')}>Student experience</button>
           <button onClick={()=>jumpTo('common-questions')}>FAQs</button>
           <button onClick={()=>onAdmissions()}>Admissions</button>
@@ -196,6 +198,8 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions})
           </div>
         </div>
       </section>
+
+      <OnePromiseSection onAdmissions={()=>onAdmissions()}/>
 
       <section className="vgp-programmes" id="our-programmes">
         <div className="vgp-container">
