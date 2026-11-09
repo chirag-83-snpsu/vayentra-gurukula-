@@ -900,6 +900,13 @@ export function runMigrations() {
     if (!applied006) {
       console.log('[Vayentra DB] Applying migration 006_learning_compass_pilot...');
       db.exec(`
+        CREATE TABLE IF NOT EXISTS student_user_links (
+          user_id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL UNIQUE,
+          linked_at TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+        );
         CREATE TABLE IF NOT EXISTS diagnostic_forms (
           id TEXT PRIMARY KEY,
           title TEXT NOT NULL,
@@ -957,6 +964,14 @@ export function runMigrations() {
         CREATE INDEX IF NOT EXISTS idx_diag_attempts_student ON diagnostic_attempts(student_id, submitted_at);
         CREATE INDEX IF NOT EXISTS idx_diag_attempts_form ON diagnostic_attempts(form_id);
       `);
+
+      // Explicitly link the known existing synthetic student account.
+      // Real enrollments require an administrator-controlled verified linking workflow.
+      db.prepare(`
+        INSERT OR IGNORE INTO student_user_links(user_id, student_id)
+        SELECT u.id, s.id FROM users u CROSS JOIN students s
+        WHERE u.email='student@vayentra.org' AND u.role='student' AND s.id='stu-001'
+      `).run();
 
       db.prepare(`
         INSERT INTO diagnostic_forms (id, title, grade, board, subject, status)
