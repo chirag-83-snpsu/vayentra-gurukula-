@@ -46,7 +46,8 @@ export function authenticateToken(req, res, next) {
     if (user.role === 'parent') {
       guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
     } else if (user.role === 'student') {
-      student = db.prepare('SELECT * FROM students WHERE id = ? OR name = ?').get(decoded.studentId || 'stu-001', user.name);
+      student = db.prepare(`SELECT s.* FROM student_user_links l
+        JOIN students s ON s.id = l.student_id WHERE l.user_id = ?`).get(user.id);
     } else if (user.role === 'teacher') {
       teacher = db.prepare('SELECT * FROM teachers WHERE user_id = ?').get(user.id);
     }
