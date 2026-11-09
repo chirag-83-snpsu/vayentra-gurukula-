@@ -73,7 +73,7 @@ export const Navbar: React.FC = () => {
     if (!currentUser) {
       return rolesList.filter(r => r.id === 'student');
     }
-    if (currentUser.role === 'admin' || import.meta.env.DEV) {
+    if (currentUser.role === 'admin') {
       return rolesList;
     }
     if (currentUser.role === 'parent') {
@@ -166,10 +166,10 @@ export const Navbar: React.FC = () => {
         )}
 
         {/* Authorized Portal Switcher (Only available if logged in or in DEV mode) */}
-        {!isChildModeLocked && (isAuthenticated || import.meta.env.DEV) ? (
+        {!isChildModeLocked && isAuthenticated ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="t-tiny" style={{ fontWeight: 600 }}>
-              {import.meta.env.DEV && !isAuthenticated ? 'Portal (Dev):' : 'Portal:'}
+              Portal:
             </span>
             <select
               value={role}
