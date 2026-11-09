@@ -12,13 +12,15 @@ import {
   WifiOff, 
   Lock, 
   Unlock, 
-  Globe, 
   Users, 
   BookOpen, 
   GraduationCap, 
   ClipboardCheck, 
   SlidersHorizontal,
-  KeyRound
+  KeyRound,
+  LogOut,
+  User,
+  LogIn
 } from 'lucide-react';
 
 import { Logo } from './Logo';
@@ -28,14 +30,15 @@ export const Navbar: React.FC = () => {
   const {
     role,
     setRole,
+    currentUser,
+    isAuthenticated,
+    logout,
     parent,
     activeChild,
     setActiveChildId,
     isChildModeLocked,
     unlockChildModeWithPin,
     lockIntoChildMode,
-    language,
-    setLanguage,
     theme,
     toggleTheme,
     isDyslexicFont,
@@ -45,7 +48,9 @@ export const Navbar: React.FC = () => {
     isHighContrast,
     toggleHighContrast,
     isOfflineMode,
-    toggleOfflineMode
+    toggleOfflineMode,
+    showPublicPortal,
+    setShowPublicPortal
   } = useApp();
 
   const [showPinModal, setShowPinModal] = useState(false);
@@ -62,6 +67,31 @@ export const Navbar: React.FC = () => {
     { id: 'safeguarding', label: 'Safeguarding Vault', icon: ShieldCheck },
     { id: 'tech_learner', label: 'Technical Academy', icon: Sparkles }
   ];
+
+  // Determine which portals can be switched to based on role permissions
+  const getAuthorizedPortals = () => {
+    if (!currentUser) {
+      return rolesList.filter(r => r.id === 'student');
+    }
+    if (currentUser.role === 'admin') {
+      return rolesList;
+    }
+    if (currentUser.role === 'parent') {
+      return rolesList.filter(r => r.id === 'parent' || r.id === 'student');
+    }
+    if (currentUser.role === 'teacher') {
+      return rolesList.filter(r => r.id === 'teacher' || r.id === 'student');
+    }
+    if (currentUser.role === 'safeguarding') {
+      return rolesList.filter(r => r.id === 'safeguarding');
+    }
+    if (currentUser.role === 'reviewer') {
+      return rolesList.filter(r => r.id === 'reviewer');
+    }
+    return rolesList.filter(r => r.id === 'student');
+  };
+
+  const authorizedPortals = getAuthorizedPortals();
 
   const handleUnlockPin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,12 +117,16 @@ export const Navbar: React.FC = () => {
       boxShadow: 'var(--shadow-sm)'
     }}>
       {/* Brand & Badge */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div 
+        style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+        onClick={() => setShowPublicPortal(true)}
+        title="Return to Public Admissions Home"
+      >
         <Logo variant="header" height={44} />
 
         {/* Portal Scope Pill */}
         <div className="chip chip-navy" style={{ fontWeight: 700 }}>
-          {rolesList.find(r => r.id === role)?.label}
+          {showPublicPortal ? 'Public Admissions Portal' : rolesList.find(r => r.id === role)?.label}
         </div>
 
         {/* Offline indicator */}
@@ -106,12 +140,12 @@ export const Navbar: React.FC = () => {
       {/* Quick Nav Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         
-        {/* Child Switcher (Visible in Student/Parent modes) */}
+        {/* Child Switcher (Visible in Student/Parent modes for authorized parent) */}
         {!isChildModeLocked && (role === 'student' || role === 'parent') && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="t-tiny" style={{ fontWeight: 600 }}>Child:</span>
             <select
-              value={activeChild.id}
+              value={activeChild?.id || 'stu-001'}
               onChange={(e) => setActiveChildId(e.target.value)}
               style={{
                 padding: '6px 12px',
@@ -131,13 +165,18 @@ export const Navbar: React.FC = () => {
           </div>
         )}
 
-        {/* Role Portal Dropdown */}
-        {!isChildModeLocked ? (
+        {/* Authorized Portal Switcher (Only available if logged in or in DEV mode) */}
+        {!isChildModeLocked && isAuthenticated ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="t-tiny" style={{ fontWeight: 600 }}>Portal:</span>
+            <span className="t-tiny" style={{ fontWeight: 600 }}>
+              Portal:
+            </span>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as UserRole)}
+              onChange={(e) => {
+                setRole(e.target.value as UserRole);
+                setShowPublicPortal(false);
+              }}
               style={{
                 padding: '6px 12px',
                 minHeight: '36px',
@@ -147,18 +186,18 @@ export const Navbar: React.FC = () => {
                 background: 'var(--color-paper)'
               }}
             >
-              {rolesList.map(r => (
+              {authorizedPortals.map(r => (
                 <option key={r.id} value={r.id}>
                   {r.label}
                 </option>
               ))}
             </select>
           </div>
-        ) : (
+        ) : isChildModeLocked ? (
           <span className="chip chip-saffron">
             <Lock size={12} /> Child Mode Locked (PIN Required to exit)
           </span>
-        )}
+        ) : null}
 
         {/* Shared Device PIN Mode Toggle */}
         {!isChildModeLocked ? (
@@ -181,17 +220,6 @@ export const Navbar: React.FC = () => {
             <Unlock size={14} /> Exit Child Mode
           </button>
         )}
-
-        {/* Language Toggle (EN / ಕನ್ನಡ) */}
-        <button
-          type="button"
-          className="ghost"
-          onClick={() => setLanguage(language === 'English' ? 'Kannada' : 'English')}
-          title="Toggle Language"
-          style={{ padding: '6px 10px', minHeight: '36px', fontSize: '13px', fontWeight: 600 }}
-        >
-          <Globe size={14} /> {language === 'English' ? 'ಕನ್ನಡ' : 'English'}
-        </button>
 
         {/* Theme Toggle */}
         <button
@@ -231,37 +259,86 @@ export const Navbar: React.FC = () => {
           type="button"
           className={`ghost ${isOfflineMode ? 'chip-saffron' : ''}`}
           onClick={toggleOfflineMode}
-          title="Simulate Low-Bandwidth / Offline Cache (Diagram 35)"
+          title="Low-Bandwidth / Offline Cache Mode"
           style={{ padding: '6px 10px', minHeight: '36px', fontSize: '12px' }}
         >
           {isOfflineMode ? <WifiOff size={14} /> : <Wifi size={14} />} {isOfflineMode ? 'Offline' : 'Online'}
         </button>
 
-        {/* Guardian Identity / Google Sign-In Trigger */}
+        {/* Authenticated User Profile Badge & Logout / Sign-In Trigger */}
         {!isChildModeLocked && (
-          <button
-            type="button"
-            className="btn btn-navy"
-            onClick={() => setShowAuthModal(true)}
-            style={{
-              padding: '6px 14px',
-              minHeight: '36px',
-              fontSize: '12px',
-              background: 'linear-gradient(135deg, var(--color-navy-primary) 0%, var(--color-teal-primary) 100%)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              borderRadius: '8px'
-            }}
-          >
-            <KeyRound size={14} />
-            <span>{parent.email ? `${parent.name.split(' ')[0]} (Guardian)` : 'Google Sign-In'}</span>
-          </button>
+          isAuthenticated && currentUser ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  background: 'var(--color-paper-subtle)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
+                <div style={{
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '50%',
+                  background: 'var(--color-teal-primary)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '12px'
+                }}>
+                  {currentUser.name ? currentUser.name.charAt(0) : 'U'}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, lineHeight: 1.2 }}>
+                    {currentUser.name}
+                  </span>
+                  <span style={{ fontSize: '10px', color: 'var(--color-text-subtle)', textTransform: 'uppercase' }}>
+                    {currentUser.role}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="ghost"
+                onClick={logout}
+                title="Sign out of your session"
+                style={{ padding: '6px 10px', minHeight: '34px', fontSize: '12px', color: 'var(--color-error)' }}
+              >
+                <LogOut size={14} /> Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-navy"
+              onClick={() => setShowAuthModal(true)}
+              style={{
+                padding: '6px 14px',
+                minHeight: '36px',
+                fontSize: '12px',
+                background: 'linear-gradient(135deg, var(--color-navy-primary) 0%, var(--color-teal-primary) 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                borderRadius: '8px'
+              }}
+            >
+              <LogIn size={14} />
+              <span>Portal Sign-In</span>
+            </button>
+          )
         )}
       </div>
 
-      {/* Google Auth & Mobile OTP Modal */}
+      {/* Auth Modal */}
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
       {/* Parent PIN Unlock Modal */}
