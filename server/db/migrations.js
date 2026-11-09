@@ -892,6 +892,123 @@ export function runMigrations() {
       console.log('[Vayentra DB] Migration 005_parent_communication_reporting completed successfully.');
     }
 
+
+    // 7. Migration 006: Vayentra Learning Compass - teacher-guided diagnostic pilot.
+    // The question set is a DRAFT until a qualified teacher reviews and publishes it.
+    // No real student answers are seeded or backfilled.
+    const applied006 = db.prepare('SELECT id FROM migrations WHERE name = ?').get('006_learning_compass_pilot');
+    if (!applied006) {
+      console.log('[Vayentra DB] Applying migration 006_learning_compass_pilot...');
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS diagnostic_forms (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL,
+          subject TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published','archived')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          published_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS diagnostic_items (
+          id TEXT PRIMARY KEY,
+          form_id TEXT NOT NULL,
+          concept_id TEXT NOT NULL,
+          stem TEXT NOT NULL,
+          options_json TEXT NOT NULL,
+          correct_index INTEGER NOT NULL CHECK(correct_index BETWEEN 0 AND 3),
+          misconception_codes_json TEXT NOT NULL,
+          explanation TEXT NOT NULL,
+          position INTEGER NOT NULL,
+          FOREIGN KEY (form_id) REFERENCES diagnostic_forms(id) ON DELETE CASCADE,
+          UNIQUE(form_id, position)
+        );
+        CREATE TABLE IF NOT EXISTS diagnostic_attempts (
+          id TEXT PRIMARY KEY,
+          form_id TEXT NOT NULL,
+          student_id TEXT NOT NULL,
+          correct_count INTEGER NOT NULL,
+          question_count INTEGER NOT NULL,
+          submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(form_id, student_id),
+          FOREIGN KEY (form_id) REFERENCES diagnostic_forms(id),
+          FOREIGN KEY (student_id) REFERENCES students(id)
+        );
+        CREATE TABLE IF NOT EXISTS diagnostic_responses (
+          attempt_id TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          selected_index INTEGER NOT NULL,
+          is_correct INTEGER NOT NULL,
+          misconception_code TEXT,
+          PRIMARY KEY (attempt_id, item_id),
+          FOREIGN KEY (attempt_id) REFERENCES diagnostic_attempts(id) ON DELETE CASCADE,
+          FOREIGN KEY (item_id) REFERENCES diagnostic_items(id)
+        );
+        CREATE TABLE IF NOT EXISTS diagnostic_learning_plans (
+          attempt_id TEXT PRIMARY KEY,
+          teacher_user_id TEXT NOT NULL,
+          focus_concepts_json TEXT NOT NULL,
+          teacher_notes TEXT NOT NULL,
+          approved_at TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (attempt_id) REFERENCES diagnostic_attempts(id) ON DELETE CASCADE,
+          FOREIGN KEY (teacher_user_id) REFERENCES users(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_diag_items_form ON diagnostic_items(form_id, position);
+        CREATE INDEX IF NOT EXISTS idx_diag_attempts_student ON diagnostic_attempts(student_id, submitted_at);
+        CREATE INDEX IF NOT EXISTS idx_diag_attempts_form ON diagnostic_attempts(form_id);
+      `);
+
+      db.prepare(`
+        INSERT INTO diagnostic_forms (id, title, grade, board, subject, status)
+        VALUES ('vg-lc-7-cbse-math-v1', 'Class 7 Mathematics: Learning Compass Baseline', 7, 'CBSE', 'Mathematics', 'draft')
+      `).run();
+
+      const items = [
+        ['lc-q1','integer-signs','Which number is smaller: -7 or -2?',
+          ['-2','-7','They are equal','Both are positive'],1,
+          ['ORDER_NEGATIVE','', 'COMPARE_EQUAL','SIGN_VALUE'],
+          'On a number line, -7 lies to the left of -2.'],
+        ['lc-q2','integer-signs','Evaluate: 12 - (-5).',
+          ['7','-17','17','-7'],2,
+          ['DOUBLE_NEGATIVE','SIGN_SUBTRACTION','','SIGN_SUBTRACTION'],
+          'Subtracting a negative is the same as adding: 12 + 5 = 17.'],
+        ['lc-q3','multiplication-signs','Evaluate: (-4) × (-3).',
+          ['-12','12','-7','7'],1,
+          ['PRODUCT_SIGNS','','ADD_INSTEAD','SIGN_CONFUSION'],
+          'Multiplying two negatives produces a positive: 12.'],
+        ['lc-q4','multiplication-signs','Evaluate: (-24) ÷ (-6).',
+          ['-4','-18','4','18'],2,
+          ['QUOTIENT_SIGNS','ADD_INSTEAD','','SIGN_CONFUSION'],
+          'Dividing two negatives produces a positive: 4.'],
+        ['lc-q5','order-of-operations','Evaluate: 5 + 2 × 3.',
+          ['21','11','13','30'],1,
+          ['LEFT_TO_RIGHT','','ADDITION_FIRST','MULTIPLY_ALL'],
+          'Multiplication comes before addition: 5 + 6 = 11.'],
+        ['lc-q6','order-of-operations','Evaluate: (18 - 6) ÷ 3.',
+          ['16','4','6','12'],1,
+          ['DIVIDE_FIRST','','BRACKET_ERROR','SKIP_DIVISION'],
+          'Calculate the bracket first: 12 ÷ 3 = 4.'],
+        ['lc-q7','equation-formation','Solve: 3x + 5 = 20. Find x.',
+          ['15','5','25','7'],1,
+          ['NO_DIVISION','','ADD_INSTEAD','EQUATION_BALANCE'],
+          'Subtract 5 and divide by 3: x = (20 - 5)/3 = 5.'],
+        ['lc-q8','equation-formation','A number is tripled, then 5 is added, giving 20. Which equation expresses this?',
+          ['3(x + 5) = 20','x + 3 + 5 = 20','3x + 5 = 20','5x + 3 = 20'],2,
+          ['BRACKET_TRANSLATION','WORD_TO_SYMBOL','','COEFFICIENT_SWAP'],
+          'Tripled means 3x. Then adding five gives 3x + 5 = 20.']
+      ];
+
+      const insertItem = db.prepare(`
+        INSERT INTO diagnostic_items (id, form_id, concept_id, stem, options_json, correct_index, misconception_codes_json, explanation, position)
+        VALUES (?, 'vg-lc-7-cbse-math-v1', ?, ?, ?, ?, ?, ?, ?)
+      `);
+      items.forEach(([id, concept, stem, options, correct, tags, explanation], index) =>
+        insertItem.run(id, concept, stem, JSON.stringify(options), correct, JSON.stringify(tags), explanation, index + 1)
+      );
+      db.prepare('INSERT INTO migrations (name) VALUES (?)').run('006_learning_compass_pilot');
+      console.log('[Vayentra DB] Migration 006_learning_compass_pilot completed (DRAFT item bank; no student data).');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');
