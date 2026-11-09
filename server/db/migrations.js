@@ -1228,6 +1228,13 @@ export function runMigrations() {
     const exists011=db.prepare("SELECT id FROM migrations WHERE name='011_vayentra_one_longitudinal_spine'").get();
     if(!exists011){
       db.exec(`
+        CREATE TABLE IF NOT EXISTS one_student_account_links (
+          user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+          student_id TEXT UNIQUE NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          linked_by TEXT REFERENCES users(id),
+          linked_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
         CREATE TABLE IF NOT EXISTS one_memberships (
           student_id TEXT PRIMARY KEY REFERENCES students(id) ON DELETE CASCADE,
           guardian_id TEXT NOT NULL REFERENCES guardians(id),
@@ -1390,6 +1397,12 @@ export function runMigrations() {
           seedTrack.run('one-2026-'+board.toLowerCase()+'-'+grade,board,grade,
             board==='CBSE'?'NCERT / CBSE official academic reference':'Karnataka Textbook Society official academic reference');
         }
+      }
+      // Preserve only the explicitly known legacy demo pairing; no name/id guessing.
+      const demoUser=db.prepare("SELECT id FROM users WHERE id='usr-student-01' AND role='student'").get();
+      const demoStudent=db.prepare("SELECT id FROM students WHERE id='stu-001'").get();
+      if(demoUser&&demoStudent){
+        db.prepare("INSERT OR IGNORE INTO one_student_account_links(user_id,student_id) VALUES(?,?)").run(demoUser.id,demoStudent.id);
       }
       db.prepare("INSERT INTO migrations(name) VALUES('011_vayentra_one_longitudinal_spine')").run();
       console.log('[Vayentra ONE] Longitudinal student identity and 20 draft board/class catalogue shells created.');
