@@ -1,15 +1,27 @@
 import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runMigrations } from './migrations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_PATH = path.join(__dirname, 'vayentra.sqlite');
+// A separate DB can be selected for isolated test runs and data-safe migration rehearsal.
+const DB_PATH = process.env.VAYENTRA_DB_PATH
+  ? path.resolve(process.env.VAYENTRA_DB_PATH)
+  : path.join(__dirname, process.env.NODE_ENV === 'test' ? 'vayentra.test.sqlite' : 'vayentra.sqlite');
 
 export const db = new DatabaseSync(DB_PATH);
 
-// Enable foreign key constraints & WAL mode for performance
+// Enable foreign key constraints, WAL mode & busy timeout for concurrent safety
 db.exec('PRAGMA foreign_keys = ON;');
+try {
+  db.exec('PRAGMA journal_mode = WAL;');
+} catch (e) {
+  // Already WAL or locked by another process
+}
+try {
+  db.exec('PRAGMA busy_timeout = 5000;');
+} catch (e) {}
 
 export function initDatabase() {
   console.log(`[Vayentra DB] Initializing SQLite database at: ${DB_PATH}`);
@@ -262,6 +274,7 @@ export function initDatabase() {
   `);
 
   seedInitialData();
+  runMigrations();
 }
 
 function seedInitialData() {
