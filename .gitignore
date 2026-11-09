@@ -53,3 +53,7 @@ ENV/
 server/db/*.sqlite-wal
 server/db/*.sqlite-shm
 
+
+# Keep generated test data separate and untracked
+server/db/*.test.sqlite
+server/db/*.test.sqlite-*
