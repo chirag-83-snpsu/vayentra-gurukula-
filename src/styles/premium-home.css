@@ -313,3 +313,20 @@
 @media(prefers-reduced-motion:reduce){
  .vgp *, .vgp *::before, .vgp *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+
+/* Refined first-impression motion, with accessibility fallbacks above. */
+#why-vayentra,#our-programmes,#the-experience,#common-questions{scroll-margin-top:98px}
+@keyframes vgp-fade-up {
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes vgp-float-note {
+  0%,100%{transform:translate(11px,5px)}
+  50%{transform:translate(11px,-2px)}
+}
+.vgp-hero-copy{animation:vgp-fade-up .75s cubic-bezier(.2,.72,.2,1) both}
+.vgp-hero-stage{animation:vgp-fade-up .9s .13s cubic-bezier(.2,.72,.2,1) both}
+.vgp-floating-note{animation:vgp-float-note 5s ease-in-out infinite}
+.vgp-sample-insight{animation:vgp-fade-up .22s ease-out both}
+@media(max-width:680px){#why-vayentra,#our-programmes,#the-experience,#common-questions{scroll-margin-top:78px}}
