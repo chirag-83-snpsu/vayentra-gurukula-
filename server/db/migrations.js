@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import { db } from './database.js';
 import { CBSE_SUBJECTS_BY_GRADE } from '../data/cbseCatalog.js';
+import { CLASS10_PILOT_LESSONS } from '../data/class10PilotLessons.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1110,6 +1111,56 @@ export function runMigrations() {
       });
       db.prepare("INSERT INTO migrations(name) VALUES('007_cbse_ncert_video_library')").run();
       console.log('[Vayentra DB] CBSE NCERT source references and unpublished AI video pilot created.');
+    }
+
+
+    // 008 — Two ORIGINAL Class 10 CBSE video lessons and misconception checks.
+    // Seed drafts only: video URL stays NULL until human review and hosting.
+    const applied008=db.prepare("SELECT id FROM migrations WHERE name='008_class10_original_video_pilots'").get();
+    if(!applied008){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS cbse_topic_practice_items(
+          id TEXT PRIMARY KEY,
+          topic_id TEXT NOT NULL REFERENCES cbse_topics(id),
+          question TEXT NOT NULL,
+          options_json TEXT NOT NULL,
+          correct_index INTEGER NOT NULL CHECK(correct_index BETWEEN 0 AND 3),
+          explanation TEXT NOT NULL,
+          misconception_code TEXT NOT NULL,
+          position INTEGER NOT NULL,
+          status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published','archived')),
+          UNIQUE(topic_id,position)
+        );
+        CREATE INDEX IF NOT EXISTS idx_cbse_topic_practice ON cbse_topic_practice_items(topic_id,status);
+      `);
+      const insertTopic=db.prepare(`
+        INSERT OR IGNORE INTO cbse_topics
+          (id,source_id,chapter_title,topic_title,concept_description,lesson_order,status)
+        VALUES(?,?,?,?,?,?,'draft')
+      `);
+      const insertVideo=db.prepare(`
+        INSERT OR IGNORE INTO cbse_lesson_videos
+          (id,topic_id,origin,production_status,script_outline)
+        VALUES (?,?,'vayentra_original','teacher_review',?)
+      `);
+      const insertPractice=db.prepare(`
+        INSERT OR IGNORE INTO cbse_topic_practice_items
+          (id,topic_id,question,options_json,correct_index,explanation,misconception_code,position,status)
+        VALUES(?,?,?,?,?,?,?,?,'draft')
+      `);
+      CLASS10_PILOT_LESSONS.forEach((lesson,idx)=>{
+        insertTopic.run(lesson.topicId,lesson.sourceId,lesson.chapterTitle,lesson.topicTitle,lesson.learningObjective,idx+1);
+        const script=lesson.scenes.map((scene,i)=>
+          'Scene '+(i+1)+': '+scene.title+'\\nScreen: '+scene.visual+'\\nCaption: '+scene.caption+'\\nVoiceover: '+scene.narration
+        ).join('\\n\\n');
+        insertVideo.run('video-'+lesson.topicId,lesson.topicId,script);
+        lesson.quiz.forEach((question,i)=>{
+          insertPractice.run(question.id,lesson.topicId,question.question,JSON.stringify(question.options),
+            question.correctIndex,question.explanation,question.misconceptionCode,i+1);
+        });
+      });
+      db.prepare("INSERT INTO migrations(name) VALUES('008_class10_original_video_pilots')").run();
+      console.log('[Vayentra DB] Class 10 original Maths & Science video + quiz DRAFTS created.');
     }
 
     db.exec('COMMIT;');
