@@ -4,6 +4,7 @@ import { CbseVideoStudio } from '../components/CbseVideoStudio';
 import { AdmissionsInbox } from '../components/AdmissionsInbox';
 import { OneJourneyAdmin } from '../components/OneJourneyAdmin';
 import { OneCurriculumStudio } from '../components/OneCurriculumStudio';
+import { OneAdmissionReview } from '../components/OneAdmissionReview';
 import { 
   SlidersHorizontal, 
   Upload, 
@@ -92,7 +93,7 @@ interface TeacherData {
 export const AdminView: React.FC = () => {
   const { authToken } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'one_journey' | 'curriculum_one'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'one_journey' | 'curriculum_one' | 'one_applications'>('students');
 
   // Students State
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -717,6 +718,7 @@ export const AdminView: React.FC = () => {
         <button type="button" className={activeTab === 'curriculum_one' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('curriculum_one')}>
           <BookOpen size={16} /> ONE Curriculum Studio
         </button>
+        <button type="button" className={activeTab === 'one_applications' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_applications')}><UserPlus size={16}/> ONE Enrolment Applications</button>
       </div>
 
       {/* ======================================================== */}
@@ -1473,6 +1475,7 @@ export const AdminView: React.FC = () => {
       {activeTab === 'enquiries' && <AdmissionsInbox />}
       {activeTab === 'one_journey' && <OneJourneyAdmin />}
       {activeTab === 'curriculum_one' && <OneCurriculumStudio />}
+      {activeTab === 'one_applications' && <OneAdmissionReview />}
 
       {/* MODAL: REGISTER STUDENT & LINK GUARDIAN */}
       {/* ======================================================== */}
