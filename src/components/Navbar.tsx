@@ -24,12 +24,10 @@ import {
 } from 'lucide-react';
 
 import { Logo } from './Logo';
-import { AuthModal } from './AuthModal';
 
 export const Navbar: React.FC = () => {
   const {
     role,
-    setRole,
     currentUser,
     isAuthenticated,
     logout,
@@ -49,12 +47,10 @@ export const Navbar: React.FC = () => {
     toggleHighContrast,
     isOfflineMode,
     toggleOfflineMode,
-    showPublicPortal,
-    setShowPublicPortal
+    showPublicPortal
   } = useApp();
 
   const [showPinModal, setShowPinModal] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
 
@@ -67,31 +63,6 @@ export const Navbar: React.FC = () => {
     { id: 'safeguarding', label: 'Safeguarding Vault', icon: ShieldCheck },
     { id: 'tech_learner', label: 'Technical Academy', icon: Sparkles }
   ];
-
-  // Determine which portals can be switched to based on role permissions
-  const getAuthorizedPortals = () => {
-    if (!currentUser) {
-      return rolesList.filter(r => r.id === 'student');
-    }
-    if (currentUser.role === 'admin' || import.meta.env.DEV) {
-      return rolesList;
-    }
-    if (currentUser.role === 'parent') {
-      return rolesList.filter(r => r.id === 'parent' || r.id === 'student');
-    }
-    if (currentUser.role === 'teacher') {
-      return rolesList.filter(r => r.id === 'teacher' || r.id === 'student');
-    }
-    if (currentUser.role === 'safeguarding') {
-      return rolesList.filter(r => r.id === 'safeguarding');
-    }
-    if (currentUser.role === 'reviewer') {
-      return rolesList.filter(r => r.id === 'reviewer');
-    }
-    return rolesList.filter(r => r.id === 'student');
-  };
-
-  const authorizedPortals = getAuthorizedPortals();
 
   const handleUnlockPin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +90,7 @@ export const Navbar: React.FC = () => {
       {/* Brand & Badge */}
       <div 
         style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-        onClick={() => setShowPublicPortal(true)}
+        onClick={() => window.location.assign('/')}
         title="Return to Public Admissions Home"
       >
         <Logo variant="header" height={44} />
@@ -132,7 +103,7 @@ export const Navbar: React.FC = () => {
         {/* Offline indicator */}
         {isOfflineMode && (
           <span className="chip chip-saffron">
-            <WifiOff size={12} /> Offline Sync Queue (2)
+            <WifiOff size={12} /> Offline
           </span>
         )}
       </div>
@@ -141,7 +112,7 @@ export const Navbar: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         
         {/* Child Switcher (Visible in Student/Parent modes for authorized parent) */}
-        {!isChildModeLocked && (role === 'student' || role === 'parent') && (
+        {!isChildModeLocked && role === 'parent' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="t-tiny" style={{ fontWeight: 600 }}>Child:</span>
             <select
@@ -165,42 +136,8 @@ export const Navbar: React.FC = () => {
           </div>
         )}
 
-        {/* Authorized Portal Switcher (Only available if logged in or in DEV mode) */}
-        {!isChildModeLocked && (isAuthenticated || import.meta.env.DEV) ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="t-tiny" style={{ fontWeight: 600 }}>
-              {import.meta.env.DEV && !isAuthenticated ? 'Portal (Dev):' : 'Portal:'}
-            </span>
-            <select
-              value={role}
-              onChange={(e) => {
-                setRole(e.target.value as UserRole);
-                setShowPublicPortal(false);
-              }}
-              style={{
-                padding: '6px 12px',
-                minHeight: '36px',
-                fontSize: '13px',
-                borderRadius: '8px',
-                fontWeight: 600,
-                background: 'var(--color-paper)'
-              }}
-            >
-              {authorizedPortals.map(r => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : isChildModeLocked ? (
-          <span className="chip chip-saffron">
-            <Lock size={12} /> Child Mode Locked (PIN Required to exit)
-          </span>
-        ) : null}
-
         {/* Shared Device PIN Mode Toggle */}
-        {!isChildModeLocked ? (
+        {!isChildModeLocked && role === 'parent' ? (
           <button
             type="button"
             className="ghost"
@@ -210,7 +147,7 @@ export const Navbar: React.FC = () => {
           >
             <Lock size={14} /> Lock Child PIN
           </button>
-        ) : (
+        ) : isChildModeLocked ? (
           <button
             type="button"
             className="btn btn-teal"
@@ -219,7 +156,7 @@ export const Navbar: React.FC = () => {
           >
             <Unlock size={14} /> Exit Child Mode
           </button>
-        )}
+        ) : null}
 
         {/* Theme Toggle */}
         <button
@@ -318,7 +255,7 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               className="btn btn-navy"
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => window.location.assign('/login')}
               style={{
                 padding: '6px 14px',
                 minHeight: '36px',
@@ -338,8 +275,6 @@ export const Navbar: React.FC = () => {
         )}
       </div>
 
-      {/* Auth Modal */}
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
       {/* Parent PIN Unlock Modal */}
       {showPinModal && (
@@ -362,7 +297,7 @@ export const Navbar: React.FC = () => {
               <div className="h3">Parent Verification</div>
             </div>
             <div className="t-muted" style={{ marginBottom: '16px' }}>
-              Enter your 4-digit Parent PIN to exit child mode or access billing and parental controls. (Default PIN: <strong>1234</strong>)
+              Enter your 4-digit Parent PIN to exit child mode or access billing and parental controls.
             </div>
 
             <form onSubmit={handleUnlockPin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
