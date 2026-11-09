@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../db/database.js';
+import { ensureStudentPassport } from '../domain/passportService.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
 import { getTelecomGatewayStatus, sendWhatsAppViaMetaCloudApi, sendSmsViaTelecomGateway } from '../services/messaging.js';
 
@@ -273,6 +274,9 @@ adminRouter.post('/students', (req, res) => {
         enrolledBatches.push(batch);
       }
     }
+
+    // Keep the new permanent passport in the SAME registration transaction.
+    ensureStudentPassport(db,studentId);
 
     db.exec('COMMIT;');
 
