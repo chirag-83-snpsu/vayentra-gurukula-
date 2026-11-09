@@ -971,3 +971,22 @@ a:focus-visible,
 @media(max-width:900px){.vg-ncert-content,.vg-video-studio-grid{grid-template-columns:1fr}}
 @media(max-width:540px){.vg-ncert-hero{padding:18px}.vg-ncert-hero-icon{display:none}.vg-ncert-topic{align-items:start;flex-direction:column}.vg-ncert-controls label{flex-basis:100%}}
 @media(prefers-reduced-motion:reduce){.vg-ncert-topic{transition:none}}
+
+
+/* Class 10 teacher-reviewed lesson practice, aligned to Vayentra navy & gold */
+.vg-cbse-check{display:flex;flex-direction:column;gap:15px;text-align:left;margin-top:24px}
+.vg-cbse-check h3{font-size:20px;color:var(--color-navy-primary)}
+.vg-cbse-check-question{margin:0;min-width:0;border:1px solid var(--color-border-subtle);border-radius:14px;padding:14px}
+.vg-cbse-check-question legend{padding:0 6px;line-height:1.5}
+.vg-cbse-check-question label{display:flex;gap:12px;padding:9px;align-items:start;min-width:0;cursor:pointer}
+.vg-cbse-check-question label:hover{background:var(--color-navy-light);border-radius:8px}
+.vg-cbse-check-question input{flex:0 0 auto;width:18px;height:18px;margin-top:2px}
+.vg-cbse-check-feedback{margin-top:12px;background:var(--color-paper-subtle);border-left:4px solid var(--color-gold-primary);border-radius:8px;padding:12px;font-size:14px;line-height:1.6}
+.vg-cbse-check-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.vg-cbse-faculty-quiz{border:1px solid var(--color-border-subtle);border-radius:12px;padding:15px;margin:16px 0}
+.vg-cbse-faculty-quiz h4{font-size:17px;color:var(--color-navy-primary)}
+.vg-cbse-faculty-quiz p{line-height:1.6}
+.vg-cbse-faculty-item{border-top:1px solid var(--color-border-subtle);margin-top:14px;padding-top:14px;font-size:14px}
+.vg-cbse-faculty-item ol{padding-left:25px;margin:12px 0}
+.vg-cbse-faculty-item li{padding:3px 0}
+@media(max-width:540px){.vg-cbse-check{padding:14px}.vg-cbse-check-question{padding:10px}}
