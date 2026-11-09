@@ -129,6 +129,24 @@ oneOnboardingRouter.get('/learner/me',requireRole('student'),(req,res)=>{
  }catch(err){console.error('[ONE learner home]',err);return problem(res,'LEARNER_HOME_FAILED',500);}
 });
 
+// Guardian-supervised view for an approved child, even before student login provision.
+oneOnboardingRouter.get('/guardian/learners/:studentId/home',requireRole('parent'),(req,res)=>{
+ const guardianId=guardianIdFor(req.user);
+ if(!guardianId)return problem(res,'GUARDIAN_ACCOUNT_REQUIRED',403);
+ try{
+  const allowed=db.prepare(`
+    SELECT s.id FROM students s
+    JOIN one_memberships m ON m.student_id=s.id AND m.guardian_id=?
+    JOIN one_consent_reviews cr ON cr.student_id=s.id AND cr.guardian_id=?
+    WHERE s.id=? AND s.guardian_id=?
+  `).get(guardianId,guardianId,req.params.studentId,guardianId);
+  if(!allowed)return problem(res,'LEARNER_ACCESS_DENIED',403);
+  const learner=studentLearning(allowed.id);
+  if(!learner)return problem(res,'ACTIVE_LEARNER_NOT_FOUND',404);
+  return res.json({learner,viewMode:'guardian_supervised'});
+ }catch(err){console.error('[ONE guardian learner view]',err);return problem(res,'LEARNER_HOME_FAILED',500);}
+});
+
 // Admin routes are mounted after role restriction; no learner browsing for parents.
 oneOnboardingRouter.use('/admin',requireRole('admin'));
 oneOnboardingRouter.get('/admin/applications',(req,res)=>{
