@@ -9,7 +9,10 @@ import { CLASS10_NEXT_LESSON_BATCH } from '../data/class10NextLessonBatch.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_PATH = path.join(__dirname, 'vayentra.sqlite');
+// Production defaults to a file; automated tests default to isolated in-memory DB.
+ // VAYENTRA_DB_PATH may select a dedicated test/staging file, never a public repo artifact.
+const DB_PATH = process.env.VAYENTRA_DB_PATH ||
+  (process.env.NODE_ENV === 'test' ? ':memory:' : path.join(__dirname, 'vayentra.sqlite'));
 
 export function runMigrations() {
   console.log('[Vayentra DB] Running database migrations...');
