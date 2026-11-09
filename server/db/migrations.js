@@ -10,7 +10,9 @@ import { CLASS10_NEXT_LESSON_BATCH } from '../data/class10NextLessonBatch.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_PATH = path.join(__dirname, 'vayentra.sqlite');
+const DB_PATH = process.env.VAYENTRA_DB_PATH
+  ? path.resolve(process.env.VAYENTRA_DB_PATH)
+  : path.join(__dirname, process.env.NODE_ENV === 'test' ? 'vayentra.test.sqlite' : 'vayentra.sqlite');
 
 export function runMigrations() {
   console.log('[Vayentra DB] Running database migrations...');
