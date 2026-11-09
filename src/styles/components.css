@@ -920,3 +920,54 @@ a:focus-visible,
  .vg-practice-card {padding:18px}
 }
 @media(prefers-reduced-motion:reduce) {.vg-course-card {transition:none}.vg-course-card:hover {transform:none}}
+
+
+/* Vayentra CBSE NCERT reference and original lesson video library */
+.vg-ncert-library,.vg-video-studio{display:flex;flex-direction:column;gap:18px;min-width:0}
+.vg-ncert-library h2,.vg-video-studio h2{font-size:clamp(22px,3vw,30px)}
+.vg-ncert-hero{display:flex;gap:20px;align-items:center;justify-content:space-between;background:linear-gradient(120deg,var(--color-paper-card),var(--color-navy-light));padding:28px}
+.vg-ncert-hero h2{color:var(--color-navy-primary);margin:10px 0}
+.vg-ncert-hero p{color:var(--color-text-muted);line-height:1.6;max-width:730px}
+.vg-ncert-eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--color-navy-primary)}
+.vg-ncert-hero-icon{flex:0 0 82px;height:82px;display:flex;align-items:center;justify-content:center;background:var(--color-navy-primary);color:#fff;border-radius:21px}
+.vg-ncert-controls,.vg-video-studio-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.vg-ncert-controls label,.vg-video-studio-controls label{flex:1 1 170px;display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700}
+.vg-ncert-library input,.vg-ncert-library select,.vg-video-studio input,.vg-video-studio select,.vg-video-studio textarea{width:100%;font:inherit;min-height:42px;padding:9px 12px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-paper-card);color:var(--color-ink)}
+.vg-video-studio textarea{min-height:120px;resize:vertical}
+.vg-video-studio label{display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:650;margin:10px 0}
+.vg-ncert-reference,.vg-ncert-footer{display:flex;gap:14px;align-items:flex-start}
+.vg-ncert-reference{border-left:4px solid var(--color-gold-primary)}
+.vg-ncert-reference>div:last-child{min-width:0}
+.vg-ncert-reference strong{color:var(--color-navy-primary)}
+.vg-ncert-reference p{margin-top:6px;color:var(--color-text-muted);line-height:1.5}
+.vg-ncert-source-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--color-navy-light);color:var(--color-navy-primary);flex-shrink:0}
+.vg-ncert-content{display:grid;grid-template-columns:minmax(245px,1fr) minmax(0,1.5fr);gap:16px;align-items:start}
+.vg-ncert-topic-panel,.vg-ncert-video-panel{background:var(--color-paper-card);border:1px solid var(--color-border-subtle);border-radius:16px;padding:18px;min-width:0;box-shadow:var(--shadow-sm)}
+.vg-ncert-panel-title{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+.vg-ncert-panel-title h3{font-size:18px;color:var(--color-navy-primary)}
+.vg-ncert-topic{background:transparent;border:1px solid var(--color-border-subtle);border-radius:10px;padding:12px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;margin-top:8px;color:var(--color-ink);cursor:pointer;transition:background-color .16s ease,border-color .16s ease}
+.vg-ncert-topic:hover,.vg-ncert-topic.is-active{background:var(--color-navy-light);border-color:var(--color-navy-primary)}
+.vg-ncert-topic>span:first-child{display:flex;flex-direction:column;gap:4px}
+.vg-ncert-topic small{font-size:12px;color:var(--color-text-muted)}
+.vg-video-pending,.vg-video-ready{font-size:11px;font-weight:750;flex-shrink:0}
+.vg-video-pending{color:var(--color-text-muted)}
+.vg-video-ready{color:var(--color-success)}
+.vg-ncert-empty,.vg-ncert-no-video{border:1px dashed var(--color-border);border-radius:14px;background:var(--color-paper-subtle);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:26px;color:var(--color-text-muted);min-height:230px}
+.vg-ncert-empty strong,.vg-ncert-no-video strong{color:var(--color-navy-primary)}
+.vg-ncert-no-video p,.vg-ncert-empty p{max-width:440px;line-height:1.55;font-size:13px}
+.vg-ncert-player{display:block;width:100%;max-height:420px;margin-top:16px;border-radius:14px;background:#061b41}
+.vg-ncert-footer p{font-size:13px;color:var(--color-text-muted);line-height:1.6}
+.vg-ncert-footer svg{color:var(--color-navy-primary);flex-shrink:0}
+.vg-video-studio-heading{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
+.vg-video-studio-heading p{margin-top:7px}
+.vg-video-studio-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.vg-video-studio-grid h3{font-size:18px;color:var(--color-navy-primary)}
+.vg-video-studio-grid .btn,.vg-video-studio-grid .ghost{margin-top:10px}
+.vg-video-topic-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:340px;overflow-y:auto}
+.vg-video-topic-list button{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;border:1px solid var(--color-border-subtle);background:var(--color-paper-card);text-align:left;cursor:pointer;color:var(--color-ink)}
+.vg-video-topic-list button:hover,.vg-video-topic-list .vg-video-selected{border-color:var(--color-navy-primary);background:var(--color-navy-light)}
+.vg-video-topic-list small{color:var(--color-text-muted)}
+.vg-ncert-library button:focus-visible,.vg-video-studio button:focus-visible,.vg-ncert-library select:focus-visible,.vg-video-studio input:focus-visible,.vg-video-studio textarea:focus-visible{outline:3px solid var(--color-gold-primary);outline-offset:2px}
+@media(max-width:900px){.vg-ncert-content,.vg-video-studio-grid{grid-template-columns:1fr}}
+@media(max-width:540px){.vg-ncert-hero{padding:18px}.vg-ncert-hero-icon{display:none}.vg-ncert-topic{align-items:start;flex-direction:column}.vg-ncert-controls label{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.vg-ncert-topic{transition:none}}
