@@ -1437,6 +1437,41 @@ export function runMigrations() {
       console.log('[Vayentra ONE] Longitudinal student identity and 20 draft board/class catalogue shells created.');
     }
 
+
+    // 012: Guardian-submitted admission applications. Never register child as verified on submit.
+    // Existing students, grades, marks and memberships remain untouched.
+    if(!db.prepare("SELECT id FROM migrations WHERE name='012_one_guardian_admission_applications'").get()){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS one_admission_applications(
+          id TEXT PRIMARY KEY,
+          guardian_id TEXT NOT NULL REFERENCES guardians(id) ON DELETE RESTRICT,
+          child_name TEXT NOT NULL CHECK(length(child_name) BETWEEN 2 AND 80),
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL CHECK(board IN ('CBSE','STATE')),
+          academic_year TEXT NOT NULL CHECK(length(academic_year)=7),
+          notice_version TEXT NOT NULL,
+          guardian_acknowledged_at TEXT NOT NULL DEFAULT (datetime('now')),
+          idempotency_key TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'submitted'
+            CHECK(status IN ('submitted','approved','rejected')),
+          student_id TEXT UNIQUE REFERENCES students(id) ON DELETE RESTRICT,
+          reviewed_by TEXT REFERENCES users(id),
+          review_method TEXT,
+          evidence_reference TEXT,
+          reviewed_at TEXT,
+          rejection_reason TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(guardian_id,idempotency_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_one_applications_status_created
+          ON one_admission_applications(status,created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_one_applications_guardian
+          ON one_admission_applications(guardian_id,created_at DESC);
+      `);
+      db.prepare("INSERT INTO migrations(name) VALUES('012_one_guardian_admission_applications')").run();
+      console.log('[Vayentra ONE] Guardian applications ledger prepared (pending reviews only).');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');
