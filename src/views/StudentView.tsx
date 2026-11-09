@@ -4,6 +4,7 @@ import { Episode, CheckpointQuestion } from '../types';
 import { UniversalStateWrapper } from '../components/UniversalStateWrapper';
 import { HomeworkAndAssessmentTracker } from '../components/HomeworkAndAssessmentTracker';
 import { LearningCompass } from '../components/LearningCompass';
+import { PracticeArena } from '../components/PracticeArena';
 import confetti from 'canvas-confetti';
 import { 
   Play, 
@@ -177,6 +178,7 @@ export const StudentView: React.FC = () => {
         >
           <BookOpen size={16} /> Continue Learning
         </button>
+        <button type="button" className={activeTab === 'practice' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('practice')}><Sparkles size={16}/> Daily Practice</button>
         <button
           type="button"
           className={activeTab === 'mistakes' ? 'btn btn-teal' : 'ghost'}
@@ -209,6 +211,7 @@ export const StudentView: React.FC = () => {
       </div>
 
       {activeTab === 'diagnostics' && <LearningCompass mode="student" />}
+      {activeTab === 'practice' && <PracticeArena />}
 
       {/* TAB 1: LEARN (Episode Player / Story Mode) */}
       {activeTab === 'learn' && (
