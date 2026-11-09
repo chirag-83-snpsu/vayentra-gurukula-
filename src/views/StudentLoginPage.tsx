@@ -6,7 +6,7 @@ import '../styles/landing.css';
 
 type Props={onBack:()=>void;onSuccess:()=>void};
 export const StudentLoginPage:React.FC<Props>=({onBack,onSuccess})=>{
- const {login,currentUser,isAuthenticated,role,activeChild,setActiveChildId,parent}=useApp();
+ const {login,currentUser,isAuthenticated,role,setActiveChildId,parent}=useApp();
  const [email,setEmail]=useState('');const [password,setPassword]=useState('');
  const [grade,setGrade]=useState('');const [board,setBoard]=useState<'CBSE'|'STATE'>('CBSE');
  const [busy,setBusy]=useState(false);const [error,setError]=useState('');
@@ -26,8 +26,8 @@ export const StudentLoginPage:React.FC<Props>=({onBack,onSuccess})=>{
   finally{setBusy(false);}
  };
  const isLearner=role==='student'||role==='parent';
- const enrolledGrade=role==='parent'?parent.children.find(c=>c.id===childId)?.grade:activeChild?.grade;
- const enrolledBoard=role==='parent'?parent.children.find(c=>c.id===childId)?.board:activeChild?.board;
+ const enrolledGrade=role==='parent'?parent.children.find(c=>c.id===childId)?.grade:undefined;
+ const enrolledBoard=role==='parent'?parent.children.find(c=>c.id===childId)?.board:undefined;
  const continueLearning=()=>{
   setError('');
   if(!grade){setError('Please select your class.');return;}
@@ -59,7 +59,7 @@ export const StudentLoginPage:React.FC<Props>=({onBack,onSuccess})=>{
       <label htmlFor="vg-board">Board</label><select id="vg-board" value={board} onChange={e=>setBoard(e.target.value as 'CBSE'|'STATE')}><option value="CBSE">CBSE</option><option value="STATE">Karnataka State Board</option></select>
       {error&&<div role="alert" className="vg-login-error">{error}</div>}
       <button type="button" className="vg-primary-cta" onClick={continueLearning}>Continue to Learn Hub <ArrowRight size={17}/></button>
-     </div><p className="vg-login-footnote"><CheckCircle2 size={16}/> Your registered class and board are verified before continuing.</p>
+     </div><p className="vg-login-footnote"><CheckCircle2 size={16}/> For parents, class and board are checked against linked student records. Student self-selection is a learning preference until server-side enrolment verification is connected.</p>
     </>:<><span className="vg-section-label">STAFF ACCOUNT</span><h2 id="vg-login-heading">Staff access</h2><p>This sign-in is reserved for learners and parents. Staff should use the existing authorised portal.</p><button className="vg-primary-cta" onClick={onSuccess}>Go to authorised portal <ArrowRight size={17}/></button></>}
    </section>
   </div>
