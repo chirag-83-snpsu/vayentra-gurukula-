@@ -110,7 +110,7 @@ journeyRouter.post('/students/:studentId/marks',requireRole('parent'),requireChi
  if(!yearId||subject.length<2||subject.length>80||exam.length<2||exam.length>80||
     /[<>]/.test(subject+exam)||!Number.isFinite(obtained)||!Number.isFinite(max)||
     obtained<0||max<=0||max>1000||obtained>max||
-    !Number.isInteger(Math.round(obtained*100))||!Number.isInteger(Math.round(max*100)))
+    Math.abs(obtained*100-Math.round(obtained*100))>0.00001||Math.abs(max*100-Math.round(max*100))>0.00001)
   return fail(res,'INVALID_MARK_ENTRY',400,'Enter a subject, exam, and marks between 0 and the maximum.');
  try{
   const member=membership(studentId);
