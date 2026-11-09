@@ -68,6 +68,7 @@ export const PublicView: React.FC = () => {
   const currentPreview = curriculumPreviews[selectedBoard]?.[selectedClass] || curriculumPreviews.CBSE[7];
 
   const browseCurriculum = () => document.getElementById('vg-curriculum-explorer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const browseMethod = () => document.getElementById('vg-teaching-method')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   const handleAbacusTap = (colIdx: number) => {
     setAbacusBeads(prev => {
@@ -228,7 +229,7 @@ export const PublicView: React.FC = () => {
       <CoursePathways grade={selectedClass} board={selectedBoard} onGradeChange={setSelectedClass} onBoardChange={setSelectedBoard} onBrowse={browseCurriculum} />
 
       {/* 3. THE 5 CORE GURUKULA PILLARS (Bento Grid) */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <section id="vg-teaching-method" style={{ display: 'flex', flexDirection: 'column', gap: '24px', scrollMarginTop: '110px' }}>
         <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto' }}>
           <div className="ribbon-banner" style={{ background: 'var(--color-gold-primary)' }}>
             PEDAGOGICAL EXCELLENCE
@@ -635,9 +636,9 @@ export const PublicView: React.FC = () => {
                 type="button" 
                 className="btn btn-teal" 
                 style={{ marginTop: 'auto', minHeight: '36px', fontSize: '13px' }}
-                onClick={() => { setRole('student'); setShowPublicPortal(false); }}
+                onClick={browseMethod}
               >
-                Launch Class {selectedClass} Demo Lesson <ArrowRight size={14} />
+                Explore Our Teaching Method <ArrowRight size={14} />
               </button>
             </div>
 
@@ -655,9 +656,9 @@ export const PublicView: React.FC = () => {
                 type="button" 
                 className="ghost" 
                 style={{ marginTop: 'auto', minHeight: '36px', fontSize: '13px' }}
-                onClick={() => { setRole('student'); setShowPublicPortal(false); }}
+                onClick={browseMethod}
               >
-                View Syllabus Breakdown
+                Explore Science Teaching
               </button>
             </div>
 
@@ -675,9 +676,9 @@ export const PublicView: React.FC = () => {
                 type="button" 
                 className="ghost" 
                 style={{ marginTop: 'auto', minHeight: '36px', fontSize: '13px' }}
-                onClick={() => { setRole('student'); setShowPublicPortal(false); }}
+                onClick={browseMethod}
               >
-                Listen to Audio Story Preview
+                Explore English Activities
               </button>
             </div>
 
