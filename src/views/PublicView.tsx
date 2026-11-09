@@ -28,6 +28,7 @@ import {
 
 import { Logo } from '../components/Logo';
 import { ScholarshipModal } from '../components/ScholarshipModal';
+import { CoursePathways } from '../components/CoursePathways';
 
 export const PublicView: React.FC = () => {
   const { setRole, setShowPublicPortal } = useApp();
@@ -65,6 +66,8 @@ export const PublicView: React.FC = () => {
   };
 
   const currentPreview = curriculumPreviews[selectedBoard]?.[selectedClass] || curriculumPreviews.CBSE[7];
+
+  const browseCurriculum = () => document.getElementById('vg-curriculum-explorer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   const handleAbacusTap = (colIdx: number) => {
     setAbacusBeads(prev => {
@@ -170,10 +173,10 @@ export const PublicView: React.FC = () => {
           <button 
             type="button" 
             className="btn btn-teal btn-large" 
-            onClick={() => { setRole('student'); setShowPublicPortal(false); }}
+            onClick={() => document.getElementById('vg-courses-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             style={{ boxShadow: 'var(--shadow-md)' }}
           >
-            <Play size={20} /> Try Free 8-Minute Lesson Demo <ArrowRight size={20} />
+            <Play size={20} /> Explore Learning Pathways <ArrowRight size={20} />
           </button>
           
           <button 
@@ -209,11 +212,11 @@ export const PublicView: React.FC = () => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--color-navy-primary)' }}>
             <ShieldCheck size={18} color="var(--color-success)" />
-            <span>100% DPDP Child-Safe (Zero Ad Tracking)</span>
+            <span>Private, Parent-Aware Learning</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--color-navy-primary)' }}>
             <Award size={18} color="var(--color-gold-primary)" />
-            <span>Certified Educator Reviewed (No Unchecked AI)</span>
+            <span>Teacher-Guided Academic Support</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--color-navy-primary)' }}>
             <CheckCircle2 size={18} color="var(--color-navy-primary)" />
@@ -221,6 +224,8 @@ export const PublicView: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <CoursePathways grade={selectedClass} board={selectedBoard} onGradeChange={setSelectedClass} onBoardChange={setSelectedBoard} onBrowse={browseCurriculum} />
 
       {/* 3. THE 5 CORE GURUKULA PILLARS (Bento Grid) */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -524,13 +529,13 @@ export const PublicView: React.FC = () => {
       </section>
 
       {/* 5. INTERACTIVE CURRICULUM EXPLORER (CBSE & Karnataka State Board) */}
-      <section className="b" style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '32px' }}>
+      <section id="vg-curriculum-explorer" className="b" style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '32px', scrollMarginTop: '110px' }}>
         <div style={{ textAlign: 'center', maxWidth: '760px', margin: '0 auto' }}>
           <div className="ribbon-banner">
             BOARD-ALIGNED SYLLABUS DISCOVERY
           </div>
           <h2 style={{ fontSize: '28px', marginTop: '10px', color: 'var(--color-navy-primary)' }}>
-            Explore Verified Syllabus for Classes 1 to 10
+            Explore Curriculum Topics for Classes 1 to 10
           </h2>
           <p className="t-muted" style={{ fontSize: '15px', marginTop: '6px' }}>
             Check curriculum coverage, pedagogical breakdown, and try authentic lesson checkpoints for your child's board and grade.
@@ -604,12 +609,12 @@ export const PublicView: React.FC = () => {
                 {selectedBoard === 'STATE' ? 'Karnataka State Board' : 'CBSE'} • Class {selectedClass} Curriculum Framework
               </div>
               <div className="t-muted">
-                Aligned to NCERT / DSERT Karnataka state syllabus guidelines with verified teacher review.
+                Sample topic previews. Confirm current textbook coverage with the academic team.
               </div>
             </div>
 
             <span className="chip chip-navy" style={{ padding: '6px 14px', fontSize: '13px' }}>
-              ✓ Verified by Senior Academic Council
+              Class & Board Topic Preview
             </span>
           </div>
 
@@ -947,8 +952,8 @@ export const PublicView: React.FC = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
             <strong style={{ color: 'var(--color-navy-primary)' }}>Child Protection & Ethics</strong>
-            <span style={{ color: 'var(--color-text-muted)' }}>• India DPDP Act 2023 Compliant</span>
-            <span style={{ color: 'var(--color-text-muted)' }}>• Certified Human Educator Gate (AT-08)</span>
+            <span style={{ color: 'var(--color-text-muted)' }}>• Child privacy and data-protection focus</span>
+            <span style={{ color: 'var(--color-text-muted)' }}>• Teacher-guided academic review</span>
             <span style={{ color: 'var(--color-text-muted)' }}>• Tele-MANAS (14416) Safeguarding</span>
             <span style={{ color: 'var(--color-text-muted)' }}>• Zero Third-Party Advertising</span>
           </div>
