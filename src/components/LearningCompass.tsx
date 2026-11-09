@@ -12,7 +12,7 @@ async function call(url:string,token:string,options:RequestInit={}){
  return data;
 }
 export const LearningCompass:React.FC<{mode:'student'|'teacher'}>=({mode})=>{
- const {authToken,activeChild}=useApp();
+ const {authToken}=useApp();
  const token=authToken||'';
  const [form,setForm]=useState<DForm|null>(null);
  const [answers,setAnswers]=useState<Record<string,number>>({});
@@ -36,12 +36,12 @@ export const LearningCompass:React.FC<{mode:'student'|'teacher'}>=({mode})=>{
     const data=await call('/api/v1/diagnostics/forms/'+pilotId+'/attempts',token);
     setAttempts(data.attempts||[]);
    }else{
-    const data=await call('/api/v1/diagnostics/student/'+activeChild.id+'/attempts',token);
+    const data=await call('/api/v1/diagnostics/my-attempts',token);
     setMyAttempts(data.attempts||[]);
    }
   }catch(e){setError(e instanceof Error?e.message:'Failed to load diagnostic.');}
   finally{setLoading(false);}
- },[token,mode,activeChild.id]);
+ },[token,mode]);
  useEffect(()=>{void load();},[load]);
  async function action(run:()=>Promise<void>){
   setBusy(true);setError('');setMessage('');
