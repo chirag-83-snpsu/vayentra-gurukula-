@@ -65,23 +65,14 @@ test('student password login uses an explicit database mapping, not a known demo
    .run('usr-student-01',old.student_id);
  }
 });
-test('guardian cannot forge different guardian ID while self-adding a provisional learner',async()=>{
- const own=db.prepare("SELECT id FROM guardians WHERE user_id='usr-guardian-01'").get();
- assert.ok(own);
- const result=await req('/api/v1/auth/child/add',{method:'POST',token:guardianToken,body:{
-  name:'Test Learner Phase0',grade:4,board:'CBSE',guardianId:'forged-other-guardian'
+test('legacy direct child creation is permanently retired; no guardian spoofing or fake consent',async()=>{
+ const before=db.prepare('SELECT COUNT(*) AS n FROM students').get().n;
+ const r=await req('/api/v1/auth/child/add',{method:'POST',token:guardianToken,body:{
+  name:'Test Child Legacy',grade:4,board:'CBSE',guardianId:'forged-other-guardian'
  }});
- assert.equal(result.status,200,JSON.stringify(result.body));
- const studentId=result.body.student.id;
- try{
-  const student=db.prepare('SELECT * FROM students WHERE id=?').get(studentId);
-  assert.equal(student.guardian_id,own.id);
-  assert.equal(student.has_consent,0,'Consent is pending, never fabricated');
-  const fake=db.prepare('SELECT COUNT(*) AS n FROM consent_records WHERE student_id=?').get(studentId).n;
-  assert.equal(fake,0);
- }finally{
-  db.prepare('DELETE FROM students WHERE id=?').run(studentId);
- }
+ assert.equal(r.status,410);
+ assert.equal(r.body.code,'USE_REVIEWED_ONE_ADMISSION');
+ assert.equal(db.prepare('SELECT COUNT(*) AS n FROM students').get().n,before);
 });
 test('anonymous caller cannot fetch session data',async()=>{
  assert.equal((await req('/api/v1/auth/me')).status,401);
