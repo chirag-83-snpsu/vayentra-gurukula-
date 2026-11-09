@@ -1,0 +1,42 @@
+/* Vayentra / dedicated admissions — parent-only enquiry form. */
+.vgpa{--navy:#0a1b39;--gold:#efbd6a;--ink:#172950;--muted:#667791;min-height:100vh;background:linear-gradient(120deg,#f7f8fa,#edf1f8);color:var(--ink);font-family:Inter,system-ui,-apple-system,sans-serif}
+.vgpa *{box-sizing:border-box}
+.vgpa-header{max-width:1300px;margin:auto;padding:25px 35px;display:flex;align-items:center;justify-content:space-between;gap:22px}
+.vgpa-header button{border:0;background:transparent;color:#283f6c;font-weight:750;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px}
+.vgpa-header button:hover{color:#ac7420}
+.vgpa-brand{font-size:17px;letter-spacing:.09em;color:#102b62;font-weight:850;white-space:nowrap}.vgpa-brand>span{color:#b98435;margin-right:5px}.vgpa-brand>b{color:#ae7b2c}
+.vgpa-wrap{max-width:1200px;margin:45px auto 85px;display:grid;grid-template-columns:.91fr 1.09fr;gap:80px;align-items:start;padding:0 35px}
+.vgpa-intro{padding-top:60px}
+.vgpa-kicker,.vgpa-form-heading>span{font-size:11px;letter-spacing:.17em;color:#b17b2d;font-weight:850}
+.vgpa h1{font-size:clamp(39px,4vw,60px);font-weight:850;letter-spacing:-.055em;line-height:1.14;margin:24px 0;color:#102855}
+.vgpa-intro>p{font-size:17px;color:#63738c;line-height:1.75}
+.vgpa-highlights{margin:35px 0;display:grid;gap:18px}
+.vgpa-highlights span{display:flex;align-items:center;gap:12px;font-weight:650;font-size:14px;color:#26416f}
+.vgpa-highlights svg{color:#ae7d32}
+.vgpa-note{margin-top:35px;padding:22px 24px;border-left:3px solid #dfae63;background:#fff9ed;border-radius:5px 12px 12px 5px}
+.vgpa-note strong{color:#8d6025}.vgpa-note p{font-size:13px;color:#6b7081;line-height:1.7;margin:10px 0 0}
+.vgpa-form-card{background:#fff;border:1px solid #e2e7f1;border-radius:22px;padding:40px;box-shadow:0 28px 60px #17355b16}
+.vgpa-form-heading h2{font-size:clamp(27px,2.5vw,35px);line-height:1.25;letter-spacing:-.045em;margin:14px 0;color:#142d5b}
+.vgpa-form-heading p{font-size:13px;line-height:1.6;color:#687994}
+.vgpa-form{margin-top:24px;display:flex;flex-direction:column;gap:9px}
+.vgpa-form label{font-size:13px;font-weight:750;color:#243a64;margin-top:8px}
+.vgpa-form input:not([type="checkbox"]),.vgpa-form select,.vgpa-form textarea{border:1px solid #cdd7e7;border-radius:10px;background:#fff;color:#1b305a;width:100%;padding:12px 14px;font:inherit;font-size:14px;min-height:48px}
+.vgpa-form textarea{min-height:92px;resize:vertical}
+.vgpa-form input:focus,.vgpa-form textarea:focus,.vgpa-form select:focus{outline:3px solid #efbd6a5e;border-color:#a87933}
+.vgpa-form-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.vgpa-form-cols>div{display:flex;flex-direction:column;gap:9px}
+.vgpa-consent{display:flex!important;gap:11px;align-items:flex-start;font-size:12px!important;line-height:1.7;color:#586985!important;font-weight:500!important;margin:13px 0!important}
+.vgpa-consent input{width:18px;height:18px;margin-top:3px;flex-shrink:0;accent-color:#163571}
+.vgpa-submit{width:100%;border:0;background:#142f68;color:#fff;border-radius:9px;padding:15px 22px;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:760;min-height:52px;cursor:pointer;transition:background .2s}
+.vgpa-submit:hover:not(:disabled){background:#2553a1}.vgpa-submit:disabled{opacity:.55;cursor:not-allowed}
+.vgpa-privacy{display:flex;gap:8px;align-items:flex-start;font-size:11px;color:#78869a;line-height:1.65;margin-top:10px}.vgpa-privacy svg{flex-shrink:0}
+.vgpa-error{background:#fff0ef;border:1px solid #f5c8c0;color:#9e3535;border-radius:8px;padding:12px;line-height:1.55;font-size:13px}
+.vgpa-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none}
+.vgpa-confirmation{display:flex;flex-direction:column;align-items:center;text-align:center;gap:17px;padding:35px 0}
+.vgpa-confirmation svg{color:#16865f}.vgpa-confirmation h2{color:#143270;font-size:31px;line-height:1.2}
+.vgpa-confirmation p{color:#64728a;font-size:14px;line-height:1.7}
+.vgpa-reference{background:#f1f4fa;padding:12px;overflow-wrap:anywhere;border-radius:8px;width:100%}
+.vgpa button:focus-visible{outline:3px solid #c88a1e;outline-offset:3px}
+@media(max-width:900px){.vgpa-wrap{grid-template-columns:1fr;gap:32px;margin:15px auto 60px}.vgpa-intro{padding-top:20px}.vgpa-note{margin-top:22px}.vgpa-form-card{max-width:720px}}
+@media(max-width:600px){.vgpa-header{padding:18px;gap:12px}.vgpa-brand{font-size:12px;letter-spacing:.03em}.vgpa-header button{font-size:11px}.vgpa-header button svg{width:14px}.vgpa-wrap{padding:0 18px}.vgpa h1{font-size:42px}.vgpa-intro>p{font-size:15px}.vgpa-form-card{padding:24px}.vgpa-form-cols{grid-template-columns:1fr;gap:5px}}
+@media(prefers-reduced-motion:reduce){.vgpa *{transition:none!important}}
