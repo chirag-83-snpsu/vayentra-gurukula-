@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import { db } from './database.js';
+import { CLASS4_SHAPES_PILOT } from '../data/class4ShapesPilot.js';
 import { CBSE_SUBJECTS_BY_GRADE } from '../data/cbseCatalog.js';
 import { CLASS10_PILOT_LESSONS } from '../data/class10PilotLessons.js';
 import { CLASS10_NEXT_LESSON_BATCH } from '../data/class10NextLessonBatch.js';
@@ -1470,6 +1471,132 @@ export function runMigrations() {
       `);
       db.prepare("INSERT INTO migrations(name) VALUES('012_one_guardian_admission_applications')").run();
       console.log('[Vayentra ONE] Guardian applications ledger prepared (pending reviews only).');
+    }
+
+
+    // 013: Original Class 4 Maths chapter studio, review states & evidence ledger.
+    // The sample content stays DRAFT until independent educational review.
+    if(!db.prepare("SELECT id FROM migrations WHERE name='013_one_concept_studio_shapes_pilot'").get()){
+      db.exec(`
+       CREATE TABLE IF NOT EXISTS one_studio_units(
+         id TEXT PRIMARY KEY,
+         concept_id TEXT NOT NULL UNIQUE REFERENCES one_concepts(id) ON DELETE RESTRICT,
+         unit_key TEXT NOT NULL UNIQUE,
+         lesson_order INTEGER NOT NULL CHECK(lesson_order BETWEEN 1 AND 50),
+         objective TEXT NOT NULL,
+         bridge TEXT NOT NULL,
+         explanation TEXT NOT NULL,
+         steps_json TEXT NOT NULL,
+         worked_example TEXT NOT NULL,
+         misconception TEXT NOT NULL,
+         offline_activity TEXT NOT NULL,
+         visual_key TEXT NOT NULL,
+         status TEXT NOT NULL DEFAULT 'draft'
+          CHECK(status IN ('draft','teacher_review','reviewed','published')),
+         reviewer_id TEXT REFERENCES users(id),
+         review_reference TEXT,
+         reviewed_at TEXT,
+         publisher_id TEXT REFERENCES users(id),
+         published_at TEXT
+       );
+       CREATE TABLE IF NOT EXISTS one_studio_questions(
+         id TEXT PRIMARY KEY,
+         unit_id TEXT NOT NULL REFERENCES one_studio_units(id) ON DELETE RESTRICT,
+         position INTEGER NOT NULL CHECK(position BETWEEN 1 AND 15),
+         stem TEXT NOT NULL,
+         options_json TEXT NOT NULL,
+         correct_index INTEGER NOT NULL CHECK(correct_index BETWEEN 0 AND 3),
+         rationale TEXT NOT NULL,
+         misconception_tag TEXT NOT NULL,
+         UNIQUE(unit_id,position)
+       );
+       CREATE TABLE IF NOT EXISTS one_studio_attempts(
+         id TEXT PRIMARY KEY,
+         student_id TEXT NOT NULL REFERENCES one_memberships(student_id) ON DELETE RESTRICT,
+         unit_id TEXT NOT NULL REFERENCES one_studio_units(id) ON DELETE RESTRICT,
+         attempted_by TEXT NOT NULL REFERENCES users(id),
+         client_attempt_key TEXT NOT NULL,
+         response_json TEXT NOT NULL,
+         correct_count INTEGER NOT NULL CHECK(correct_count BETWEEN 0 AND 15),
+         total_questions INTEGER NOT NULL CHECK(total_questions BETWEEN 1 AND 15),
+         created_at TEXT NOT NULL DEFAULT (datetime('now')),
+         UNIQUE(student_id,client_attempt_key)
+       );
+       CREATE INDEX IF NOT EXISTS idx_one_studio_attempts_student
+        ON one_studio_attempts(student_id,created_at);
+       CREATE TABLE IF NOT EXISTS one_studio_pilot_grants(
+         student_id TEXT PRIMARY KEY REFERENCES one_memberships(student_id) ON DELETE RESTRICT,
+         approved_by TEXT NOT NULL REFERENCES users(id),
+         reason TEXT NOT NULL,
+         expires_at TEXT NOT NULL,
+         created_at TEXT NOT NULL DEFAULT (datetime('now'))
+       );
+       CREATE TABLE IF NOT EXISTS one_studio_reviews(
+         id TEXT PRIMARY KEY,
+         unit_id TEXT NOT NULL REFERENCES one_studio_units(id) ON DELETE RESTRICT,
+         reviewer_id TEXT NOT NULL REFERENCES users(id),
+         review_reference TEXT NOT NULL,
+         decision TEXT NOT NULL CHECK(decision IN ('approved','changes_requested')),
+         created_at TEXT NOT NULL DEFAULT (datetime('now'))
+       );
+      `);
+      const data=CLASS4_SHAPES_PILOT;
+      const track=db.prepare(
+        'SELECT id FROM one_curriculum_tracks WHERE grade=? AND board=? AND edition_year=?'
+      ).get(data.grade,data.board,data.year);
+      if(!track)throw new Error('MISSING_CLASS4_CBSE_CURRICULUM_TRACK');
+      let subject=db.prepare('SELECT id FROM one_subjects WHERE track_id=? AND subject_title=?')
+        .get(track.id,data.subject);
+      if(!subject){
+        db.prepare("INSERT INTO one_subjects(id,track_id,subject_title) VALUES(?,?,?)")
+          .run('one-pilot-c4-maths',track.id,data.subject);
+        subject={id:'one-pilot-c4-maths'};
+      }
+      let chapter=db.prepare('SELECT id,chapter_title FROM one_chapters WHERE subject_id=? AND chapter_number=?')
+        .get(subject.id,data.chapterNumber);
+      if(chapter&&chapter.chapter_title!==data.chapterTitle)
+        throw new Error('CHAPTER_1_TITLE_CONFLICT_REQUIRES_EDITORIAL_REVIEW');
+      if(!chapter){
+        db.prepare(`
+         INSERT INTO one_chapters(id,subject_id,chapter_number,chapter_title,textbook_edition)
+         VALUES(?,?,?,?,?)
+        `).run('one-pilot-c4-shapes',subject.id,data.chapterNumber,data.chapterTitle,data.year);
+        chapter={id:'one-pilot-c4-shapes'};
+      }
+      const insertConcept=db.prepare(`
+       INSERT INTO one_concepts(id,chapter_id,position,title,explanation_original,misconception_tip)
+       VALUES(?,?,?,?,?,?)
+      `);
+      const insertUnit=db.prepare(`
+       INSERT INTO one_studio_units
+       (id,concept_id,unit_key,lesson_order,objective,bridge,explanation,steps_json,
+        worked_example,misconception,offline_activity,visual_key)
+       VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+      `);
+      const insertQuestion=db.prepare(`
+       INSERT INTO one_studio_questions(id,unit_id,position,stem,options_json,correct_index,rationale,misconception_tag)
+       VALUES(?,?,?,?,?,?,?,?)
+      `);
+      data.lessons.forEach((lesson,index)=>{
+        const position=index+1;
+        const existing=db.prepare('SELECT id,title FROM one_concepts WHERE chapter_id=? AND position=?')
+          .get(chapter.id,position);
+        if(existing&&existing.title!==lesson.title)
+          throw new Error('CONCEPT_POSITION_CONFLICT_REQUIRES_EDITORIAL_REVIEW');
+        const conceptId=existing?.id||'one-pilot-concept-'+lesson.key;
+        if(!existing)insertConcept.run(conceptId,chapter.id,position,lesson.title,
+          lesson.explanation,lesson.misconception);
+        const unitId='one-studio-'+lesson.key;
+        insertUnit.run(unitId,conceptId,data.courseKey+'-'+lesson.key,position,lesson.objective,
+          lesson.bridge,lesson.explanation,JSON.stringify(lesson.steps),lesson.example,
+          lesson.misconception,lesson.action,lesson.visual);
+        lesson.questions.forEach(([stem,options,correct,rationale,tag],idx)=>{
+          insertQuestion.run(unitId+'-q'+(idx+1),unitId,idx+1,stem,JSON.stringify(options),
+            correct,rationale,tag);
+        });
+      });
+      db.prepare("INSERT INTO migrations(name) VALUES('013_one_concept_studio_shapes_pilot')").run();
+      console.log('[Vayentra ONE] Six original Class 4 shape concept drafts and 24 questions created; none published.');
     }
 
     db.exec('COMMIT;');
