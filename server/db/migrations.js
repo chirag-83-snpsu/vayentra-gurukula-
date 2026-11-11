@@ -1539,6 +1539,14 @@ export function runMigrations() {
          decision TEXT NOT NULL CHECK(decision IN ('approved','changes_requested')),
          created_at TEXT NOT NULL DEFAULT (datetime('now'))
        );
+       CREATE TABLE IF NOT EXISTS one_studio_publication_events(
+         id TEXT PRIMARY KEY,
+         unit_id TEXT NOT NULL REFERENCES one_studio_units(id) ON DELETE RESTRICT,
+         actor_user_id TEXT NOT NULL REFERENCES users(id),
+         action TEXT NOT NULL CHECK(action IN ('published','withdrawn')),
+         evidence_reference TEXT NOT NULL,
+         created_at TEXT NOT NULL DEFAULT (datetime('now'))
+       );
       `);
       const data=CLASS4_SHAPES_PILOT;
       const track=db.prepare(
