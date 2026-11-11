@@ -32,7 +32,7 @@ export const ShapesScene:React.FC<{visual:string}>=({visual})=>{
     <text x="328" y="109" fill="#285185" fontSize="18" fontWeight="700">6 connected squares</text>
     <text x="328" y="132" fill="#6b819b" fontSize="13">One possible cube net</text>
    </>:visual==='angles'?<>
-    {[[112,160,62,100,'Acute'],[282,160,282,75,'Right'],[456,160,388,62,'Obtuse']].map(([ox,oy,px,py,label],i)=><g key={i}>
+    {[[112,160,62,100,'Acute'],[282,160,282,75,'Right'],[456,160,516,62,'Obtuse']].map(([ox,oy,px,py,label],i)=><g key={i}>
      <path d={'M '+(Number(ox)-65)+' '+oy+' L '+ox+' '+oy+' L '+px+' '+py} fill="none" stroke={i===1?'#c79645':'#275a9e'} strokeWidth="6" strokeLinecap="round"/>
      <circle cx={Number(ox)} cy={Number(oy)} r="5" fill="#153978"/>
      <text x={Number(ox)-31} y="201" fill="#274979" fontSize="16" fontWeight="700">{label}</text>
