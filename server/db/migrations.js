@@ -1491,6 +1491,7 @@ export function runMigrations() {
          misconception TEXT NOT NULL,
          offline_activity TEXT NOT NULL,
          visual_key TEXT NOT NULL,
+         revision_no INTEGER NOT NULL DEFAULT 1 CHECK(revision_no>=1),
          status TEXT NOT NULL DEFAULT 'draft'
           CHECK(status IN ('draft','teacher_review','reviewed','published')),
          reviewer_id TEXT REFERENCES users(id),
@@ -1545,6 +1546,14 @@ export function runMigrations() {
          actor_user_id TEXT NOT NULL REFERENCES users(id),
          action TEXT NOT NULL CHECK(action IN ('published','withdrawn')),
          evidence_reference TEXT NOT NULL,
+         created_at TEXT NOT NULL DEFAULT (datetime('now'))
+       );
+       CREATE TABLE IF NOT EXISTS one_studio_unit_revisions(
+         id TEXT PRIMARY KEY,
+         unit_id TEXT NOT NULL REFERENCES one_studio_units(id) ON DELETE RESTRICT,
+         actor_user_id TEXT NOT NULL REFERENCES users(id),
+         operation TEXT NOT NULL CHECK(operation IN ('edit_lesson','edit_question')),
+         previous_json TEXT NOT NULL,
          created_at TEXT NOT NULL DEFAULT (datetime('now'))
        );
       `);
