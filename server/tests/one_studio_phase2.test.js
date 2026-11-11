@@ -37,7 +37,8 @@ test('Class 4 Shapes Studio: review gates, original lessons, private assessment 
  assert.ok(track);assert.ok(subject);assert.ok(chapter);assert.ok(unit,'Migration 013 should seed original draft content');
  assert.equal(db.prepare('SELECT COUNT(*) n FROM one_studio_units').get().n>=6,true);
  assert.equal(db.prepare('SELECT COUNT(*) n FROM one_studio_questions WHERE unit_id=?').get(unitId).n,4);
- const oldConcept=db.prepare('SELECT content_status,reviewer_id,reviewed_at FROM one_concepts WHERE id=?').get(unit.concept_id);
+ const oldConcept=db.prepare('SELECT * FROM one_concepts WHERE id=?').get(unit.concept_id);
+ const oldQuestion=db.prepare("SELECT * FROM one_studio_questions WHERE id='one-studio-objects-q1'").get();
  const newRef='STUDIO-P2-TEST-ACADEMIC-2026';
  const rightsRef='STUDIO-P2-TEST-ORIGINAL-RIGHTS-2026';
  let appId=null,studentId=null;
@@ -73,6 +74,27 @@ test('Class 4 Shapes Studio: review gates, original lessons, private assessment 
   assert.equal((await call('/api/v1/one-studio/editor/units/'+unitId+'/review',parent,'POST',{
     decision:'approved',academicReviewReference:newRef
   })).status,403);
+  // Draft revisions must be auditable and must never silently edit a published answer key.
+  const draftPayload={
+   expectedRevisionNo:unit.revision_no,title:oldConcept.title,
+   objective:unit.objective,bridge:unit.bridge,
+   explanation:unit.explanation+' The teacher also asks the learner to name a safe everyday object.',
+   steps:JSON.parse(unit.steps_json),workedExample:unit.worked_example,
+   misconception:unit.misconception,activity:unit.offline_activity,visual:unit.visual_key
+  };
+  assert.equal((await call('/api/v1/one-studio/editor/units/'+unitId,parent,'PATCH',draftPayload)).status,403);
+  const edit=await call('/api/v1/one-studio/editor/units/'+unitId,teacher,'PATCH',draftPayload);
+  assert.equal(edit.status,200,JSON.stringify(edit.body));
+  assert.equal(edit.body.revision,unit.revision_no+1);
+  assert.equal((await call('/api/v1/one-studio/editor/units/'+unitId,teacher,'PATCH',draftPayload)).status,409,
+   'Stale draft revision cannot be overwritten');
+  const revisedQuestion=await call('/api/v1/one-studio/editor/questions/one-studio-objects-q1',teacher,'PATCH',{
+    prompt:oldQuestion.stem,options:JSON.parse(oldQuestion.options_json),
+    correctIndex:oldQuestion.correct_index,rationale:oldQuestion.rationale+' Review verified.',
+    misconceptionTag:oldQuestion.misconception_tag
+  });
+  assert.equal(revisedQuestion.status,200,JSON.stringify(revisedQuestion.body));
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM one_studio_unit_revisions WHERE unit_id=?').get(unitId).n,2);
   const requested=await call('/api/v1/one-studio/editor/units/'+unitId+'/request-review',teacher,'POST',{});
   assert.equal(requested.status,200);
   const reviewed=await call('/api/v1/one-studio/editor/units/'+unitId+'/review',reviewer,'POST',{
@@ -96,6 +118,10 @@ test('Class 4 Shapes Studio: review gates, original lessons, private assessment 
     originalContentRightsConfirmed:true,rightsEvidenceReference:rightsRef
   });
   assert.equal(published.status,200,JSON.stringify(published.body));
+  assert.equal((await call('/api/v1/one-studio/editor/questions/one-studio-objects-q1',teacher,'PATCH',{
+   prompt:oldQuestion.stem,options:JSON.parse(oldQuestion.options_json),correctIndex:0,
+   rationale:'This would corrupt previous score evidence if allowed.',misconceptionTag:'published_mutation'
+  })).status,409,'Published question bank is immutable');
   const granting=await call('/api/v1/one-studio/admin/pilot-grants',admin,'POST',{
     studentId,expiresAt:new Date(Date.now()+14*86400000).toISOString(),
     reason:'Fourteen day isolated Class 4 academic pilot test'
@@ -157,6 +183,9 @@ test('Class 4 Shapes Studio: review gates, original lessons, private assessment 
   }
   if(appId)db.prepare('DELETE FROM one_admission_applications WHERE id=?').run(appId);
   if(studentId)db.prepare('DELETE FROM students WHERE id=?').run(studentId);
+  db.prepare('DELETE FROM one_studio_unit_revisions WHERE unit_id=?').run(unitId);
+  db.prepare('UPDATE one_studio_questions SET stem=?,options_json=?,correct_index=?,rationale=?,misconception_tag=? WHERE id=?')
+   .run(oldQuestion.stem,oldQuestion.options_json,oldQuestion.correct_index,oldQuestion.rationale,oldQuestion.misconception_tag,oldQuestion.id);
   db.prepare('DELETE FROM one_studio_reviews WHERE unit_id=? AND review_reference=?').run(unitId,newRef);
   db.prepare('DELETE FROM one_studio_publication_events WHERE unit_id=?').run(unitId);
   db.prepare('DELETE FROM one_content_review_logs WHERE editorial_reference IN (?,?,?,?)')
@@ -167,9 +196,9 @@ test('Class 4 Shapes Studio: review gates, original lessons, private assessment 
    .run(subject.review_status,subjectId);
   db.prepare('UPDATE one_chapters SET review_status=? WHERE id=?')
    .run(chapter.review_status,chapterId);
-  db.prepare('UPDATE one_concepts SET content_status=?,reviewer_id=?,reviewed_at=? WHERE id=?')
-   .run(oldConcept.content_status,oldConcept.reviewer_id,oldConcept.reviewed_at,unit.concept_id);
-  db.prepare('UPDATE one_studio_units SET status=?,reviewer_id=?,review_reference=?,reviewed_at=?,publisher_id=?,published_at=? WHERE id=?')
-   .run(unit.status,unit.reviewer_id,unit.review_reference,unit.reviewed_at,unit.publisher_id,unit.published_at,unitId);
+  db.prepare('UPDATE one_concepts SET title=?,explanation_original=?,misconception_tip=?,content_status=?,reviewer_id=?,reviewed_at=? WHERE id=?')
+   .run(oldConcept.title,oldConcept.explanation_original,oldConcept.misconception_tip,oldConcept.content_status,oldConcept.reviewer_id,oldConcept.reviewed_at,unit.concept_id);
+  db.prepare('UPDATE one_studio_units SET status=?,revision_no=?,explanation=?,reviewer_id=?,review_reference=?,reviewed_at=?,publisher_id=?,published_at=? WHERE id=?')
+   .run(unit.status,unit.revision_no,unit.explanation,unit.reviewer_id,unit.review_reference,unit.reviewed_at,unit.publisher_id,unit.published_at,unitId);
  }
 });
