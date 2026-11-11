@@ -35,7 +35,7 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
    <div className="vg-one-pass"><span>MY LEARNING PASSPORT</span><GraduationCap size={33}/><strong>{learner?'CLASS '+learner.currentYear.grade:'VAYENTRA ONE'}</strong><small>{learner?.learnerNumber||'PERMANENT LEARNER ID'}</small></div>
   </div>
   {loading&&<p role="status">Opening your learning journey…</p>}
-  {error&&<div className="vg-one-card"><LockKeyhole size={24}/><h3>Learning journey not yet activated</h3><p role="alert">{error}</p><p>Your academic year and learner-account link must be approved by the academy. Do not try to select another student ID to gain access.</p></div>}
+  {error&&<div className="vg-one-card"><LockKeyhole size={24}/><h3>Learning journey not yet activated</h3><p role="alert">{error}</p><p>Your academic year and learner-account link must be approved by the academy. Do not try to select another student ID to gain access.</p><button type="button" className="vg-one-primary" onClick={onExplore}>Open existing learning tools <ArrowRight size={17}/></button></div>}
   {learner&&<div className="vg-one-learner-body">
    <div className="vg-one-learner-stats">
     <div><small>ACADEMIC YEAR</small><strong>{learner.currentYear.academicYear}</strong></div>
