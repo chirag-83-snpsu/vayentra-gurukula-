@@ -5,6 +5,7 @@ import { AdmissionsInbox } from '../components/AdmissionsInbox';
 import { OneJourneyAdmin } from '../components/OneJourneyAdmin';
 import { OneCurriculumStudio } from '../components/OneCurriculumStudio';
 import { OneAdmissionReview } from '../components/OneAdmissionReview';
+import {OneStudioEditorial} from '../components/OneStudioEditorial';
 import { 
   SlidersHorizontal, 
   Upload, 
@@ -93,7 +94,7 @@ interface TeacherData {
 export const AdminView: React.FC = () => {
   const { authToken } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'one_journey' | 'curriculum_one' | 'one_applications'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'one_journey' | 'curriculum_one' | 'one_applications' | 'one_studio'>('students');
 
   // Students State
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -719,6 +720,7 @@ export const AdminView: React.FC = () => {
           <BookOpen size={16} /> ONE Curriculum Studio
         </button>
         <button type="button" className={activeTab === 'one_applications' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_applications')}><UserPlus size={16}/> ONE Enrolment Applications</button>
+        <button type="button" className={activeTab === 'one_studio' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_studio')}><BookOpen size={16}/> ONE Concept Studio</button>
       </div>
 
       {/* ======================================================== */}
@@ -1476,6 +1478,7 @@ export const AdminView: React.FC = () => {
       {activeTab === 'one_journey' && <OneJourneyAdmin />}
       {activeTab === 'curriculum_one' && <OneCurriculumStudio />}
       {activeTab === 'one_applications' && <OneAdmissionReview />}
+      {activeTab === 'one_studio' && <OneStudioEditorial />}
 
       {/* MODAL: REGISTER STUDENT & LINK GUARDIAN */}
       {/* ======================================================== */}
