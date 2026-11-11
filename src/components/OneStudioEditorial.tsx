@@ -2,9 +2,11 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {BookOpen,CheckCircle2,ClipboardCheck,Eye,RefreshCw,ShieldCheck} from 'lucide-react';
 import {useApp} from '../context/AppContext';
 import {ShapesScene} from './OneShapesScene';
+import {OneStudioDraftEditor} from './OneStudioDraftEditor';
 import '../styles/one-concept-studio.css';
 type StaffUnit={id:string;title:string;order:number;objective:string;bridge:string;explanation:string;steps:string[];
  workedExample:string;misconception:string;activity:string;visual:string;status:string;reviewReference?:string|null;
+ revisionNo:number;
  trackStatus:string;subjectStatus:string;chapterStatus:string;publisherReference:string;
  questions:Array<{id:string;prompt:string;options:string[];correctIndex:number;rationale:string;misconceptionTag:string}>};
 export const OneStudioEditorial:React.FC=()=>{
@@ -74,6 +76,7 @@ export const OneStudioEditorial:React.FC=()=>{
      <p>Answer: {q.options[q.correctIndex]} · {q.rationale}</p><small>Misconception tag: {q.misconceptionTag}</small>
     </div>)}
    </div>
+   {['teacher','admin'].includes(role)&&unit.status==='draft'&&<OneStudioDraftEditor unit={unit} onSaved={load}/>}
    {['teacher','admin'].includes(role)&&unit.status==='draft'&&<button type="button" className="vgs-primary" disabled={busy} onClick={()=>void action('/editor/units/'+unit.id+'/request-review',{},'Sent for independent academic review.')}><Eye size={17}/> Send complete lesson for reviewer sign-off</button>}
    {role==='reviewer'&&unit.status==='teacher_review'&&<div className="vgs-editor-unit">
     <h3>Independent subject review</h3><p>Verify conceptual accuracy, question options, misconceptions, age suitability, accessibility and alignment with the current textbook edition.</p>
