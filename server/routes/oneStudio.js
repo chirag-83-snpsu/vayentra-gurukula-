@@ -195,11 +195,103 @@ oneStudioRouter.get('/editor/preview',requireRole(['teacher','reviewer','admin']
     visual:u.visual_key,status:u.status,reviewReference:u.review_reference,
     questions:readQuestions(u.id).map(q=>({id:q.id,prompt:q.stem,options:JSON.parse(q.options_json),
       correctIndex:q.correct_index,rationale:q.rationale,misconceptionTag:q.misconception_tag})),
+    revisionNo:u.revision_no,
     publisherReference:u.publisher_reference,trackStatus:u.catalogue_status,
     subjectStatus:u.subject_status,chapterStatus:u.chapter_status
    }))});
  }catch(err){console.error('[ONE studio editor]',err);return fail(res,'EDITOR_LOAD_FAILED',500);}
 });
+function validateStudioEdit(body){
+ if(!body||typeof body!=='object')return null;
+ const fields=['title','objective','bridge','explanation','workedExample','misconception','activity'];
+ const v={};
+ for(const key of fields){
+  if(typeof body[key]!=='string')return null;
+  v[key]=body[key].trim();
+  const max=key==='explanation'?6500:key==='title'?140:key==='misconception'?750:1800;
+  const min=key==='explanation'?120:key==='title'?3:10;
+  if(v[key].length<min||v[key].length>max||/[<>]/.test(v[key]))return null;
+ }
+ if(!Array.isArray(body.steps)||body.steps.length<3||body.steps.length>7||
+    body.steps.some(x=>typeof x!=='string'||x.trim().length<8||x.trim().length>250||/[<>]/.test(x)))
+  return null;
+ v.steps=body.steps.map(x=>x.trim());
+ if(!['solids','cube','families','net','angles','circle'].includes(body.visual))return null;
+ v.visual=body.visual;
+ return v;
+}
+// Editors may correct a DRAFT only. Never change a published question bank in place.
+oneStudioRouter.patch('/editor/units/:unitId',requireRole(['teacher','admin']),(req,res)=>{
+ const revision=req.body?.expectedRevisionNo;
+ const parsed=validateStudioEdit(req.body);
+ if(!parsed||!Number.isInteger(revision)||revision<1)return fail(res,'INVALID_DRAFT_EDIT');
+ try{
+  const u=queryUnits().find(x=>x.id===req.params.unitId);
+  if(!u)return fail(res,'UNIT_NOT_FOUND',404);
+  if(u.status!=='draft')return fail(res,'LESSON_NOT_EDITABLE',409);
+  if(db.prepare("SELECT id FROM one_studio_publication_events WHERE unit_id=? AND action='published' LIMIT 1").get(u.id))
+   return fail(res,'PUBLISHED_UNIT_REQUIRES_NEW_VERSION',409);
+  if(u.revision_no!==revision)return fail(res,'STALE_DRAFT_REVISION',409);
+  db.exec('BEGIN IMMEDIATE');
+  try{
+   db.prepare("INSERT INTO one_studio_unit_revisions(id,unit_id,actor_user_id,operation,previous_json) VALUES(?,?,?,'edit_lesson',?)")
+    .run('one-edit-'+randomUUID(),u.id,req.user.id,JSON.stringify({
+     title:u.title,objective:u.objective,bridge:u.bridge,explanation:u.explanation,
+     steps:JSON.parse(u.steps_json),workedExample:u.worked_example,misconception:u.misconception,
+     activity:u.offline_activity,visual:u.visual_key,revision:u.revision_no
+    }));
+   db.prepare(`
+    UPDATE one_studio_units SET objective=?,bridge=?,explanation=?,steps_json=?,
+     worked_example=?,misconception=?,offline_activity=?,visual_key=?,revision_no=revision_no+1,
+     reviewer_id=NULL,review_reference=NULL,reviewed_at=NULL
+    WHERE id=? AND status='draft' AND revision_no=?
+   `).run(parsed.objective,parsed.bridge,parsed.explanation,JSON.stringify(parsed.steps),
+    parsed.workedExample,parsed.misconception,parsed.activity,parsed.visual,u.id,revision);
+   db.prepare('UPDATE one_concepts SET title=?,explanation_original=?,misconception_tip=? WHERE id=?')
+    .run(parsed.title,parsed.explanation,parsed.misconception,u.concept_id);
+   db.exec('COMMIT');
+  }catch(err){db.exec('ROLLBACK');throw err;}
+  return res.json({saved:true,status:'draft',revision:revision+1,requiresIndependentReview:true});
+ }catch(err){console.error('[ONE studio edit lesson]',err);return fail(res,'DRAFT_EDIT_FAILED',500);}
+});
+oneStudioRouter.patch('/editor/questions/:questionId',requireRole(['teacher','admin']),(req,res)=>{
+ const b=req.body||{};
+ const stem=typeof b.prompt==='string'?b.prompt.trim():'';
+ const rationale=typeof b.rationale==='string'?b.rationale.trim():'';
+ const tag=typeof b.misconceptionTag==='string'?b.misconceptionTag.trim():'';
+ if(stem.length<10||stem.length>350||rationale.length<20||rationale.length>800||
+    tag.length<3||tag.length>65||!Array.isArray(b.options)||b.options.length!==4||
+    b.options.some(x=>typeof x!=='string'||x.trim().length<1||x.trim().length>140)||
+    new Set(b.options.map(x=>x.trim().toLowerCase())).size!==4||
+    !Number.isInteger(b.correctIndex)||b.correctIndex<0||b.correctIndex>3||
+    [stem,rationale,tag,...b.options].some(x=>/[<>]/.test(x)))
+  return fail(res,'INVALID_QUESTION_EDIT');
+ try{
+  const q=db.prepare('SELECT * FROM one_studio_questions WHERE id=?').get(req.params.questionId);
+  if(!q)return fail(res,'QUESTION_NOT_FOUND',404);
+  const u=queryUnits().find(x=>x.id===q.unit_id);
+  if(!u||u.status!=='draft')return fail(res,'LESSON_NOT_EDITABLE',409);
+  if(db.prepare("SELECT id FROM one_studio_publication_events WHERE unit_id=? AND action='published' LIMIT 1").get(u.id))
+   return fail(res,'PUBLISHED_UNIT_REQUIRES_NEW_VERSION',409);
+  db.exec('BEGIN IMMEDIATE');
+  try{
+   db.prepare("INSERT INTO one_studio_unit_revisions(id,unit_id,actor_user_id,operation,previous_json) VALUES(?,?,?,'edit_question',?)")
+    .run('one-edit-'+randomUUID(),u.id,req.user.id,JSON.stringify({
+     questionId:q.id,stem:q.stem,options:JSON.parse(q.options_json),correctIndex:q.correct_index,
+     rationale:q.rationale,misconceptionTag:q.misconception_tag,revision:u.revision_no
+    }));
+   db.prepare(`
+    UPDATE one_studio_questions SET stem=?,options_json=?,correct_index=?,rationale=?,misconception_tag=?
+    WHERE id=?
+   `).run(stem,JSON.stringify(b.options.map(x=>x.trim())),b.correctIndex,rationale,tag,q.id);
+   db.prepare('UPDATE one_studio_units SET revision_no=revision_no+1,reviewer_id=NULL,review_reference=NULL,reviewed_at=NULL WHERE id=?')
+    .run(u.id);
+   db.exec('COMMIT');
+  }catch(err){db.exec('ROLLBACK');throw err;}
+  return res.json({saved:true,requiresIndependentReview:true});
+ }catch(err){console.error('[ONE studio edit question]',err);return fail(res,'QUESTION_EDIT_FAILED',500);}
+});
+
 oneStudioRouter.post('/editor/units/:unitId/request-review',requireRole(['teacher','admin']),(req,res)=>{
  try{
   const u=queryUnits().find(x=>x.id===req.params.unitId);
