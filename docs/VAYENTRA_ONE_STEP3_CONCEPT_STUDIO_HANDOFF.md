@@ -93,3 +93,13 @@ No public learning price is set, and no payment or subscription checkout is impl
 
 ## Next milestone (Step 4)
 Teacher review and publication of the six pilot lessons, original video production, real teacher intervention on formative results, parent progress report and first 10 family UAT. No expansion into all subjects until one complete chapter gets academic and user acceptance.
+
+## Revision workflow added after initial development
+- Teacher or administrator can edit lesson wording, steps, visual selection, worked examples and misconceptions while status is DRAFT.
+- Teacher or administrator can edit a draft's original four-option question, answer key and rationale.
+- Lesson updates require the expected revision number; stale updates are rejected instead of silently overwriting another editor's changes.
+- Every prior lesson/question version is saved to the staff-only one_studio_unit_revisions table for accountability.
+- Rejected reviews return to DRAFT and can be corrected and resubmitted.
+- Once a concept has EVER been published, its answer bank cannot be edited in place. Withdrawn lessons remain frozen; full new-version authoring for previously published content is a later milestone to preserve historic assessment reproducibility.
+- Publication and withdrawal actions are separately audited.
+- Run the expanded Phase 2 API tests covering draft edits, stale-revision rejection and immutable published answer keys; real results must come from Antigravity.
