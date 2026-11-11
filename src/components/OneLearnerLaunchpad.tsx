@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {ArrowRight,BookOpen,GraduationCap,LockKeyhole,ShieldCheck,Sparkles} from 'lucide-react';
 import {useApp} from '../context/AppContext';
+import {OneConceptStudio} from './OneConceptStudio';
 import '../styles/one-enrolment.css';
 type Subject={id:string;name:string;approved_chapters:number;published_concepts:number};
 type Learner={learnerId:string;learnerNumber:string;studentName:string;currentYear:{grade:number;board:string;academicYear:string;status:string};
@@ -9,6 +10,7 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
  const {authToken}=useApp();
  const [learner,setLearner]=useState<Learner|null>(null);
  const [loading,setLoading]=useState(true);
+ const [showStudio,setShowStudio]=useState(false);
  const [error,setError]=useState('');
  useEffect(()=>{
   const controller=new AbortController();setLoading(true);setError('');setLearner(null);
@@ -21,6 +23,10 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
    .finally(()=>{if(!controller.signal.aborted)setLoading(false);});
   return ()=>controller.abort();
  },[authToken,parentPreviewStudentId]);
+ if(showStudio)return <div className="vg-one">
+  <button type="button" className="vg-one-minibutton" style={{alignSelf:'flex-start'}} onClick={()=>setShowStudio(false)}>← Back to Learning Universe</button>
+  <OneConceptStudio parentPreviewStudentId={parentPreviewStudentId}/>
+ </div>;
  return <section className="vg-one">
   <div className="vg-one-hero vg-one-learner-hero">
    <div><span className="vg-one-kicker"><Sparkles size={17}/> {parentPreviewStudentId?"GUARDIAN-SUPERVISED LEARNING":"MY LEARNING UNIVERSE"}</span>
@@ -41,6 +47,7 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
     <h3>Choose what you want to understand.</h3>
     {learner.subjects.length>0?<div className="vg-one-subject-grid">{learner.subjects.map(s=><div key={s.id} className="vg-one-subject"><BookOpen size={22}/><strong>{s.name}</strong><p>{s.approved_chapters} reviewed chapters · {s.published_concepts} published concepts</p></div>)}</div>:<div className="vg-one-empty"><BookOpen size={32}/><strong>Your curriculum is being reviewed</strong><p>{learner.notice}</p></div>}
     {learner.entitlementStatus!=='enabled'&&<div className="vg-one-warning"><ShieldCheck size={18}/><span>Your Learner ID is active, but paid learning access is not configured. No payment has been charged and unpublished lessons are not available.</span></div>}
+    <button type="button" className="vg-one-primary" onClick={()=>setShowStudio(true)}><BookOpen size={17}/> Start Class 4 Concept Studio <ArrowRight size={17}/></button>
     <button type="button" className="vg-one-primary" onClick={onExplore}>{parentPreviewStudentId?'View academic journey':'Open existing Learning Hub'} <ArrowRight size={17}/></button>
     <div className="vg-one-caption"><ShieldCheck size={16}/> This dashboard reflects authenticated enrolment data. Older demonstration lessons in the existing Learning Hub may not represent your approved curriculum.</div>
    </article>
