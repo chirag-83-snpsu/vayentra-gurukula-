@@ -62,9 +62,24 @@ function studentLearning(studentId){
   FROM one_subjects s WHERE s.track_id=? AND s.review_status='reviewed'
   ORDER BY s.subject_title
  `).all(track.id):[];
- return {learnerId:s.id,learnerNumber:s.enrollment_number,studentName:s.name,
+ 
+ const pilot=Boolean(db.prepare(
+  "SELECT student_id FROM one_studio_pilot_grants WHERE student_id=? AND expires_at>datetime('now')"
+ ).get(studentId));
+ const studioUnits=(y.grade===4&&y.board==='CBSE')?db.prepare(`
+  SELECT COUNT(*) AS count FROM one_studio_units u
+  JOIN one_concepts c ON c.id=u.concept_id
+  JOIN one_chapters ch ON ch.id=c.chapter_id
+  JOIN one_subjects sub ON sub.id=ch.subject_id
+  JOIN one_curriculum_tracks t ON t.id=sub.track_id
+  WHERE u.unit_key LIKE 'vg-c4-cbse-shapes-2026-%'
+   AND u.status='published' AND t.catalogue_status='verified'
+   AND sub.review_status='reviewed' AND ch.review_status='reviewed'
+ `).get().count:0;
+return {learnerId:s.id,learnerNumber:s.enrollment_number,studentName:s.name,
   currentYear:{grade:y.grade,board:y.board,academicYear:y.academic_year,status:y.status},
   membershipStatus:m.membership_status,entitlementStatus:m.entitlement_status,
+  conceptStudio:{available:studioUnits>0&&(m.entitlement_status==='enabled'||pilot),publishedUnits:studioUnits,pilotGranted:pilot},
   catalogue:{status:track?'verified':'not_yet_verified',editionYear:track?.edition_year||null},
   subjects,notice:!track?'Your class curriculum is being academically verified. Published lessons will appear here once reviewed.':'Only approved curriculum content appears in this workspace.'};
 }
