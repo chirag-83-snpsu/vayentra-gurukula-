@@ -263,6 +263,8 @@ oneStudioRouter.post('/editor/units/:unitId/publish',requireRole('admin'),(req,r
     INSERT INTO one_content_review_logs(id,item_type,item_id,reviewer_id,editorial_reference,rights_attested,decision)
     VALUES(?, 'concept', ?, ?, ?, 1, 'published')
    `).run('one-review-'+randomUUID(),u.concept_id,req.user.id,reference.trim());
+   db.prepare("INSERT INTO one_studio_publication_events(id,unit_id,actor_user_id,action,evidence_reference) VALUES(?,?,?,'published',?)")
+    .run('one-pub-'+randomUUID(),u.id,req.user.id,reference.trim());
    db.exec('COMMIT');
   }catch(err){db.exec('ROLLBACK');throw err;}
   return res.json({published:true,unitId:u.id,notice:'Unit is now available only to entitled or explicitly pilot-granted verified learners.'});
@@ -281,9 +283,11 @@ oneStudioRouter.post('/editor/units/:unitId/unpublish',requireRole('admin'),(req
     .run(u.id);
    db.prepare("UPDATE one_concepts SET content_status='teacher_review' WHERE id=?")
     .run(u.concept_id);
+   db.prepare("INSERT INTO one_studio_publication_events(id,unit_id,actor_user_id,action,evidence_reference) VALUES(?,?,?,'withdrawn',?)")
+    .run('one-pub-'+randomUUID(),u.id,req.user.id,reason.trim());
    db.exec('COMMIT');
   }catch(err){db.exec('ROLLBACK');throw err;}
-  return res.json({unpublished:true,reasonStored:false,note:'Prior attempts are kept, course content is no longer served.'});
+  return res.json({unpublished:true,reasonStored:true,note:'Prior attempts are kept, course content is no longer served.'});
  }catch(err){console.error('[ONE studio unpublish]',err);return fail(res,'UNPUBLISH_FAILED',500);}
 });
 oneStudioRouter.post('/admin/pilot-grants',requireRole('admin'),(req,res)=>{
