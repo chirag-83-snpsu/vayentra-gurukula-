@@ -51,7 +51,7 @@ export const OneStudioEditorial:React.FC=()=>{
  const unit=units.find(u=>u.id===selected);
  return <section className="vgs vgs-editor">
   <header className="vgs-top"><div><span className="vgs-eyebrow"><ClipboardCheck size={17}/> ACADEMIC EDITORIAL STUDIO</span>
-   <h2>Original lessons.<br/><em>Human-reviewed quality.</em></h2><p>Class 4 · CBSE Maths Mela · Shapes Around Us · 6 draft units, 24 original concept questions</p></div>
+   <h2>Original lessons.<br/><em>Human-reviewed quality.</em></h2><p>Class 4 · CBSE Maths Mela · Shapes Around Us · 6 original units, 24 original concept questions</p></div>
    <BookOpen size={38}/></header>
   <div className="vgs-editor-note"><ShieldCheck size={17}/> These are original instructional drafts, not approved NCERT textbook reproductions or finished videos. Review the official book and each question before publication. The publisher-rights and reviewer reference must represent a real review, not an invented ticket.</div>
   <div className="vgs-editor-controls"><button type="button" onClick={()=>void load()} disabled={loading||busy}><RefreshCw size={16}/> Refresh editorial queue</button>
