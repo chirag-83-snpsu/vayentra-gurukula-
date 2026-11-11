@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ClipboardCheck, CheckCircle2, XCircle, Clock, Eye, ShieldCheck, Diff } from 'lucide-react';
+import {OneStudioEditorial} from '../components/OneStudioEditorial';
 
 export const ReviewerView: React.FC = () => {
   const [approvedStatus, setApprovedStatus] = useState<string | null>(null);
@@ -106,6 +107,7 @@ export const ReviewerView: React.FC = () => {
         </div>
       </div>
 
+      <OneStudioEditorial />
     </div>
   );
 };
