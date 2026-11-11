@@ -5,7 +5,7 @@ import {OneConceptStudio} from './OneConceptStudio';
 import '../styles/one-enrolment.css';
 type Subject={id:string;name:string;approved_chapters:number;published_concepts:number};
 type Learner={learnerId:string;learnerNumber:string;studentName:string;currentYear:{grade:number;board:string;academicYear:string;status:string};
- membershipStatus:string;entitlementStatus:string;catalogue:{status:string;editionYear:string|null};subjects:Subject[];notice:string};
+ membershipStatus:string;entitlementStatus:string;conceptStudio:{available:boolean;publishedUnits:number;pilotGranted:boolean};catalogue:{status:string;editionYear:string|null};subjects:Subject[];notice:string};
 export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStudentId?:string}>=({onExplore,parentPreviewStudentId})=>{
  const {authToken}=useApp();
  const [learner,setLearner]=useState<Learner|null>(null);
@@ -46,8 +46,10 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
     <span className="vg-one-eyebrow"><BookOpen size={15}/> YOUR VERIFIED SUBJECT SPACES</span>
     <h3>Choose what you want to understand.</h3>
     {learner.subjects.length>0?<div className="vg-one-subject-grid">{learner.subjects.map(s=><div key={s.id} className="vg-one-subject"><BookOpen size={22}/><strong>{s.name}</strong><p>{s.approved_chapters} reviewed chapters · {s.published_concepts} published concepts</p></div>)}</div>:<div className="vg-one-empty"><BookOpen size={32}/><strong>Your curriculum is being reviewed</strong><p>{learner.notice}</p></div>}
-    {learner.entitlementStatus!=='enabled'&&<div className="vg-one-warning"><ShieldCheck size={18}/><span>Your Learner ID is active, but paid learning access is not configured. No payment has been charged and unpublished lessons are not available.</span></div>}
-    <button type="button" className="vg-one-primary" onClick={()=>setShowStudio(true)}><BookOpen size={17}/> Start Class 4 Concept Studio <ArrowRight size={17}/></button>
+    {learner.entitlementStatus!=='enabled'&&<div className="vg-one-warning"><ShieldCheck size={18}/><span>Your permanent Learner ID is active. Paid access is not configured. Separately approved, temporary pilot access may be available without payment.</span></div>}
+    {learner.conceptStudio.available?
+     <button type="button" className="vg-one-primary" onClick={()=>setShowStudio(true)}><BookOpen size={17}/> Study {learner.conceptStudio.publishedUnits} approved shape concepts <ArrowRight size={17}/></button>:
+     <div className="vg-one-caption"><LockKeyhole size={17}/> Class 4 CBSE Shapes Studio opens only when original units are published and this learner receives approved access.</div>}
     <button type="button" className="vg-one-primary" onClick={onExplore}>{parentPreviewStudentId?'View academic journey':'Open existing Learning Hub'} <ArrowRight size={17}/></button>
     <div className="vg-one-caption"><ShieldCheck size={16}/> This dashboard reflects authenticated enrolment data. Older demonstration lessons in the existing Learning Hub may not represent your approved curriculum.</div>
    </article>
