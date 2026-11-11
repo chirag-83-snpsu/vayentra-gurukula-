@@ -3,6 +3,7 @@ import { AttendanceRegister } from '../components/AttendanceRegister';
 import { TeacherAssignmentsDesk } from '../components/TeacherAssignmentsDesk';
 import { LearningCompass } from '../components/LearningCompass';
 import { CbseVideoStudio } from '../components/CbseVideoStudio';
+import {OneStudioEditorial} from '../components/OneStudioEditorial';
 import { useApp } from '../context/AppContext';
 import { 
   GraduationCap, 
@@ -18,7 +19,7 @@ import {
 
 export const TeacherView: React.FC = () => {
   const { doubts } = useApp();
-  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance' | 'diagnostics' | 'videos'>('attendance');
+  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance' | 'diagnostics' | 'videos' | 'concept_studio'>('attendance');
   const [remedialPackCreated, setRemedialPackCreated] = useState(false);
   const [liveRoomNotice, setLiveRoomNotice] = useState<string | null>(null);
 
@@ -151,11 +152,13 @@ export const TeacherView: React.FC = () => {
         <button type="button" className={activeTab === 'attendance' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('attendance')}>Daily Attendance</button>
         <button type="button" className={activeTab === 'diagnostics' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('diagnostics')}>Learning Compass</button>
         <button type="button" className={activeTab === 'videos' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('videos')}>NCERT & Video Studio</button>
+        <button type="button" className={activeTab === 'concept_studio' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('concept_studio')}>ONE Concept Editorial</button>
       </div>
 
       {activeTab === 'attendance' && <AttendanceRegister />}
       {activeTab === 'diagnostics' && <LearningCompass mode="teacher" />}
       {activeTab === 'videos' && <CbseVideoStudio />}
+      {activeTab === 'concept_studio' && <OneStudioEditorial />}
 
       {/* HEATMAP TAB (Wireframe 03 / Diagram 28) */}
       {activeTab === 'heatmap' && (
