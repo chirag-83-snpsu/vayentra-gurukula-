@@ -16,6 +16,7 @@ import { journeyRouter } from './routes/journey.js';
 import { oneContentRouter } from './routes/oneContent.js';
 import { oneOnboardingRouter } from './routes/oneOnboarding.js';
 import { oneStudioRouter } from './routes/oneStudio.js';
+import { grade1CurriculumRouter } from './routes/grade1Curriculum.js';
 
 // Phase 0 safety gate: production must never seed demo students, default passwords,
 // pseudo-consent, or unverified third-party identity. Release requires independent audit.
@@ -87,6 +88,7 @@ app.use('/api/v1/admissions', admissionsRouter);
 app.use('/api/v1/journey', journeyRouter);
 app.use('/api/v1/one-onboarding', oneOnboardingRouter);
 app.use('/api/v1/one-studio', oneStudioRouter);
+app.use('/api/v1/grade1', grade1CurriculumRouter);
 app.use('/api/v1/one-content', oneContentRouter);
 app.use('/api/v1', apiRouter);
 
