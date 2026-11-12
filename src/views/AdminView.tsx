@@ -6,6 +6,7 @@ import { OneJourneyAdmin } from '../components/OneJourneyAdmin';
 import { OneCurriculumStudio } from '../components/OneCurriculumStudio';
 import { OneAdmissionReview } from '../components/OneAdmissionReview';
 import {OneStudioEditorial} from '../components/OneStudioEditorial';
+import {OneGrade1Editorial} from '../components/OneGrade1Editorial';
 import { 
   SlidersHorizontal, 
   Upload, 
@@ -94,7 +95,7 @@ interface TeacherData {
 export const AdminView: React.FC = () => {
   const { authToken } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'one_journey' | 'curriculum_one' | 'one_applications' | 'one_studio'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'batches' | 'teachers' | 'attendance' | 'import' | 'finance' | 'ai_gov' | 'video_library' | 'enquiries' | 'one_journey' | 'curriculum_one' | 'one_applications' | 'one_studio' | 'grade1_curriculum'>('students');
 
   // Students State
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -721,6 +722,7 @@ export const AdminView: React.FC = () => {
         </button>
         <button type="button" className={activeTab === 'one_applications' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_applications')}><UserPlus size={16}/> ONE Enrolment Applications</button>
         <button type="button" className={activeTab === 'one_studio' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('one_studio')}><BookOpen size={16}/> ONE Concept Studio</button>
+        <button type="button" className={activeTab === 'grade1_curriculum' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('grade1_curriculum')}><BookOpen size={16}/> Class 1 Curriculum + AI + Money</button>
       </div>
 
       {/* ======================================================== */}
@@ -1479,6 +1481,7 @@ export const AdminView: React.FC = () => {
       {activeTab === 'curriculum_one' && <OneCurriculumStudio />}
       {activeTab === 'one_applications' && <OneAdmissionReview />}
       {activeTab === 'one_studio' && <OneStudioEditorial />}
+      {activeTab === 'grade1_curriculum' && <OneGrade1Editorial />}
 
       {/* MODAL: REGISTER STUDENT & LINK GUARDIAN */}
       {/* ======================================================== */}
