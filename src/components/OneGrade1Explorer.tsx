@@ -1,7 +1,8 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,BookHeart,BookOpen,CheckCircle2,ChevronDown,GraduationCap,
- Lightbulb,LockKeyhole,RefreshCw,ShieldCheck,Sparkles,Target,WalletCards} from 'lucide-react';
+ Lightbulb,LockKeyhole,RefreshCw,ShieldCheck,Sparkles,Target,WalletCards,Volume2,VolumeX} from 'lucide-react';
 import {useApp} from '../context/AppContext';
+import {OneGrade1MathsScene,type PictureScene} from './OneGrade1MathsScene';
 import '../styles/one-grade1.css';
 
 type Unit={id:string;title:string;status:string};
@@ -10,7 +11,7 @@ type Subject={id:string;name:string;kind:string;book:string;sourceStatus:string;
 type MapData={board:string;grade:number;edition:string;trackStatus:string;subjects:Subject[];note:string};
 type Catalogue={learner:{grade:number;board:string};catalogue:MapData;access:'locked'|'pilot_or_entitled';progress:{checkedLessons:number;attemptsRecorded:number;latestChecks:Array<{unitId:string;correct:number;total:number;checkedAt:string}>}|null};
 type Question={id:string;position:number;prompt:string;options:string[]};
-type Lesson={id:string;subject:string;chapter:string;title:string;objective:string;story:string;homeActivity:string;questions:Question[];expectedMinutes:number;curriculumKind:string};
+type Lesson={id:string;subject:string;chapter:string;title:string;objective:string;story:string;homeActivity:string;questions:Question[];expectedMinutes:number;curriculumKind:string;pictureScene?:PictureScene|null;guidedSteps?:string[];guardianGuide?:string|null};
 type Result={correct:number;total:number;feedback:Array<{questionId:string;chosenIndex:number;correctIndex:number;correct:boolean;reason:string}>;replayed:boolean};
 
 const subjectIcon=(name:string)=>name.includes('Money')?'money':name.includes('AI')?'ai':name.includes('Mathematics')?'math':'book';
@@ -26,6 +27,7 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [notice,setNotice]=useState('');
+ const [speaking,setSpeaking]=useState(false);
  const retryKey=useRef<string|null>(null);
  const base='/api/v1/grade1'+(parentPreviewStudentId?'/guardian/'+encodeURIComponent(parentPreviewStudentId):'/me');
  const api=useCallback(async(path:string,method:'GET'|'POST'='GET',body?:unknown,signal?:AbortSignal)=>{
@@ -47,7 +49,31 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
   finally{if(!signal?.aborted)setLoading(false);}
  },[api]);
  useEffect(()=>{const ctrl=new AbortController();setCatalogue(null);setLesson(null);void refresh(ctrl.signal);return()=>ctrl.abort();},[refresh]);
- function closeLesson(){setLesson(null);setAnswers({});setResult(null);setNotice('');setError('');retryKey.current=null;}
+ useEffect(()=>{
+  return ()=>{if(typeof window!=='undefined'&&'speechSynthesis' in window){window.speechSynthesis.cancel();}};
+ },[lesson?.id]);
+ function speakStory(){
+  if(!lesson||typeof window==='undefined'||!('speechSynthesis' in window)||!('SpeechSynthesisUtterance' in window)){
+   setNotice('Read the story together with an adult; spoken playback is not supported in this browser.');return;
+  }
+  try{
+   const speech=window.speechSynthesis;
+   speech.cancel();
+   const item=new SpeechSynthesisUtterance(lesson.story);
+   item.lang=lesson.subject==='Hindi'?'hi-IN':lesson.subject==='Kannada'?'kn-IN':'en-IN';
+   item.rate=0.88;item.pitch=1.05;
+   item.onend=()=>setSpeaking(false);
+   item.onerror=()=>setSpeaking(false);
+   setSpeaking(true);speech.speak(item);
+  }catch{
+   setSpeaking(false);setNotice('Read the story together with an adult; the browser could not start speech playback.');
+  }
+ }
+ function stopStory(){
+  if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();
+  setSpeaking(false);
+ }
+ function closeLesson(){stopStory();setLesson(null);setAnswers({});setResult(null);setNotice('');setError('');retryKey.current=null;}
  async function openLesson(id:string){
   setLoadingLesson(true);setError('');setNotice('');setResult(null);setAnswers({});retryKey.current=null;
   try{const data=await api('/units/'+encodeURIComponent(id));setLesson(data.lesson as Lesson);}
@@ -81,7 +107,16 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
   {catalogue&&lesson?<article className="vg1-lesson">
     <button type="button" className="vg1-minibutton" onClick={closeLesson}><ArrowLeft size={16}/> Back to subjects</button>
     <div className="vg1-lesson-title"><span>{lesson.subject} · {lesson.chapter}</span><h3>{lesson.title}</h3><p><Target size={18}/>{lesson.objective}</p></div>
-    <div className="vg1-story"><span><BookHeart size={20}/> OUR STORY</span><p>{lesson.story}</p></div>
+    {lesson.pictureScene&&<OneGrade1MathsScene scene={lesson.pictureScene} title={lesson.title}/>}
+    {lesson.guidedSteps&&lesson.guidedSteps.length>0&&<section className="vg1m-guided" aria-label="Try these steps">
+      <h4>Let's discover together</h4><ol>{lesson.guidedSteps.map((step,i)=><li key={i}><span>{i+1}</span>{step}</li>)}</ol>
+    </section>}
+
+    <div className="vg1-story"><div className="vg1m-story-head"><span><BookHeart size={20}/> ORIGINAL VAYENTRA STORY</span>
+      {speaking?<button type="button" className="vg1-minibutton" onClick={stopStory}><VolumeX size={16}/> Stop narration</button>:
+       <button type="button" className="vg1-minibutton" onClick={speakStory}><Volume2 size={16}/> Read aloud</button>}</div>
+      <p>{lesson.story}</p><small>Optional device-generated narration; not a teacher-recorded lesson video. Listen with a trusted adult.</small></div>
+    {lesson.guardianGuide&&<div className="vg1m-guardian-note"><ShieldCheck size={18}/><div><strong>Teacher / parent guide</strong><p>{lesson.guardianGuide}</p></div></div>}
     <div className="vg1-activity"><Lightbulb size={21}/><div><strong>Try it together, away from the screen</strong><p>{lesson.homeActivity}</p></div></div>
     <section className="vg1-practice" aria-label="Concept check">
      <div><span>SMALL THINKING CHECK</span><h4>What do you notice?</h4><p>Choose an answer. A mistake helps us learn.</p></div>
