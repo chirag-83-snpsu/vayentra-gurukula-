@@ -35,12 +35,12 @@ test('Class 1 source mapping is accurate and enrichment is staged, not automatic
  assert.equal(GRADE1_CURRICULUM.enrichment.reduce((n,t)=>n+t.modules.length,0),16);
  assert.equal(GRADE1_CURRICULUM.starterLessons.length,7);
  const rows=db.prepare('SELECT board,status FROM one_foundation_units').all();
- assert.equal(rows.length,39);
- assert.equal(rows.filter(x=>x.board==='CBSE').length,19);
+ assert.equal(rows.length,48);
+ assert.equal(rows.filter(x=>x.board==='CBSE').length,28);
  assert.equal(rows.filter(x=>x.board==='STATE').length,20);
  assert.ok(rows.every(x=>x.status==='draft'));
- assert.equal(db.prepare('SELECT COUNT(*) n FROM one_foundation_questions').get().n,71,
-  '32 enrichment lessons x 2 checks plus 7 starter checks.');
+ assert.equal(db.prepare('SELECT COUNT(*) n FROM one_foundation_questions').get().n,107,
+  '32 enrichment lessons x 2 checks + 7 starter questions + 9 Maths mini-lessons x 4 checks.');
  const state=db.prepare("SELECT id FROM one_curriculum_tracks WHERE board='STATE' AND grade=1 AND edition_year='2026-27'").get();
  assert.ok(state);
  const subject=db.prepare("SELECT id FROM one_subjects WHERE track_id=? AND subject_title='Environmental Studies'").get(state.id);
@@ -54,7 +54,7 @@ test('Class 1 editorial API requires staff role, privately exposes answer keys o
  assert.equal((await call('/api/v1/grade1/editor/map?board=STATE',teacher)).status,200);
  const review=await call('/api/v1/grade1/editor/map?board=CBSE',reviewer);
  assert.equal(review.status,200,JSON.stringify(review.body));
- assert.equal(review.body.units.length,19);
+ assert.equal(review.body.units.length,28);
  assert.equal(review.body.curriculum.subjects.length,5);
  assert.equal(review.body.units[0].questions[0].correctIndex>=0,true);
 });
