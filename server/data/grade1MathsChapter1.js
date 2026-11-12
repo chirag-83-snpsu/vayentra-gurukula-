@@ -154,7 +154,7 @@ export const GRADE1_MATHS_CHAPTER1 = {
       "steps": [
         "Look up to find the kite.",
         "Look down to find the leaf.",
-        "Move Milo above and below the branch in the picture.",
+        "Move the kite above and below the branch in the picture.",
         "Describe which way he moved."
       ],
       "activity": "Point to a high wall clock and a low mat with an adult. Describe each location relative to another safe object.",
@@ -162,12 +162,12 @@ export const GRADE1_MATHS_CHAPTER1 = {
       "scene": {
         "kind": "position",
         "anchor": "tree",
-        "actor": "cat",
+        "actor": "kite",
         "positions": [
           "above",
           "below"
         ],
-        "prompt": "Use the arrows to explore up and down."
+        "prompt": "Move the kite up and down to explore above and below."
       },
       "questions": [
         {
@@ -342,8 +342,8 @@ export const GRADE1_MATHS_CHAPTER1 = {
       "story": "Milo sees a tall bookshelf. A paper star is placed at the top. A folded blanket rests on the bottom shelf. What do top and bottom tell us? They describe different parts of one object: the top is its highest part and the bottom is its lowest part. We can say 'the star is at the top of the shelf' without saying it is far away. We can also talk about the top and bottom of a page, a cupboard or a tower made from blocks. Try pointing at the top of your notebook. Now point to the bottom. Do not climb shelves or furniture. Our eyes and fingers can explore safely. When you move something from the bottom to the top in a drawing, tell someone how its position changed.",
       "steps": [
         "Look at the shelf from bottom to top.",
-        "Move Milo to the top shelf in the picture.",
-        "Move Milo to the bottom shelf.",
+        "Move a paper star to the top shelf in the picture.",
+        "Move the paper star to the bottom shelf.",
         "Compare both parts of the same shelf."
       ],
       "activity": "Use a sheet of paper on a table. Draw one star at the top and one circle at the bottom.",
@@ -351,7 +351,7 @@ export const GRADE1_MATHS_CHAPTER1 = {
       "scene": {
         "kind": "position",
         "anchor": "shelf",
-        "actor": "cat",
+        "actor": "star",
         "positions": [
           "top",
           "bottom"
