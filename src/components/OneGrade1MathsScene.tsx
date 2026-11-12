@@ -55,10 +55,10 @@ const Anchor:React.FC<{anchor:string}>=({anchor})=>{
   <path d="M225 226Q225 148 284 150Q343 148 343 226" stroke="#b18453" strokeWidth="8" fill="none"/>
  </g>;
  if(anchor==='tree')return <g>
-  <rect x="273" y="146" width="36" height="145" rx="8" fill="#a06d4b"/>
-  <circle cx="290" cy="124" r="79" fill="#8ac68d" stroke="#4e955f" strokeWidth="4"/>
-  <circle cx="238" cy="144" r="48" fill="#99d09e"/>
-  <circle cx="344" cy="145" r="47" fill="#99d09e"/>
+  <rect x="273" y="168" width="36" height="123" rx="8" fill="#a06d4b"/>
+  <circle cx="290" cy="174" r="70" fill="#8ac68d" stroke="#4e955f" strokeWidth="4"/>
+  <circle cx="238" cy="187" r="44" fill="#99d09e"/>
+  <circle cx="344" cy="187" r="44" fill="#99d09e"/>
   <path d="M0 296Q200 278 600 294" stroke="#83b18a" strokeWidth="4" fill="none"/>
  </g>;
  if(anchor==='shelf')return <g>
@@ -127,6 +127,9 @@ export const OneGrade1MathsScene:React.FC<Props>=({scene,title})=>{
      {selected==='behind'?<ArtObject scene={scene} point={point}/>:null}
      <Anchor anchor={scene.anchor}/>
      {selected==='behind'?null:<ArtObject scene={scene} point={point}/>}
+     {scene.anchor==='basket'&&selected==='inside'&&<path
+      d="M181 235 Q284 285 387 235 L370 289 Q284 315 198 289 Z"
+      fill="#eecb8e" stroke="#b18453" strokeWidth="3" opacity=".95"/>}
     </svg>
    </div>:scene.kind==='sequence'?<Morning selected={selected}/>:<ShapeGallery rule={selected}/>}
    <div className="vg1m-choice-heading"><MousePointerClick size={16}/> Tap to change the picture</div>
