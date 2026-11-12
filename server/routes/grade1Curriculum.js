@@ -114,10 +114,17 @@ function courseMap(board,showDraft){
   note:'Textbook chapter titles are mapped for curriculum planning. Vayentra original enrichment is not an NCERT or KTBS mandated subject. Unapproved lessons are unavailable.'};
 }
 function cleanUnit(row){
+ const scene=db.prepare(
+  'SELECT scene_json,step_text_json,teacher_prompt FROM one_foundation_picture_scenes WHERE unit_id=?'
+ ).get(row.id);
  return {id:row.id,subject:row.subject_title,chapter:row.chapter_title,
   title:row.title,objective:row.objective,story:row.story,
   homeActivity:row.home_activity,expectedMinutes:row.expected_minutes,
-  curriculumKind:row.curriculum_kind,questions:questions(row.id).map(q=>({
+  curriculumKind:row.curriculum_kind,
+  pictureScene:scene?JSON.parse(scene.scene_json):null,
+  guidedSteps:scene?JSON.parse(scene.step_text_json):[],
+  guardianGuide:scene?.teacher_prompt||null,
+  questions:questions(row.id).map(q=>({
    id:q.id,position:q.position,prompt:q.question_text,options:JSON.parse(q.choices_json)
   }))};
 }
