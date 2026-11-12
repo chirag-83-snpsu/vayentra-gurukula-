@@ -10,14 +10,14 @@ import {
   AlertCircle, 
   Lock,
   ArrowRight,
-  Sparkles,
-  Users
+  Mail,
+  UserCheck
 } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultTab?: 'google' | 'otp';
+  defaultTab?: 'password' | 'google' | 'otp';
 }
 
 declare global {
@@ -26,9 +26,14 @@ declare global {
   }
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTab = 'google' }) => {
-  const { setParent, setRole } = useApp();
-  const [activeTab, setActiveTab] = useState<'google' | 'otp'>(defaultTab);
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTab = 'password' }) => {
+  const { setParent, setRole, setCurrentUser, login } = useApp();
+  const [activeTab, setActiveTab] = useState<'password' | 'google' | 'otp'>('password');
+
+  // Email/Password states
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   // Google Auth states
   const [googleClientId, setGoogleClientId] = useState<string>(
@@ -82,6 +87,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
     }
   }, [countdown]);
 
+  // Handle Password Login (Admin, Teacher, Safeguarding, Reviewer, Parent, Student)
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginEmail || !loginPassword) {
+      setAuthError('Please enter both email and password.');
+      return;
+    }
+
+    setPasswordLoading(true);
+    setAuthError(null);
+    try {
+      const user = await login(loginEmail, loginPassword);
+      setAuthSuccess(`Welcome, ${user.name}! Authenticated as ${user.role.toUpperCase()}.`);
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+    } catch (err: any) {
+      setAuthError(err.message || 'Invalid email or password.');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // Quick dev pill helper
+  const handleSelectDevAccount = (email: string) => {
+    setLoginEmail(email);
+    setLoginPassword('Gurukula@2026');
+    setAuthError(null);
+  };
+
   // Handle Google OAuth Credential from Google GIS
   const handleGoogleCredentialResponse = async (response: any) => {
     setGoogleLoading(true);
@@ -98,13 +133,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
       }
       handleAuthSuccess(data);
     } catch (err: any) {
-      setAuthError(err.message || 'Google Sign-In failed. Please try the verified sandbox sign-in.');
+      setAuthError(err.message || 'Google Sign-In failed.');
     } finally {
       setGoogleLoading(false);
     }
   };
 
-  // 1-Click Verified Google Sandbox Login
+  // 1-Click Verified Google Sandbox Login (Only available in development)
   const handleVerifiedGoogleLogin = async () => {
     setGoogleLoading(true);
     setAuthError(null);
@@ -158,7 +193,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
 
       setOtpSent(true);
       setCountdown(60);
-      setOtpValue('123456'); // Pre-fill development demo OTP for effortless review
+      setOtpValue('123456');
       setAuthSuccess('6-digit OTP dispatched via TRAI DLT-SMS gateway! (Demo OTP: 123456)');
       setTimeout(() => setAuthSuccess(null), 4000);
     } catch (err: any) {
@@ -205,6 +240,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
       localStorage.setItem('vayentra_token', data.token);
     }
 
+    if (data.user) {
+      setCurrentUser(data.user);
+    }
+
     if (data.guardian && data.children) {
       const updatedParent = {
         id: data.guardian.id,
@@ -240,11 +279,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
       localStorage.setItem('vayentra_parent', JSON.stringify(updatedParent));
     }
 
-    setAuthSuccess(`Welcome, ${data.user.name}! Guardian identity verified.`);
+    setAuthSuccess(`Welcome, ${data.user.name}! Identity verified.`);
     setTimeout(() => {
       onClose();
-      setRole('parent');
-    }, 1200);
+      setRole(data.user.role || 'parent');
+    }, 1000);
   };
 
   const handleSaveClientId = (e: React.FormEvent) => {
@@ -275,7 +314,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
       <div className="b" style={{
         background: 'var(--color-paper-card)',
         width: '100%',
-        maxWidth: '480px',
+        maxWidth: '520px',
         borderRadius: '16px',
         padding: '28px',
         boxShadow: 'var(--shadow-lg)',
@@ -308,10 +347,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
           <Logo variant="compact" height={48} />
           <div className="h2" style={{ fontSize: '20px', marginTop: '4px' }}>
-            Guardian Authentication Portal
+            Gurukula Unified Portal Sign-In
           </div>
           <div className="t-tiny" style={{ color: 'var(--color-text-subtle)' }}>
-            Digital Personal Data Protection Act 2023 & Zero-Trust Child Safety
+            Digital Personal Data Protection Act 2023 & Role-Based Security Vault
           </div>
         </div>
 
@@ -348,30 +387,130 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
           </div>
         )}
 
-        {/* Tabs: Google vs Phone OTP */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: 'var(--color-paper-subtle)', padding: '4px', borderRadius: '10px' }}>
+        {/* Tabs: Password vs Google vs Mobile OTP */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '6px', background: 'var(--color-paper-subtle)', padding: '4px', borderRadius: '10px' }}>
           <button
             type="button"
-            className={activeTab === 'google' ? 'btn btn-teal' : 'ghost'}
-            onClick={() => { setActiveTab('google'); setAuthError(null); }}
-            style={{ minHeight: '38px', fontSize: '13px' }}
+            className={activeTab === 'password' ? 'btn btn-teal' : 'ghost'}
+            onClick={() => { setActiveTab('password'); setAuthError(null); }}
+            style={{ minHeight: '38px', fontSize: '12px', fontWeight: 600 }}
+          >
+            <KeyRound size={14} /> Password
+          </button>
+          <button
+            type="button"
+            className="ghost"
+            disabled
+            title="Google sign-in will return after verified provider integration"
+            style={{ minHeight: '38px', fontSize: '12px', fontWeight: 600 }}
           >
             Google Sign-In
           </button>
           <button
             type="button"
-            className={activeTab === 'otp' ? 'btn btn-teal' : 'ghost'}
-            onClick={() => { setActiveTab('otp'); setAuthError(null); }}
-            style={{ minHeight: '38px', fontSize: '13px' }}
+            className="ghost"
+            disabled
+            title="SMS sign-in will return after real OTP delivery and verification"
+            style={{ minHeight: '38px', fontSize: '12px', fontWeight: 600 }}
           >
-            <Smartphone size={15} /> Mobile OTP
+            <Smartphone size={14} /> Mobile OTP
           </button>
         </div>
 
-        {/* TAB 1: GOOGLE OAUTH */}
+        <div role="status" style={{fontSize:'12px',lineHeight:1.6,color:'var(--color-text-subtle)'}}>
+          Google and mobile OTP sign-in are temporarily unavailable during security verification. Please use your registered email and password.
+        </div>
+
+        {/* TAB 1: VERIFIED PASSWORD LOGIN */}
+        {activeTab === 'password' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <form onSubmit={handlePasswordLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label className="t-tiny" style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                  Institutional or Family Email Address
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@vayentra.org"
+                    value={loginEmail}
+                    onChange={e => setLoginEmail(e.target.value)}
+                    style={{ width: '100%', paddingLeft: '34px', fontSize: '14px' }}
+                    autoFocus
+                  />
+                  <Mail size={16} style={{ position: 'absolute', left: '10px', top: '12px', color: 'var(--color-text-subtle)' }} />
+                </div>
+              </div>
+
+              <div>
+                <label className="t-tiny" style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                  Password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••••••"
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    style={{ width: '100%', paddingLeft: '34px', fontSize: '14px' }}
+                  />
+                  <Lock size={16} style={{ position: 'absolute', left: '10px', top: '12px', color: 'var(--color-text-subtle)' }} />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-teal"
+                disabled={passwordLoading}
+                style={{ width: '100%', justifyContent: 'center', minHeight: '42px', marginTop: '4px' }}
+              >
+                {passwordLoading ? 'Verifying Credentials...' : 'Sign In with Secure Session'}
+              </button>
+            </form>
+
+            {/* Development Quick Role Switcher Buttons */}
+            {import.meta.env.DEV && (
+              <div style={{
+                marginTop: '8px',
+                padding: '12px',
+                borderRadius: '8px',
+                background: 'var(--color-paper-subtle)',
+                border: '1px dashed var(--color-border)'
+              }}>
+                <div className="t-tiny" style={{ fontWeight: 700, marginBottom: '8px', color: 'var(--color-teal-primary)' }}>
+                  🛠️ Developer Demo Quick Credentials (Click to prefill):
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {[
+                    { role: 'Admin', email: 'admin@vayentra.org' },
+                    { role: 'Teacher', email: 'teacher@vayentra.org' },
+                    { role: 'Safeguarding', email: 'safeguarding@vayentra.org' },
+                    { role: 'Reviewer', email: 'reviewer@vayentra.org' },
+                    { role: 'Parent', email: 'guardian@vayentra.org' },
+                    { role: 'Student', email: 'student@vayentra.org' }
+                  ].map(acc => (
+                    <button
+                      key={acc.email}
+                      type="button"
+                      className="ghost"
+                      onClick={() => handleSelectDevAccount(acc.email)}
+                      style={{ fontSize: '11px', padding: '4px 8px', minHeight: '26px' }}
+                    >
+                      <UserCheck size={12} /> {acc.role}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: GOOGLE OAUTH */}
         {activeTab === 'google' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
-            <div className="t-muted" style={{ textAlign: 'center', fontSize: '14px' }}>
+            <div className="t-muted" style={{ textAlign: 'center', fontSize: '13px' }}>
               Authenticate with your verified Google Account to manage child profiles, track syllabus coverage, and access parent controls.
             </div>
 
@@ -380,34 +519,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
               <div ref={googleButtonRef} style={{ minHeight: '44px', display: 'flex', justifyContent: 'center' }} />
             )}
 
-            {/* 1-Click Verified Google Parent Login */}
-            <button
-              type="button"
-              className="btn btn-navy"
-              onClick={handleVerifiedGoogleLogin}
-              disabled={googleLoading}
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                minHeight: '46px',
-                fontSize: '14px',
-                background: '#ffffff',
-                color: '#1f2937',
-                border: '1.5px solid #cbd5e1',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              {googleLoading ? 'Verifying with Google...' : 'Continue with Google (Verified Parent)'}
-            </button>
+            {/* 1-Click Verified Google Parent Login (Dev/Sandbox only) */}
+            {import.meta.env.DEV && (
+              <button
+                type="button"
+                className="btn btn-navy"
+                onClick={handleVerifiedGoogleLogin}
+                disabled={googleLoading}
+                style={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  minHeight: '44px',
+                  fontSize: '13px',
+                  background: '#ffffff',
+                  color: '#1f2937',
+                  border: '1.5px solid #cbd5e1',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                {googleLoading ? 'Verifying with Google...' : 'Continue with Google (Dev Verified Sandbox)'}
+              </button>
+            )}
 
             {/* Custom Google Client ID configuration expander */}
-            <div style={{ width: '100%', marginTop: '6px' }}>
+            <div style={{ width: '100%', marginTop: '4px' }}>
               <div 
                 onClick={() => setShowConfigClientId(!showConfigClientId)}
                 style={{ fontSize: '12px', color: 'var(--color-teal-primary)', cursor: 'pointer', textAlign: 'center', textDecoration: 'underline' }}
@@ -419,7 +560,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                 <form onSubmit={handleSaveClientId} style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <input
                     type="text"
-                    placeholder="Enter your Google OAuth Client ID (.apps.googleusercontent.com)"
+                    placeholder="Enter Google OAuth Client ID (.apps.googleusercontent.com)"
                     value={googleClientId}
                     onChange={e => setGoogleClientId(e.target.value)}
                     style={{ fontSize: '12px', padding: '8px 12px' }}
@@ -433,13 +574,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
           </div>
         )}
 
-        {/* TAB 2: MOBILE OTP */}
+        {/* TAB 3: MOBILE OTP */}
         {activeTab === 'otp' && (
           <div>
             {!otpSent ? (
               <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="t-muted" style={{ fontSize: '14px' }}>
-                  Enter your 10-digit registered mobile number to receive a secure login OTP.
+                <div className="t-muted" style={{ fontSize: '13px' }}>
+                  Enter your 10-digit registered mobile number to receive a secure login OTP via TRAI DLT-SMS gateway.
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <span style={{
@@ -459,7 +600,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                     value={mobileNumber}
                     onChange={e => setMobileNumber(e.target.value)}
                     maxLength={10}
-                    style={{ flex: 1, fontSize: '16px' }}
+                    style={{ flex: 1, fontSize: '15px' }}
                     autoFocus
                   />
                 </div>
@@ -467,14 +608,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                   type="submit"
                   className="btn btn-teal"
                   disabled={otpLoading}
-                  style={{ width: '100%', justifyContent: 'center', minHeight: '44px' }}
+                  style={{ width: '100%', justifyContent: 'center', minHeight: '42px' }}
                 >
                   {otpLoading ? 'Dispatching OTP...' : 'Send Verification OTP'} <ArrowRight size={16} />
                 </button>
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="t-muted" style={{ fontSize: '14px' }}>
+                <div className="t-muted" style={{ fontSize: '13px' }}>
                   Enter the 6-digit OTP sent to <strong>+91 {mobileNumber}</strong>:
                 </div>
                 <input
@@ -490,7 +631,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                   type="submit"
                   className="btn btn-teal"
                   disabled={otpLoading}
-                  style={{ width: '100%', justifyContent: 'center', minHeight: '44px' }}
+                  style={{ width: '100%', justifyContent: 'center', minHeight: '42px' }}
                 >
                   {otpLoading ? 'Verifying...' : 'Verify OTP & Log In'}
                 </button>
@@ -528,7 +669,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
         }}>
           <ShieldCheck size={20} color="var(--color-teal-primary)" />
           <div className="t-tiny">
-            <strong>Child-Safe Architecture:</strong> Direct minor logins under 13 are prohibited. Parents maintain full custody via 4-digit PIN locks.
+            <strong>Zero-Trust Architecture:</strong> Minor accounts under 13 require verified guardian consent. Sensitive role portals require backend-verified session tokens.
           </div>
         </div>
       </div>
