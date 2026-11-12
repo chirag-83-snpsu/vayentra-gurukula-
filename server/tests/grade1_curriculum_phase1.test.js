@@ -39,7 +39,7 @@ test('Class 1 source mapping is accurate and enrichment is staged, not automatic
  assert.equal(rows.filter(x=>x.board==='CBSE').length,19);
  assert.equal(rows.filter(x=>x.board==='STATE').length,20);
  assert.ok(rows.every(x=>x.status==='draft'));
- assert.equal(db.prepare('SELECT COUNT(*) n FROM one_foundation_questions').get().n,85,
+ assert.equal(db.prepare('SELECT COUNT(*) n FROM one_foundation_questions').get().n,71,
   '32 enrichment lessons x 2 checks plus 7 starter checks.');
  const state=db.prepare("SELECT id FROM one_curriculum_tracks WHERE board='STATE' AND grade=1 AND edition_year='2026-27'").get();
  assert.ok(state);
