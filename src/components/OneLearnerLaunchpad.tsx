@@ -2,6 +2,7 @@ import React,{useEffect,useState} from 'react';
 import {ArrowRight,BookOpen,GraduationCap,LockKeyhole,ShieldCheck,Sparkles} from 'lucide-react';
 import {useApp} from '../context/AppContext';
 import {OneConceptStudio} from './OneConceptStudio';
+import {OneGrade1Explorer} from './OneGrade1Explorer';
 import '../styles/one-enrolment.css';
 type Subject={id:string;name:string;approved_chapters:number;published_concepts:number};
 type Learner={learnerId:string;learnerNumber:string;studentName:string;currentYear:{grade:number;board:string;academicYear:string;status:string};
@@ -11,6 +12,7 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
  const [learner,setLearner]=useState<Learner|null>(null);
  const [loading,setLoading]=useState(true);
  const [showStudio,setShowStudio]=useState(false);
+ const [showGradeOne,setShowGradeOne]=useState(false);
  const [error,setError]=useState('');
  useEffect(()=>{
   const controller=new AbortController();setLoading(true);setError('');setLearner(null);
@@ -23,6 +25,10 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
    .finally(()=>{if(!controller.signal.aborted)setLoading(false);});
   return ()=>controller.abort();
  },[authToken,parentPreviewStudentId]);
+ if(showGradeOne)return <div className="vg-one">
+  <button type="button" className="vg-one-minibutton" style={{alignSelf:'flex-start'}} onClick={()=>setShowGradeOne(false)}>← Back to Learning Universe</button>
+  <OneGrade1Explorer parentPreviewStudentId={parentPreviewStudentId}/>
+ </div>;
  if(showStudio)return <div className="vg-one">
   <button type="button" className="vg-one-minibutton" style={{alignSelf:'flex-start'}} onClick={()=>setShowStudio(false)}>← Back to Learning Universe</button>
   <OneConceptStudio parentPreviewStudentId={parentPreviewStudentId}/>
@@ -47,6 +53,8 @@ export const OneLearnerLaunchpad:React.FC<{onExplore:()=>void;parentPreviewStude
     <h3>Choose what you want to understand.</h3>
     {learner.subjects.length>0?<div className="vg-one-subject-grid">{learner.subjects.map(s=><div key={s.id} className="vg-one-subject"><BookOpen size={22}/><strong>{s.name}</strong><p>{s.approved_chapters} reviewed chapters · {s.published_concepts} published concepts</p></div>)}</div>:<div className="vg-one-empty"><BookOpen size={32}/><strong>Your curriculum is being reviewed</strong><p>{learner.notice}</p></div>}
     {learner.entitlementStatus!=='enabled'&&<div className="vg-one-warning"><ShieldCheck size={18}/><span>Your permanent Learner ID is active. Paid access is not configured. Separately approved, temporary pilot access may be available without payment.</span></div>}
+    {learner.currentYear.grade===1&&
+      <button type="button" className="vg-one-primary" onClick={()=>setShowGradeOne(true)}><BookOpen size={17}/> Explore Class 1 Subjects · AI · Money Skills <ArrowRight size={17}/></button>}
     {learner.conceptStudio.available?
      <button type="button" className="vg-one-primary" onClick={()=>setShowStudio(true)}><BookOpen size={17}/> Study {learner.conceptStudio.publishedUnits} approved shape concepts <ArrowRight size={17}/></button>:
      <div className="vg-one-caption"><LockKeyhole size={17}/> Class 4 CBSE Shapes Studio opens only when original units are published and this learner receives approved access.</div>}
