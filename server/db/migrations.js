@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import { db } from './database.js';
 import { CLASS4_SHAPES_PILOT } from '../data/class4ShapesPilot.js';
+import { GRADE1_CURRICULUM } from '../data/grade1Curriculum.js';
 import { CBSE_SUBJECTS_BY_GRADE } from '../data/cbseCatalog.js';
 import { CLASS10_PILOT_LESSONS } from '../data/class10PilotLessons.js';
 import { CLASS10_NEXT_LESSON_BATCH } from '../data/class10NextLessonBatch.js';
@@ -1614,6 +1615,161 @@ export function runMigrations() {
       });
       db.prepare("INSERT INTO migrations(name) VALUES('013_one_concept_studio_shapes_pilot')").run();
       console.log('[Vayentra ONE] Six original Class 4 shape concept drafts and 24 questions created; none published.');
+    }
+
+
+    // 014: Class 1 structured curriculum drafts. No paid entitlement or public publishing.
+    if(!db.prepare("SELECT id FROM migrations WHERE name='014_one_class1_curriculum_ai_money'").get()){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS one_foundation_units(
+          id TEXT PRIMARY KEY,
+          concept_id TEXT NOT NULL UNIQUE REFERENCES one_concepts(id) ON DELETE RESTRICT,
+          unit_key TEXT NOT NULL UNIQUE,
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL CHECK(board IN ('CBSE','STATE')),
+          curriculum_kind TEXT NOT NULL CHECK(curriculum_kind IN ('school_support','vayentra_enrichment')),
+          objective TEXT NOT NULL,
+          story TEXT NOT NULL,
+          home_activity TEXT NOT NULL,
+          expected_minutes INTEGER NOT NULL DEFAULT 10 CHECK(expected_minutes BETWEEN 5 AND 30),
+          status TEXT NOT NULL DEFAULT 'draft'
+            CHECK(status IN ('draft','teacher_review','reviewed','published')),
+          reviewer_id TEXT REFERENCES users(id),
+          review_reference TEXT,
+          reviewed_at TEXT,
+          publisher_id TEXT REFERENCES users(id),
+          published_at TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_foundation_grade_board ON one_foundation_units(grade,board,status);
+        CREATE TABLE IF NOT EXISTS one_foundation_questions(
+          id TEXT PRIMARY KEY,
+          unit_id TEXT NOT NULL REFERENCES one_foundation_units(id) ON DELETE RESTRICT,
+          position INTEGER NOT NULL,
+          question_text TEXT NOT NULL,
+          choices_json TEXT NOT NULL,
+          answer_index INTEGER NOT NULL CHECK(answer_index BETWEEN 0 AND 3),
+          explanation TEXT NOT NULL,
+          UNIQUE(unit_id,position)
+        );
+        CREATE TABLE IF NOT EXISTS one_foundation_reviews(
+          id TEXT PRIMARY KEY,
+          unit_id TEXT NOT NULL REFERENCES one_foundation_units(id) ON DELETE RESTRICT,
+          actor_user_id TEXT NOT NULL REFERENCES users(id),
+          decision TEXT NOT NULL CHECK(decision IN ('submitted','approved','changes_requested','published','withdrawn')),
+          evidence_reference TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS one_foundation_attempts(
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES one_memberships(student_id) ON DELETE RESTRICT,
+          unit_id TEXT NOT NULL REFERENCES one_foundation_units(id) ON DELETE RESTRICT,
+          attempted_by TEXT NOT NULL REFERENCES users(id),
+          idempotency_key TEXT NOT NULL,
+          answers_json TEXT NOT NULL,
+          correct_count INTEGER NOT NULL,
+          total_count INTEGER NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          UNIQUE(student_id,idempotency_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_foundation_attempts_student ON one_foundation_attempts(student_id,created_at);
+        CREATE TABLE IF NOT EXISTS one_foundation_pilot_grants(
+          student_id TEXT PRIMARY KEY REFERENCES one_memberships(student_id) ON DELETE RESTRICT,
+          approved_by TEXT NOT NULL REFERENCES users(id),
+          justification TEXT NOT NULL,
+          expires_at TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      const registry=GRADE1_CURRICULUM;
+      const bookSubject=db.prepare('SELECT id FROM one_subjects WHERE track_id=? AND subject_title=?');
+      const insertSubject=db.prepare('INSERT INTO one_subjects(id,track_id,subject_title) VALUES(?,?,?)');
+      const lookupChapter=db.prepare('SELECT id,chapter_title FROM one_chapters WHERE subject_id=? AND chapter_number=? AND textbook_edition=?');
+      const insertChapter=db.prepare('INSERT INTO one_chapters(id,subject_id,chapter_number,chapter_title,textbook_edition) VALUES(?,?,?,?,?)');
+      const findConcept=db.prepare('SELECT id,title FROM one_concepts WHERE chapter_id=? AND position=?');
+      const insertConcept=db.prepare('INSERT INTO one_concepts(id,chapter_id,position,title,explanation_original) VALUES(?,?,?,?,?)');
+      const insertUnit=db.prepare(`
+        INSERT INTO one_foundation_units
+         (id,concept_id,unit_key,grade,board,curriculum_kind,objective,story,home_activity,expected_minutes)
+        VALUES(?,?,?,?,?,?,?,?,?,10)
+      `);
+      const insertQuestion=db.prepare(`
+        INSERT INTO one_foundation_questions(id,unit_id,position,question_text,choices_json,answer_index,explanation)
+        VALUES(?,?,?,?,?,?,?)
+      `);
+      const makeSubject=(track,name)=>{
+        const existing=bookSubject.get(track.id,name);
+        if(existing)return existing.id;
+        const subjectId='one-g1-'+track.board.toLowerCase()+'-'+name.toLowerCase().replace(/[^a-z]+/g,'-').replace(/^-|-$/g,'');
+        insertSubject.run(subjectId,track.id,name);
+        return subjectId;
+      };
+      const makeChapter=(subjectId,num,title,edition)=>{
+        const existing=lookupChapter.get(subjectId,num,edition);
+        if(existing){
+          if(existing.chapter_title!==title)
+            throw new Error('CLASS1_CHAPTER_TITLE_CONFLICT:'+subjectId+':'+num);
+          return existing.id;
+        }
+        const id='one-g1-ch-'+subjectId+'-'+num+'-'+edition.replace(/[^a-z0-9]/gi,'').slice(0,8);
+        insertChapter.run(id,subjectId,num,title,edition);
+        return id;
+      };
+      const subjectMap=new Map();
+      const officialChapters=new Map();
+      for(const boardEntry of registry.official){
+        const track=db.prepare("SELECT id,board FROM one_curriculum_tracks WHERE board=? AND grade=1 AND edition_year=? AND medium='English'")
+          .get(boardEntry.board,registry.edition);
+        if(!track)throw new Error('CLASS1_TRACK_NOT_FOUND_'+boardEntry.board);
+        for(const subject of boardEntry.subjects){
+          const subjectId=makeSubject(track,subject.name);
+          subjectMap.set(boardEntry.board+'|'+subject.name,subjectId);
+          subject.chapters.forEach((chapter,i)=>{
+            const chapterId=makeChapter(subjectId,i+1,chapter,registry.edition);
+            officialChapters.set(boardEntry.board+'|'+subject.name+'|'+(i+1),chapterId);
+          });
+        }
+        for(const enrichment of registry.enrichment){
+          const subjectName='Vayentra Original: '+enrichment.name;
+          const subjectId=makeSubject(track,subjectName);
+          enrichment.modules.forEach((module,i)=>{
+            const chapterId=makeChapter(subjectId,i+1,module.title,'Vayentra original v1');
+            const conceptId='one-g1-'+boardEntry.board.toLowerCase()+'-'+
+              (enrichment.name.startsWith('AI')?'ai-':'money-')+module.slug;
+            const existing=findConcept.get(chapterId,1);
+            if(existing&&existing.title!==module.title)
+              throw new Error('CLASS1_CONCEPT_TITLE_CONFLICT:'+conceptId);
+            if(!existing)insertConcept.run(conceptId,chapterId,1,module.title,module.story);
+            const unitId='one-fdn-'+conceptId;
+            insertUnit.run(unitId,existing?.id||conceptId,unitId,1,boardEntry.board,
+              'vayentra_enrichment',module.objective,module.story,module.activity);
+            module.questions.forEach((q,j)=>insertQuestion.run(
+              unitId+'-q'+(j+1),unitId,j+1,q.prompt,JSON.stringify(q.options),q.correctIndex,q.explanation));
+          });
+        }
+      }
+      registry.starterLessons.forEach((unit)=>{
+        const track=db.prepare("SELECT id,board FROM one_curriculum_tracks WHERE board=? AND grade=1 AND edition_year=? AND medium='English'")
+          .get(unit.board,registry.edition);
+        const subjectId=subjectMap.get(unit.board+'|'+unit.subject);
+        if(!track||!subjectId)throw new Error('MISSING_CLASS1_SUBJECT:'+unit.board+' '+unit.subject);
+        const chapterId=unit.chapter?
+          officialChapters.get(unit.board+'|'+unit.subject+'|'+unit.chapter):
+          makeChapter(subjectId,1,'Vayentra Original Starter Activities','Vayentra original v1');
+        if(!chapterId)throw new Error('MISSING_CLASS1_CHAPTER_FOR_STARTER');
+        const conceptId='one-g1-'+unit.board.toLowerCase()+'-starter-'+unit.subject.toLowerCase().replace(/[^a-z]+/g,'-');
+        const existing=findConcept.get(chapterId,1);
+        if(existing&&existing.title!==unit.title)
+          throw new Error('CLASS1_STARTER_CONCEPT_CONFLICT:'+conceptId);
+        if(!existing)insertConcept.run(conceptId,chapterId,1,unit.title,unit.story);
+        const unitId='one-fdn-'+conceptId;
+        insertUnit.run(unitId,existing?.id||conceptId,unitId,1,unit.board,
+          'school_support',unit.objective,unit.story,unit.activity);
+        unit.questions.forEach((q,j)=>insertQuestion.run(
+          unitId+'-q'+(j+1),unitId,j+1,q[0],JSON.stringify(q[1]),q[2],q[3]));
+      });
+      db.prepare("INSERT INTO migrations(name) VALUES('014_one_class1_curriculum_ai_money')").run();
+      console.log('[Vayentra ONE] Class 1 official chapter-title maps staged; AI, money and school starter units remain DRAFT.');
     }
 
     db.exec('COMMIT;');
