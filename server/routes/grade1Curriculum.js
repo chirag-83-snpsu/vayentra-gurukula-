@@ -97,7 +97,7 @@ function courseMap(board,showDraft){
     edition:ch.textbook_edition,reviewStatus:ch.review_status,
     lessonCount:visible.length,
     lessonAvailability:unitList.some(published)?'approved_lessons_available':'planned',
-    ...(showDraft?{units:visible.map(u=>({id:u.id,title:u.title,status:u.status}))}: {})
+    units:visible.map(u=>({id:u.id,title:u.title,status:u.status}))
    };
   });
   return {id:subject.id,name:subject.subject_title,kind:original?'vayentra_original_enrichment':'school_curriculum',
