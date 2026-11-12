@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { db } from './database.js';
 import { CLASS4_SHAPES_PILOT } from '../data/class4ShapesPilot.js';
 import { GRADE1_CURRICULUM } from '../data/grade1Curriculum.js';
+import { GRADE1_MATHS_CHAPTER1 } from '../data/grade1MathsChapter1.js';
 import { CBSE_SUBJECTS_BY_GRADE } from '../data/cbseCatalog.js';
 import { CLASS10_PILOT_LESSONS } from '../data/class10PilotLessons.js';
 import { CLASS10_NEXT_LESSON_BATCH } from '../data/class10NextLessonBatch.js';
@@ -1770,6 +1771,74 @@ export function runMigrations() {
       });
       db.prepare("INSERT INTO migrations(name) VALUES('014_one_class1_curriculum_ai_money')").run();
       console.log('[Vayentra ONE] Class 1 official chapter-title maps staged; AI, money and school starter units remain DRAFT.');
+    }
+
+
+    // 015: Class 1 NCERT Maths chapter 1 ORIGINAL micro-lessons, visual scenes and private checks.
+    // Adds to migration 014; no record mutation, automatic approval or learner entitlement change.
+    if(!db.prepare("SELECT id FROM migrations WHERE name='015_one_grade1_maths_ch1_playlab'").get()){
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS one_foundation_picture_scenes(
+          unit_id TEXT PRIMARY KEY REFERENCES one_foundation_units(id) ON DELETE RESTRICT,
+          scene_json TEXT NOT NULL,
+          step_text_json TEXT NOT NULL,
+          teacher_prompt TEXT NOT NULL,
+          illustration_rights TEXT NOT NULL DEFAULT 'original_vayentra_svg',
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      const data=GRADE1_MATHS_CHAPTER1;
+      const chapter=db.prepare(`
+        SELECT ch.id,ch.chapter_title,ch.chapter_number,ch.textbook_edition
+        FROM one_chapters ch
+        JOIN one_subjects s ON s.id=ch.subject_id
+        JOIN one_curriculum_tracks t ON t.id=s.track_id
+        WHERE t.board='CBSE' AND t.grade=1 AND t.edition_year=?
+        AND t.medium='English' AND s.subject_title='Mathematics'
+        AND ch.chapter_number=1 AND ch.textbook_edition=?
+      `).get(data.edition,data.edition);
+      if(!chapter||chapter.chapter_title!==data.chapterTitle)
+        throw new Error('CLASS1_MATHS_CH1_SOURCE_ALIGNMENT_REQUIRED');
+      const insertConcept=db.prepare(`
+        INSERT INTO one_concepts
+         (id,chapter_id,position,title,explanation_original,misconception_tip)
+        VALUES(?,?,?,?,?,?)
+      `);
+      const insertUnit=db.prepare(`
+        INSERT INTO one_foundation_units
+         (id,concept_id,unit_key,grade,board,curriculum_kind,objective,story,home_activity,expected_minutes)
+        VALUES(?, ?, ?, 1, 'CBSE', 'school_support', ?, ?, ?, 9)
+      `);
+      const insertQuestion=db.prepare(`
+        INSERT INTO one_foundation_questions
+         (id,unit_id,position,question_text,choices_json,answer_index,explanation)
+        VALUES(?,?,?,?,?,?,?)
+      `);
+      const insertScene=db.prepare(`
+        INSERT INTO one_foundation_picture_scenes
+         (unit_id,scene_json,step_text_json,teacher_prompt)
+        VALUES(?,?,?,?)
+      `);
+      data.lessons.forEach((lesson,i)=>{
+        // Position 1 is the earlier Class 1 original warm-up; preserve it untouched.
+        const position=i+2;
+        const conceptId='one-g1-maths-ch1-'+lesson.key;
+        const unitId='one-fdn-'+conceptId;
+        if(db.prepare('SELECT id FROM one_concepts WHERE chapter_id=? AND position=?').get(chapter.id,position))
+          throw new Error('CLASS1_CH1_CONCEPT_POSITION_CONFLICT:'+position);
+        insertConcept.run(conceptId,chapter.id,position,lesson.title,lesson.story,
+          'Check that the child uses the correct reference object and explains the relation.');
+        insertUnit.run(unitId,conceptId,unitId,lesson.objective,lesson.story,lesson.activity);
+        insertScene.run(unitId,JSON.stringify(lesson.scene),JSON.stringify(lesson.steps),lesson.teacherPrompt);
+        lesson.questions.forEach((q,j)=>{
+          if(q.correctIndex<0||q.correctIndex>=q.options.length||q.options.length<2||q.options.length>4)
+            throw new Error('CLASS1_CH1_INVALID_ANSWER_KEY:'+unitId+':'+j);
+          insertQuestion.run(unitId+'-q'+(j+1),unitId,j+1,q.prompt,
+            JSON.stringify(q.options),q.correctIndex,q.reason);
+        });
+      });
+      db.prepare("INSERT INTO migrations(name) VALUES('015_one_grade1_maths_ch1_playlab')").run();
+      console.log('[Vayentra ONE] 9 ORIGINAL Class 1 Maths chapter 1 teaching drafts, visual scenes and 36 private checks staged; none published.');
     }
 
     db.exec('COMMIT;');
