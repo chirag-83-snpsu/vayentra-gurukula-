@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Eye,Hand,MoveHorizontal,MousePointerClick} from 'lucide-react';
+import {Eye,Hand,MousePointerClick} from 'lucide-react';
 import '../styles/one-grade1-maths.css';
 
 export type PictureScene={
