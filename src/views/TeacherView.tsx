@@ -4,6 +4,7 @@ import { TeacherAssignmentsDesk } from '../components/TeacherAssignmentsDesk';
 import { LearningCompass } from '../components/LearningCompass';
 import { CbseVideoStudio } from '../components/CbseVideoStudio';
 import {OneStudioEditorial} from '../components/OneStudioEditorial';
+import {OneGrade1Editorial} from '../components/OneGrade1Editorial';
 import { useApp } from '../context/AppContext';
 import { 
   GraduationCap, 
@@ -19,7 +20,7 @@ import {
 
 export const TeacherView: React.FC = () => {
   const { doubts } = useApp();
-  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance' | 'diagnostics' | 'videos' | 'concept_studio'>('attendance');
+  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance' | 'diagnostics' | 'videos' | 'concept_studio' | 'grade1_curriculum'>('attendance');
   const [remedialPackCreated, setRemedialPackCreated] = useState(false);
   const [liveRoomNotice, setLiveRoomNotice] = useState<string | null>(null);
 
@@ -153,12 +154,14 @@ export const TeacherView: React.FC = () => {
         <button type="button" className={activeTab === 'diagnostics' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('diagnostics')}>Learning Compass</button>
         <button type="button" className={activeTab === 'videos' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('videos')}>NCERT & Video Studio</button>
         <button type="button" className={activeTab === 'concept_studio' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('concept_studio')}>ONE Concept Editorial</button>
+        <button type="button" className={activeTab === 'grade1_curriculum' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('grade1_curriculum')}>Class 1 Curriculum</button>
       </div>
 
       {activeTab === 'attendance' && <AttendanceRegister />}
       {activeTab === 'diagnostics' && <LearningCompass mode="teacher" />}
       {activeTab === 'videos' && <CbseVideoStudio />}
       {activeTab === 'concept_studio' && <OneStudioEditorial />}
+      {activeTab === 'grade1_curriculum' && <OneGrade1Editorial />}
 
       {/* HEATMAP TAB (Wireframe 03 / Diagram 28) */}
       {activeTab === 'heatmap' && (
