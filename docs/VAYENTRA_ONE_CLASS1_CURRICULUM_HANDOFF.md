@@ -65,3 +65,7 @@ POST /api/v1/grade1/admin/pilot-grants — admin; valid verified Class 1 learner
 - Production remains blocked by Phase 0 security review. Guardian verification, age-appropriate login, staff scope and child data privacy remain unresolved.
 - The existing 266-test Step 3 report was supplied by the user, but its local fixes were not necessarily pushed to the GitHub branch from which this Class 1 feature originated.
 - Do not claim Grade 1 complete until every adopted textbook edition's chapter has verified Vayentra explanatory content; then begin Grade 2 using the reusable data model.
+
+
+## Important update: Chapter 1 Maths expansion (migration 015)
+On the descendant branch feature/one-grade1-maths-ch1-playlab, the Class 1 Mathematics chapter 1 implementation adds 9 original picture-led micro-lessons and 36 private question records. The combined DB count now becomes 48 original Class 1 units (28 CBSE + 20 Karnataka) and 107 private practice questions, NOT the earlier 39/71 baseline above. The new source of truth for this expansion, testing, and original story content is docs/VAYENTRA_ONE_CLASS1_MATHS_CH1_PLAYLAB_HANDOFF.md. Always check which branch/migrations are present before asserting counts. No lessons are automatically published.
