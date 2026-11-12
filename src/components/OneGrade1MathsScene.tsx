@@ -88,7 +88,7 @@ const ShapeGallery:React.FC<{rule:string}>=({rule})=>{
   {x:345,y:120,color:'#7eb5e9',kind:'circle',size:37},
   {x:465,y:120,color:'#7eb5e9',kind:'square',size:25},
  ];
- const matching=rule==='colour'?[0,1]:rule==='shape'?[0,2]:[2,3];
+ const matching=rule==='colour'?[0,1]:rule==='shape'?[0,2]:[1,2];
  return <svg viewBox="0 0 580 250" role="img" aria-label={'Four coloured shapes demonstrating matching by '+rule}>
   {items.map((x,i)=><g key={i}>
    <rect x={x.x-49} y="62" width="98" height="122" rx="16"
