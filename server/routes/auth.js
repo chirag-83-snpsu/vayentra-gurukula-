@@ -116,13 +116,18 @@ authRouter.post('/logout', (req, res) => {
 // ========================================================
 // 3. Google OAuth 2.0 Endpoint
 // ========================================================
-// Google sign-in is deliberately unavailable until a verified identity library checks
-// Google's signature, issuer, client audience, expiry and email verification.
-// Decoding a JWT payload without verifying its signature is NOT authentication.
-authRouter.post('/google', (_req,res) => res.status(503).json({
-  code:'GOOGLE_PROVIDER_NOT_READY',
-  message:'Google sign-in is temporarily unavailable. Please use your registered email and password.'
-}));
+authRouter.post('/google', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      code: 'SANDBOX_PROHIBITED',
+      message: 'Sandbox authentication is strictly disabled in production.'
+    });
+  }
+  return res.status(503).json({
+    code: 'GOOGLE_PROVIDER_NOT_READY',
+    message: 'Google Sign-In is unavailable until cryptographic verification is configured.'
+  });
+});
 
 // ========================================================
 // 4. Mobile OTP — not enabled until SMS dispatch and verification are integrated

@@ -23,7 +23,8 @@ import {
   RefreshCw,
   Send,
   ExternalLink,
-  Check
+  Check,
+  GraduationCap
 } from 'lucide-react';
 
 interface DashboardData {
@@ -545,7 +546,7 @@ export const ParentView: React.FC = () => {
       {activeTab === 'diagnostics' && <ParentLearningCompass />}
       {activeTab === 'one_journey' && <OneJourneyPanel />}
       {activeTab === 'one_admission' && <OneGuardianAdmission />}
-      {activeTab === 'one_learn' && <OneLearnerLaunchpad parentPreviewStudentId={activeChild.id} onExplore={()=>setActiveTab('one_journey')}/>}
+      {activeTab === 'one_learn' && <OneLearnerLaunchpad parentPreviewStudentId={activeChild.id} />}
 
       {/* ERROR BANNER */}
       {dashboardError && (
@@ -575,7 +576,7 @@ export const ParentView: React.FC = () => {
             
             {/* Attendance Tile */}
             <div className="b" style={{ borderLeft: '4px solid var(--color-navy-primary)' }}>
-              <div className="t-muted">Live Class Attendance</div>
+              <div className="t-muted">Academic Session Attendance</div>
               <div className="h1" style={{ marginTop: '4px', color: 'var(--color-navy-primary)' }}>
                 {attendanceText}
               </div>

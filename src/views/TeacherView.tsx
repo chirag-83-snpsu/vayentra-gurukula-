@@ -22,7 +22,6 @@ export const TeacherView: React.FC = () => {
   const { doubts } = useApp();
   const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance' | 'diagnostics' | 'videos' | 'concept_studio' | 'grade1_curriculum'>('attendance');
   const [remedialPackCreated, setRemedialPackCreated] = useState(false);
-  const [liveRoomNotice, setLiveRoomNotice] = useState<string | null>(null);
 
   // Mock Heatmap Data for Class 7 CBSE Mathematics (Wireframe 03 / Diagram 28)
   const heatmapStudents = [
@@ -82,43 +81,7 @@ export const TeacherView: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-          <button 
-            type="button" 
-            className="btn btn-teal" 
-            onClick={() => setLiveRoomNotice(
-              'Live Room: Classroom stream is scheduled for assigned batch slots (17:30 IST). WebRTC video integration connects during active session times.'
-            )}
-          >
-            <Calendar size={16} /> Launch Live Room
-          </button>
-        </div>
       </div>
-
-      {liveRoomNotice && (
-        <div style={{
-          background: 'var(--color-paper-subtle)',
-          border: '1.5px solid var(--color-teal-primary)',
-          borderRadius: '10px',
-          padding: '12px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          fontSize: '13px',
-          color: 'var(--color-ink)'
-        }}>
-          <div>ℹ️ {liveRoomNotice}</div>
-          <button
-            type="button"
-            className="ghost"
-            onClick={() => setLiveRoomNotice(null)}
-            style={{ minHeight: '28px', padding: '2px 8px', fontSize: '11px' }}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: '8px', overflowX: 'auto' }}>
@@ -241,7 +204,7 @@ export const TeacherView: React.FC = () => {
           </div>
 
           <div className="b">
-            <div className="h3">Upcoming Live Sessions</div>
+            <div className="h3">Upcoming Concept Checkpoints & Clinics</div>
             <div style={{ marginTop: '12px', padding: '10px', background: 'var(--color-paper-subtle)', borderRadius: '6px' }}>
               <div style={{ fontWeight: 600 }}>Algebra Prerequisite Clinic</div>
               <div className="t-tiny">Tomorrow at 5:00 PM IST • 24 Students Invited</div>

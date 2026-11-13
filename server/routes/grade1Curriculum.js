@@ -3,6 +3,8 @@ import {randomUUID} from 'node:crypto';
 import {db} from '../db/database.js';
 import {authenticateToken,requireRole} from '../middleware/auth.js';
 import {GRADE1_CURRICULUM} from '../data/grade1Curriculum.js';
+import {GRADE1_ENGLISH_MRIDANG} from '../data/grade1EnglishMridang.js';
+import {checkStudentEntitlement} from '../services/subscriptionService.js';
 
 export const grade1CurriculumRouter=Router();
 grade1CurriculumRouter.use((_req,res,next)=>{res.setHeader('Cache-Control','no-store');next();});
@@ -66,10 +68,12 @@ function context(req,res,selectedId,needAccess){
  const trial=Boolean(db.prepare(
   "SELECT 1 FROM one_foundation_pilot_grants WHERE student_id=? AND expires_at>datetime('now')"
  ).get(studentId));
- if(needAccess&&record.entitlement_status!=='enabled'&&!trial){
-  fail(res,'LEARNING_ACCESS_PENDING',403,'An approved pilot grant or valid course entitlement is required.');return null;
+ const ent = checkStudentEntitlement(studentId);
+ const effectiveStatus = ent.active ? 'enabled' : (ent.status === 'expired' ? 'expired' : record.entitlement_status);
+ if(needAccess&&effectiveStatus!=='enabled'&&!trial){
+  fail(res,'LEARNING_ACCESS_PENDING',403,ent.needsRenewal?'Your annual subscription has expired. Please renew to continue learning.':'An approved pilot grant or valid course entitlement is required.');return null;
  }
- return {...record,pilot:trial};
+ return {...record,entitlement_status:effectiveStatus,pilot:trial,needsRenewal:Boolean(ent.needsRenewal)};
 }
 function courseMap(board,showDraft){
  const track=db.prepare(`
@@ -93,9 +97,11 @@ function courseMap(board,showDraft){
   const chapterList=chapters.filter(ch=>ch.subject_id===subject.id).map(ch=>{
    const unitList=rows.filter(u=>u.chapter_id===ch.id);
    const visible=showDraft?unitList:unitList.filter(published);
+   const hasAiVideo=subject.subject_title==='English';
    return {id:ch.id,number:ch.chapter_number,title:ch.chapter_title,
     edition:ch.textbook_edition,reviewStatus:ch.review_status,
     lessonCount:visible.length,
+    hasAiVideo,
     lessonAvailability:unitList.some(published)?'approved_lessons_available':'planned',
     units:visible.map(u=>({id:u.id,title:u.title,status:u.status}))
    };
@@ -117,13 +123,17 @@ function cleanUnit(row){
  const scene=db.prepare(
   'SELECT scene_json,step_text_json,teacher_prompt FROM one_foundation_picture_scenes WHERE unit_id=?'
  ).get(row.id);
+ const englishLesson = row.subject_title === 'English'
+   ? GRADE1_ENGLISH_MRIDANG.lessons.find(l => l.chapterNumber === row.chapter_number || l.title === row.title)
+   : null;
  return {id:row.id,subject:row.subject_title,chapter:row.chapter_title,
   title:row.title,objective:row.objective,story:row.story,
   homeActivity:row.home_activity,expectedMinutes:row.expected_minutes,
   curriculumKind:row.curriculum_kind,
-  pictureScene:scene?JSON.parse(scene.scene_json):null,
+  pictureScene:(scene&&scene.scene_json&&scene.scene_json.trim()!==''&&scene.scene_json.trim()!=='{}')?JSON.parse(scene.scene_json):null,
   guidedSteps:scene?JSON.parse(scene.step_text_json):[],
   guardianGuide:scene?.teacher_prompt||null,
+  aiVideo:englishLesson?.aiVideo||null,
   questions:questions(row.id).map(q=>({
    id:q.id,position:q.position,prompt:q.question_text,options:JSON.parse(q.choices_json)
   }))};

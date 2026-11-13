@@ -74,6 +74,18 @@ export const GRADE1_CURRICULUM = {
             "How Much Can We Spend?",
             "So Many Toys"
           ]
+        },
+        {
+          "name": "Kannada",
+          "book": "Kali Nali Kannada (ಕನ್ನಡ ಕಲಿ - ನಲಿ)",
+          "source": "https://textbooks.karnataka.gov.in/",
+          "status": "source_chapters_verified",
+          "chapters": [
+            "ಅಕ್ಷರ ಲೋಕ (Swaragalu - Vowels: ಅ, ಆ, ಇ, ಈ, ಉ, ಊ)",
+            "ಸರಳ ಪದಗಳು ಮತ್ತು ವ್ಯಂಜನಗಳು (Consonants & Simple Words)",
+            "ನನ್ನ ಕುಟುಂಬ ಮತ್ತು ಗೆಳೆಯರು (My Family & Friends)",
+            "ಬಣ್ಣಗಳು ಮತ್ತು ಆಟಗಳು (Colours, Rhymes & Play)"
+          ]
         }
       ]
     },
@@ -82,10 +94,15 @@ export const GRADE1_CURRICULUM = {
       "subjects": [
         {
           "name": "Kannada",
-          "book": "Karnataka Textbook Society Class 1 language selection varies by medium",
+          "book": "Savi Kannada (ಸವಿಗನ್ನಡ Class 1)",
           "source": "https://textbooks.karnataka.gov.in/",
-          "status": "textbook_chapters_pending",
-          "chapters": []
+          "status": "source_chapters_verified",
+          "chapters": [
+            "ಅಕ್ಷರ ಲೋಕ (Swaragalu - Vowels: ಅ, ಆ, ಇ, ಈ, ಉ, ಊ)",
+            "ಸರಳ ಪದಗಳು ಮತ್ತು ವ್ಯಂಜನಗಳು (Consonants & Simple Words)",
+            "ನನ್ನ ಕುಟುಂಬ ಮತ್ತು ಗೆಳೆಯರು (My Family & Friends)",
+            "ಬಣ್ಣಗಳು ಮತ್ತು ಆಟಗಳು (Colours, Rhymes & Play)"
+          ]
         },
         {
           "name": "English",

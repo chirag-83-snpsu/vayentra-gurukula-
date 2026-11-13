@@ -226,7 +226,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
                   <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1' }}>95%</td>
                   <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontWeight: 700 }}>A1</td>
                   <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontSize: '12px' }}>
-                    Outstanding spatial intuition in integer operations. Highly inquisitive during live labs. — <em>Acharya Vidyasagar Bhat</em>
+                    Outstanding spatial intuition in integer operations. Highly inquisitive during concept workshops. — <em>Acharya Vidyasagar Bhat</em>
                   </td>
                 </tr>
                 <tr>
@@ -274,7 +274,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
                 </div>
                 <div className="t-tiny">
                   {attendanceData 
-                    ? `${attendanceData.attended} of ${attendanceData.totalCompletedSessions} academic live classes attended.` 
+                    ? `${attendanceData.attended} of ${attendanceData.totalCompletedSessions} academic concept sessions attended.` 
                     : 'All enrolled sessions attended.'}
                 </div>
               </div>

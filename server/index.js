@@ -17,6 +17,11 @@ import { oneContentRouter } from './routes/oneContent.js';
 import { oneOnboardingRouter } from './routes/oneOnboarding.js';
 import { oneStudioRouter } from './routes/oneStudio.js';
 import { grade1CurriculumRouter } from './routes/grade1Curriculum.js';
+import { grade2CurriculumRouter } from './routes/grade2Curriculum.js';
+import { paymentsRouter } from './routes/payments.js';
+import { seedAndPublishGrade1Curriculum } from './services/seedAndPublishGrade1Curriculum.js';
+import { seedAndPublishGrade2Curriculum } from './services/seedAndPublishGrade2Curriculum.js';
+import { seedAndPublishClasses3To10Curriculum } from './services/seedAndPublishClasses3To10Curriculum.js';
 
 // Phase 0 safety gate: production must never seed demo students, default passwords,
 // pseudo-consent, or unverified third-party identity. Release requires independent audit.
@@ -26,6 +31,11 @@ if (process.env.NODE_ENV === 'production') {
 
 // Initialize isolated development/test database only.
 initDatabase();
+if (process.env.NODE_ENV !== 'test') {
+  seedAndPublishGrade1Curriculum();
+  seedAndPublishGrade2Curriculum();
+  seedAndPublishClasses3To10Curriculum();
+}
 
 export const app = express();
 const PORT = process.env.PORT || 5001;
@@ -40,7 +50,11 @@ app.use(cors({
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization','X-Idempotency-Key']
 }));
-app.use(express.json());
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
 
 // Request Logger
 app.use((req, res, next) => {
@@ -85,10 +99,12 @@ app.use('/api/v1/parent', parentRouter);
 app.use('/api/v1/diagnostics', diagnosticsRouter);
 app.use('/api/v1/cbse', cbseLibraryRouter);
 app.use('/api/v1/admissions', admissionsRouter);
+app.use('/api/v1/payments', paymentsRouter);
 app.use('/api/v1/journey', journeyRouter);
 app.use('/api/v1/one-onboarding', oneOnboardingRouter);
 app.use('/api/v1/one-studio', oneStudioRouter);
 app.use('/api/v1/grade1', grade1CurriculumRouter);
+app.use('/api/v1/grade2', grade2CurriculumRouter);
 app.use('/api/v1/one-content', oneContentRouter);
 app.use('/api/v1', apiRouter);
 

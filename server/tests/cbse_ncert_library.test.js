@@ -56,7 +56,7 @@ describe('NCERT reference and video governance',()=>{
  test('teacher only has access to assigned grade and subject content',async()=>{
   const allowed=await request('/api/v1/cbse/teacher/topics?grade=7&subject=Mathematics',teacherToken);
   assert.equal(allowed.status,200);
-  const blocked=await request('/api/v1/cbse/teacher/topics?grade=10&subject=Mathematics',teacherToken);
+  const blocked=await request('/api/v1/cbse/teacher/topics?grade=9&subject=Mathematics',teacherToken);
   assert.equal(blocked.status,403);
  });
  test('unapproved lesson video media cannot publish through unauthorized request',async()=>{

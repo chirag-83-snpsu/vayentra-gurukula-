@@ -23,7 +23,7 @@ const positions:Record<string,[number,number]>={
  beside:[434,232],front:[281,267],behind:[285,140],
  top:[282,87],bottom:[282,249]
 };
-const clampIndex=(scene:PictureScene)=>scene.positions[0]||'on';
+const clampIndex=(scene:PictureScene)=>scene?.positions?.[0]||'on';
 const Paw:React.FC<{x:number;y:number}>=({x,y})=><g transform={'translate('+x+' '+y+')'}>
  <ellipse cx="0" cy="17" rx="44" ry="24" fill="#d59a61" stroke="#925d3e" strokeWidth="3"/>
  <path d="M-23 -2 L-26 -30 L-8 -15 L7 -33 L21 -6" fill="#d59a61" stroke="#925d3e" strokeWidth="3" strokeLinejoin="round"/>
@@ -110,8 +110,9 @@ const Morning:React.FC<{selected:string}>=({selected})=>{
  </div>;
 };
 export const OneGrade1MathsScene:React.FC<Props>=({scene,title})=>{
+ if(!scene||!scene.kind||!Array.isArray(scene.positions))return null;
  const [selected,setSelected]=useState(()=>clampIndex(scene));
- useEffect(()=>setSelected(clampIndex(scene)),[scene.kind,scene.anchor,scene.positions.join('|')]);
+ useEffect(()=>setSelected(clampIndex(scene)),[scene.kind,scene.anchor,scene.positions?.join('|')]);
  const mode=selected in positions?selected:'on';
  const point=positions[mode]||[285,107];
  const isPosition=scene.kind==='position';

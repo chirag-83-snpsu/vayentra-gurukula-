@@ -79,7 +79,7 @@ export const LearningCompass:React.FC<{mode:'student'|'teacher'}>=({mode})=>{
      {a.concepts.map(c=><label key={c.conceptId} style={{display:'flex',alignItems:'center',gap:8,padding:6}}>
       <input style={{width:'auto'}} type="checkbox" checked={(focus[a.id]||[]).includes(c.conceptId)}
        onChange={e=>setFocus(p=>({...p,[a.id]:e.target.checked?[...(p[a.id]||[]),c.conceptId]:(p[a.id]||[]).filter(x=>x!==c.conceptId)}))}/>
-      <span>{c.conceptId.replaceAll('-',' ')}: {c.correct}/{c.total} correct · Signals: {Object.entries(c.misconceptions).map(([k,v])=>k+' ('+v+')').join(', ')||'none'}</span>
+      <span>{c.conceptId.replace(/-/g,' ')}: {c.correct}/{c.total} correct · Signals: {Object.entries(c.misconceptions).map(([k,v])=>k+' ('+v+')').join(', ')||'none'}</span>
      </label>)}
      <label style={{fontWeight:600,display:'block',marginTop:10}}>Teacher remediation notes</label>
      <textarea className="in" rows={3} value={notes[a.id]||''} placeholder="Describe one concept explanation, one activity and five targeted practice questions."

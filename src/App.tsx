@@ -24,7 +24,6 @@ import {
   ShieldCheck, 
   ShieldAlert,
   Sparkles,
-  Compass,
   Home,
   Lock,
   WifiOff,
@@ -92,8 +91,6 @@ export const App: React.FC = () => {
     parent,
     isAuthenticated,
     isChildModeLocked,
-    showPublicPortal,
-    setShowPublicPortal,
     isOfflineMode,
     toggleOfflineMode
   } = useApp();
@@ -115,7 +112,6 @@ export const App: React.FC = () => {
     window.history.pushState({}, '', path+search);
     setPage(next);
     window.scrollTo({top:0});
-    if (next === 'portal') setShowPublicPortal(false);
   };
   useEffect(() => {
     const onPop = () => {
@@ -143,8 +139,6 @@ export const App: React.FC = () => {
   };
 
   const renderActiveView = () => {
-    if (showPublicPortal) return <PublicView />;
-
     switch (role) {
       case 'student':
         if (!hasAccess(['student'])) {
@@ -278,22 +272,13 @@ export const App: React.FC = () => {
         {/* Tablet Left Rail (768px - 1279px) */}
         {!isChildModeLocked && (
           <aside className="app-rail">
-            <button
-              type="button"
-              className={`ghost ${showPublicPortal ? 'btn-teal' : ''}`}
-              title="Public Admissions"
-              onClick={() => setShowPublicPortal(!showPublicPortal)}
-              style={{ width: '48px', height: '48px', borderRadius: '12px' }}
-            >
-              <Compass size={20} />
-            </button>
             {navItems.map(item => (
               <button
                 key={item.id}
                 type="button"
-                className={`ghost ${role === item.id && !showPublicPortal ? 'btn-teal' : ''}`}
+                className={`ghost ${role === item.id ? 'btn-teal' : ''}`}
                 title={item.label}
-                onClick={() => { setRole(item.id as any); setShowPublicPortal(false); }}
+                onClick={() => setRole(item.id as any)}
                 style={{ width: '48px', height: '48px', borderRadius: '12px' }}
               >
                 <item.icon size={20} />
@@ -307,30 +292,16 @@ export const App: React.FC = () => {
           <aside className="app-sidebar">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div className="t-tiny" style={{ fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-text-subtle)' }}>
-                DISCOVERY & EXPLORATION
-              </div>
-              <button
-                type="button"
-                className={showPublicPortal ? 'btn btn-teal' : 'ghost'}
-                onClick={() => setShowPublicPortal(true)}
-                style={{ justifyContent: 'flex-start', minHeight: '40px' }}
-              >
-                <Compass size={18} /> Public Admissions Home
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div className="t-tiny" style={{ fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-text-subtle)' }}>
                 PORTAL HUBS
               </div>
               {navItems.map(item => {
-                const isActive = role === item.id && !showPublicPortal;
+                const isActive = role === item.id;
                 return (
                   <button
                     key={item.id}
                     type="button"
                     className={isActive ? 'btn btn-teal' : 'ghost'}
-                    onClick={() => { setRole(item.id as any); setShowPublicPortal(false); }}
+                    onClick={() => setRole(item.id as any)}
                     style={{ justifyContent: 'flex-start', minHeight: '40px' }}
                   >
                     <item.icon size={18} /> {item.label}
@@ -357,43 +328,35 @@ export const App: React.FC = () => {
 
       {/* Mobile Bottom Navigation Bar (< 768px) */}
       <nav className="app-bottom-nav" aria-label="Mobile Navigation">
-        <div
-          className={`bottom-nav-item ${showPublicPortal ? 'active' : ''}`}
-          onClick={() => setShowPublicPortal(true)}
-        >
-          <Compass size={20} />
-          <span>Explore</span>
-        </div>
-
         {/* Dynamic Role Primary Tab */}
         {role === 'teacher' ? (
           <div
-            className={`bottom-nav-item ${role === 'teacher' && !showPublicPortal ? 'active' : ''}`}
-            onClick={() => { setRole('teacher'); setShowPublicPortal(false); }}
+            className={`bottom-nav-item ${role === 'teacher' ? 'active' : ''}`}
+            onClick={() => setRole('teacher')}
           >
             <GraduationCap size={20} />
             <span>Faculty</span>
           </div>
         ) : role === 'admin' ? (
           <div
-            className={`bottom-nav-item ${role === 'admin' && !showPublicPortal ? 'active' : ''}`}
-            onClick={() => { setRole('admin'); setShowPublicPortal(false); }}
+            className={`bottom-nav-item ${role === 'admin' ? 'active' : ''}`}
+            onClick={() => setRole('admin')}
           >
             <SlidersHorizontal size={20} />
             <span>Admin</span>
           </div>
         ) : role === 'reviewer' ? (
           <div
-            className={`bottom-nav-item ${role === 'reviewer' && !showPublicPortal ? 'active' : ''}`}
-            onClick={() => { setRole('reviewer'); setShowPublicPortal(false); }}
+            className={`bottom-nav-item ${role === 'reviewer' ? 'active' : ''}`}
+            onClick={() => setRole('reviewer')}
           >
             <ClipboardCheck size={20} />
             <span>Review</span>
           </div>
         ) : (
           <div
-            className={`bottom-nav-item ${role === 'student' && !showPublicPortal ? 'active' : ''}`}
-            onClick={() => { setRole('student'); setShowPublicPortal(false); }}
+            className={`bottom-nav-item ${role === 'student' ? 'active' : ''}`}
+            onClick={() => setRole('student')}
           >
             <BookOpen size={20} />
             <span>Learn</span>
@@ -403,8 +366,8 @@ export const App: React.FC = () => {
         {/* Family Portal Tab */}
         {!isChildModeLocked && (
           <div
-            className={`bottom-nav-item ${role === 'parent' && !showPublicPortal ? 'active' : ''}`}
-            onClick={() => { setRole('parent'); setShowPublicPortal(false); }}
+            className={`bottom-nav-item ${role === 'parent' ? 'active' : ''}`}
+            onClick={() => setRole('parent')}
           >
             <Users size={20} />
             <span>Family</span>
@@ -413,8 +376,8 @@ export const App: React.FC = () => {
 
         {/* Tech Academy or Student Tab */}
         <div
-          className={`bottom-nav-item ${role === 'tech_learner' && !showPublicPortal ? 'active' : ''}`}
-          onClick={() => { setRole('tech_learner'); setShowPublicPortal(false); }}
+          className={`bottom-nav-item ${role === 'tech_learner' ? 'active' : ''}`}
+          onClick={() => setRole('tech_learner')}
         >
           <Sparkles size={20} />
           <span>Academy</span>

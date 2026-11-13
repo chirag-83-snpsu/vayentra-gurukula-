@@ -7,7 +7,7 @@ type Pathway = {
   name: string;
   subtitle: string;
   gradeRange: string;
-  icon: React.ComponentType<{size?:number}>;
+  icon: any;
   highlights: string[];
 };
 

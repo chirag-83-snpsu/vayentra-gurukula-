@@ -48,9 +48,7 @@ export const Navbar: React.FC = () => {
     isHighContrast,
     toggleHighContrast,
     isOfflineMode,
-    toggleOfflineMode,
-    showPublicPortal,
-    setShowPublicPortal
+    toggleOfflineMode
   } = useApp();
 
   const [showPinModal, setShowPinModal] = useState(false);
@@ -118,15 +116,13 @@ export const Navbar: React.FC = () => {
     }}>
       {/* Brand & Badge */}
       <div 
-        style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-        onClick={() => setShowPublicPortal(true)}
-        title="Return to Public Admissions Home"
+        style={{ display: 'flex', alignItems: 'center', gap: '14px' }}
       >
         <Logo variant="header" height={44} />
 
         {/* Portal Scope Pill */}
         <div className="chip chip-navy" style={{ fontWeight: 700 }}>
-          {showPublicPortal ? 'Public Admissions Portal' : rolesList.find(r => r.id === role)?.label}
+          {rolesList.find(r => r.id === role)?.label || 'Learning Portal'}
         </div>
 
         {/* Offline indicator */}
@@ -140,8 +136,8 @@ export const Navbar: React.FC = () => {
       {/* Quick Nav Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         
-        {/* Child Switcher (Visible in Student/Parent modes for authorized parent) */}
-        {!isChildModeLocked && (role === 'student' || role === 'parent') && (
+        {/* Child Switcher (Visible in Parent mode for authorized parent) */}
+        {!isChildModeLocked && role === 'parent' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="t-tiny" style={{ fontWeight: 600 }}>Child:</span>
             <select
@@ -175,7 +171,6 @@ export const Navbar: React.FC = () => {
               value={role}
               onChange={(e) => {
                 setRole(e.target.value as UserRole);
-                setShowPublicPortal(false);
               }}
               style={{
                 padding: '6px 12px',
@@ -199,28 +194,6 @@ export const Navbar: React.FC = () => {
           </span>
         ) : null}
 
-        {/* Shared Device PIN Mode Toggle */}
-        {!isChildModeLocked ? (
-          <button
-            type="button"
-            className="ghost"
-            onClick={lockIntoChildMode}
-            title="Lock device into Child Mode (Disables settings & billing)"
-            style={{ padding: '6px 10px', minHeight: '36px', fontSize: '12px' }}
-          >
-            <Lock size={14} /> Lock Child PIN
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-teal"
-            onClick={() => setShowPinModal(true)}
-            style={{ padding: '6px 12px', minHeight: '36px', fontSize: '12px' }}
-          >
-            <Unlock size={14} /> Exit Child Mode
-          </button>
-        )}
-
         {/* Theme Toggle */}
         <button
           type="button"
@@ -230,17 +203,6 @@ export const Navbar: React.FC = () => {
           style={{ padding: '6px 10px', minHeight: '36px' }}
         >
           {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-        </button>
-
-        {/* Dyslexia Mode Toggle */}
-        <button
-          type="button"
-          className={`ghost ${isDyslexicFont ? 'btn-teal' : ''}`}
-          onClick={toggleDyslexicFont}
-          title="Toggle Dyslexia-Friendly Font (OpenDyslexic)"
-          style={{ padding: '6px 10px', minHeight: '36px', fontSize: '12px' }}
-        >
-          <Type size={14} /> Dyslexia
         </button>
 
         {/* High Contrast Toggle */}

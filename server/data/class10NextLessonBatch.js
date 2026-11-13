@@ -69,7 +69,7 @@ export const CLASS10_NEXT_LESSON_BATCH = [
    'Practice: calculate current for 9 V and 3 ohms, and resistance for 6 V and 2 A.'
   ],
   questions:[
-   {id:'vg-c10-ohm-q1',question:'What is the current through a 4 ohm resistor when 12 V is applied?',options:['3 A','48 A','8 A','1/3 A'],correctIndex:0,explanation:'I=V/R=12/4=3 A.',misconceptionCode:'FORMULA_REARRANGEMENT'},
+   {id:'vg-c10-ohm-q1',question:'What is the current through a 4 ohm resistor when 12 V is applied?',options:['3 A','48 A','8 A','1/3 A'],correctIndex:0,explanation:'By Ohm\'s law, current I=V/R=12/4=3 A.',misconceptionCode:'FORMULA_REARRANGEMENT'},
    {id:'vg-c10-ohm-q2',question:'What resistance gives 2 A of current when the potential difference is 6 V?',options:['12 ohms','4 ohms','3 ohms','1/3 ohm'],correctIndex:2,explanation:'R=V/I=6/2=3 ohms.',misconceptionCode:'RATIO_DIRECTION'},
    {id:'vg-c10-ohm-q3',question:'What is the combined resistance of 2 ohms and 3 ohms connected in series?',options:['1.2 ohms','6 ohms','5 ohms','0.5 ohm'],correctIndex:2,explanation:'Series resistances add: R=2+3=5 ohms.',misconceptionCode:'SERIES_VS_PARALLEL'}
   ]

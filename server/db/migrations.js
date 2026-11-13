@@ -1841,6 +1841,84 @@ export function runMigrations() {
       console.log('[Vayentra ONE] 9 ORIGINAL Class 1 Maths chapter 1 teaching drafts, visual scenes and 36 private checks staged; none published.');
     }
 
+    // 017: Admissions, per-student subscriptions (₹599/yr), and Razorpay payments ledger
+    if(!db.prepare("SELECT id FROM migrations WHERE name='017_admissions_subscriptions_payments'").get()){
+      console.log('[Vayentra ONE] Applying migration 017_admissions_subscriptions_payments...');
+      
+      // 1. Create admissions table
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS admissions (
+          id TEXT PRIMARY KEY,
+          guardian_id TEXT REFERENCES guardians(id),
+          guardian_name TEXT NOT NULL,
+          guardian_phone TEXT NOT NULL,
+          guardian_email TEXT,
+          student_id TEXT REFERENCES students(id),
+          student_name TEXT NOT NULL,
+          grade INTEGER NOT NULL CHECK(grade BETWEEN 1 AND 10),
+          board TEXT NOT NULL CHECK(board IN ('CBSE','STATE')),
+          medium TEXT NOT NULL DEFAULT 'English',
+          school_name TEXT,
+          academic_year TEXT NOT NULL DEFAULT '2026-27',
+          consent_given INTEGER NOT NULL DEFAULT 1,
+          consent_timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+          consent_ip TEXT,
+          verification_status TEXT NOT NULL DEFAULT 'verified'
+            CHECK(verification_status IN ('pending','verified','rejected')),
+          status TEXT NOT NULL DEFAULT 'submitted'
+            CHECK(status IN ('submitted','payment_pending','enrolled','cancelled')),
+          payment_id TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `).run();
+
+      // 2. Create student_subscriptions table (per-student 365-day validity)
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS student_subscriptions (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          guardian_id TEXT NOT NULL REFERENCES guardians(id),
+          plan_id TEXT NOT NULL DEFAULT 'plan-annual-599',
+          amount_inr REAL NOT NULL DEFAULT 599.0,
+          status TEXT NOT NULL DEFAULT 'active'
+            CHECK(status IN ('pending','active','expired','cancelled')),
+          starts_at TEXT NOT NULL DEFAULT (datetime('now')),
+          expires_at TEXT NOT NULL,
+          order_id TEXT,
+          payment_id TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `).run();
+
+      // 3. Add columns to payments table if not already present
+      const cols = db.prepare('PRAGMA table_info(payments)').all().map(c => c.name);
+      if(!cols.includes('student_id')) db.prepare('ALTER TABLE payments ADD COLUMN student_id TEXT').run();
+      if(!cols.includes('razorpay_order_id')) db.prepare('ALTER TABLE payments ADD COLUMN razorpay_order_id TEXT').run();
+      if(!cols.includes('razorpay_payment_id')) db.prepare('ALTER TABLE payments ADD COLUMN razorpay_payment_id TEXT').run();
+      if(!cols.includes('razorpay_signature')) db.prepare('ALTER TABLE payments ADD COLUMN razorpay_signature TEXT').run();
+      if(!cols.includes('method')) db.prepare('ALTER TABLE payments ADD COLUMN method TEXT DEFAULT "razorpay"').run();
+      if(!cols.includes('failure_reason')) db.prepare('ALTER TABLE payments ADD COLUMN failure_reason TEXT').run();
+      if(!cols.includes('webhook_event_id')) db.prepare('ALTER TABLE payments ADD COLUMN webhook_event_id TEXT').run();
+      if(!cols.includes('currency')) db.prepare('ALTER TABLE payments ADD COLUMN currency TEXT DEFAULT "INR"').run();
+
+      // 4. Seed configurable ₹599 plan
+      db.prepare(`
+        INSERT OR IGNORE INTO plans (id, name, price_inr, billing_period, features_json)
+        VALUES (
+          'plan-annual-599',
+          'Annual Gurukula Foundation Pass',
+          599.0,
+          'Annual (365 Days)',
+          '["Full CBSE & Karnataka State Board curriculum (Classes 1-10)","AI & Digital Thinking Enrichment","Financial Literacy & Practical Money Skills","On-device read-aloud audio narration (English, Hindi, Kannada)","Zero advertising, zero tracking, 100% child safe (DPDP 2023)"]'
+        )
+      `).run();
+
+      db.prepare("INSERT INTO migrations(name) VALUES('017_admissions_subscriptions_payments')").run();
+      console.log('[Vayentra ONE] Migration 017 completed successfully.');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');

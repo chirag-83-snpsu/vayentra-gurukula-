@@ -130,7 +130,7 @@ export const StudentView: React.FC = () => {
     setDoubtText('');
   };
 
-  if(activeTab==='one_home') return <OneLearnerLaunchpad onExplore={()=>setActiveTab('learn')} />;
+  if(activeTab==='one_home') return <OneLearnerLaunchpad />;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

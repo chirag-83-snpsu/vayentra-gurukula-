@@ -213,11 +213,38 @@ apiRouter.post('/school/chapters/:chapterId/episodes/:episodeId/checkpoint', aut
 // ==========================================
 // 3. Spaced Repetition Practice Flashcards (Wireframe 23, PS-19)
 // ==========================================
-apiRouter.get('/school/practice/flashcards', authenticateToken, requireRole('student'), (req, res) => {
-  const studentId = req.user.studentId;
-  if (!studentId) return res.status(403).json({ code: 'PROFILE_NOT_LINKED', message: 'No verified student profile is linked to this account.' });
+apiRouter.get('/school/practice/flashcards', authenticateToken, (req, res) => {
+  let targetStudentId;
+  if (req.user.role === 'student') {
+    if (!req.user.studentId) {
+      return res.status(403).json({ code: 'PROFILE_NOT_LINKED', message: 'No verified student profile is linked to this account.' });
+    }
+    // Student always accesses their own flashcards; query param studentId cannot override
+    targetStudentId = req.user.studentId;
+  } else if (req.user.role === 'parent') {
+    const requestedStudentId = req.query.studentId;
+    if (!requestedStudentId) {
+      return res.status(403).json({ code: 'FORBIDDEN', message: 'Flashcards practice is student-directed. Parents must specify a linked student ID to inspect coursework.' });
+    }
+    if (!req.user.guardianId) {
+      return res.status(403).json({ code: 'FORBIDDEN', message: 'No guardian profile linked with this parent account.' });
+    }
+    const child = db.prepare('SELECT id FROM students WHERE id = ? AND guardian_id = ?').get(requestedStudentId, req.user.guardianId);
+    if (!child) {
+      return res.status(403).json({ code: 'FORBIDDEN', message: 'You do not have authorization to view or modify records for this student.' });
+    }
+    targetStudentId = requestedStudentId;
+  } else if (req.user.role === 'teacher' || req.user.role === 'admin') {
+    targetStudentId = req.query.studentId || req.user.studentId;
+    if (!targetStudentId) {
+      return res.status(400).json({ code: 'STUDENT_REQUIRED', message: 'Staff must specify a studentId.' });
+    }
+  } else {
+    return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' });
+  }
+
   try {
-    const flashcards = db.prepare('SELECT * FROM practice_flashcards WHERE student_id = ?').all(studentId);
+    const flashcards = db.prepare('SELECT * FROM practice_flashcards WHERE student_id = ?').all(targetStudentId);
     res.json(flashcards.map(f => ({
       id: f.id,
       studentId: f.student_id,

@@ -29,6 +29,12 @@ before(async () => {
   });
   adminToken = adminRes.body.token;
 
+  // Reset any leftover test sessions that could conflict across test runs
+  try {
+    db.prepare("DELETE FROM attendance_records WHERE session_id IN ('ses-7a-future', 'ses-batch7acbsemath-20261125-mwd48b0w', 'ses-batch7acbsemath-20261025-mw9k6dyq')").run();
+    db.prepare("DELETE FROM attendance_sessions WHERE id IN ('ses-7a-future', 'ses-batch7acbsemath-20261125-mwd48b0w', 'ses-batch7acbsemath-20261025-mw9k6dyq')").run();
+  } catch (e) {}
+
   const teacherRes = await apiRequest('/api/v1/auth/login', {
     method: 'POST',
     body: { email: 'teacher@vayentra.org', password: 'Gurukula@2026' }

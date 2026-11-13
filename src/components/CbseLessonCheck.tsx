@@ -59,7 +59,7 @@ export const CbseLessonCheck:React.FC<{topicId:string}> = ({topicId})=>{
     </label>)}
     {feedback&&<div className="vg-cbse-check-feedback">
      <strong>{feedback.isCorrect?'Correct':'Review this concept'}:</strong> {feedback.explanation}
-     {!feedback.isCorrect&&<p className="t-tiny">Teacher follow-up signal: {feedback.focusSignal?.toLowerCase().replaceAll('_',' ')||'Review steps with teacher'}</p>}
+     {!feedback.isCorrect&&<p className="t-tiny">Teacher follow-up signal: {feedback.focusSignal?.toLowerCase().replace(/_/g,' ')||'Review steps with teacher'}</p>}
     </div>}
    </fieldset>;
   })}

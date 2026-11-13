@@ -29,8 +29,8 @@ before(async()=>{
 after(async()=>{if(server)await new Promise(resolve=>server.close(resolve));});
 
 test('Class 1 source mapping is accurate and enrichment is staged, not automatically published',()=>{
- assert.deepEqual(GRADE1_CURRICULUM.official.find(x=>x.board==='CBSE').subjects.map(x=>x.chapters.length),[9,19,13]);
- assert.deepEqual(GRADE1_CURRICULUM.official.find(x=>x.board==='STATE').subjects.map(x=>x.chapters.length),[0,0,0,0]);
+ assert.deepEqual(GRADE1_CURRICULUM.official.find(x=>x.board==='CBSE').subjects.map(x=>x.chapters.length),[9,19,13,4]);
+ assert.deepEqual(GRADE1_CURRICULUM.official.find(x=>x.board==='STATE').subjects.map(x=>x.chapters.length),[4,0,0,0]);
  assert.equal(GRADE1_CURRICULUM.enrichment.length,2);
  assert.equal(GRADE1_CURRICULUM.enrichment.reduce((n,t)=>n+t.modules.length,0),16);
  assert.equal(GRADE1_CURRICULUM.starterLessons.length,7);
@@ -55,7 +55,7 @@ test('Class 1 editorial API requires staff role, privately exposes answer keys o
  const review=await call('/api/v1/grade1/editor/map?board=CBSE',reviewer);
  assert.equal(review.status,200,JSON.stringify(review.body));
  assert.equal(review.body.units.length,28);
- assert.equal(review.body.curriculum.subjects.length,5);
+ assert.equal(review.body.curriculum.subjects.length,6);
  assert.equal(review.body.units[0].questions[0].correctIndex>=0,true);
 });
 test('Class 1 guardian learner journey: no draft leakage, no free payment entitlement, reviewed AI practice persists',async()=>{
@@ -92,11 +92,12 @@ test('Class 1 guardian learner journey: no draft leakage, no free payment entitl
   assert.equal(listing.body.learner.grade,1);
   assert.equal(listing.body.learner.board,'CBSE');
   assert.equal(listing.body.access,'locked');
-  assert.equal(listing.body.catalogue.subjects.length,5);
+  assert.equal(listing.body.catalogue.subjects.length,6);
   const english=listing.body.catalogue.subjects.find(s=>s.name==='English');
   assert.equal(english.chapters.length,9);
   assert.equal(listing.body.catalogue.subjects.find(s=>s.name==='Mathematics').chapters.length,13);
   assert.equal(listing.body.catalogue.subjects.find(s=>s.name==='Hindi').chapters.length,19);
+  assert.equal(listing.body.catalogue.subjects.find(s=>s.name==='Kannada').chapters.length,4);
   assert.equal(listing.body.catalogue.subjects.find(s=>s.name==='Vayentra Original: AI & Digital Thinking').chapters.length,8);
   assert.equal(listing.body.catalogue.subjects.find(s=>s.name==='Vayentra Original: Money & Life Skills').chapters.length,8);
   assert.equal((await call(prefix+'/units/'+unitId,parent)).status,403);

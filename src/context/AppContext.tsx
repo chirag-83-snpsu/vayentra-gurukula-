@@ -95,13 +95,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     return false;
   });
-  const [showPublicPortal, setShowPublicPortal] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const p = new URLSearchParams(window.location.search).get('portal');
-      if (p && p !== 'public') return false;
-    }
-    return true;
-  });
+  const [showPublicPortal, setShowPublicPortal] = useState<boolean>(false);
 
   // Synchronize with genuine browser online / offline network state
   useEffect(() => {
@@ -238,7 +232,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthToken(null);
     setCurrentUser(null);
     setRole('student');
-    setShowPublicPortal(true);
+    setShowPublicPortal(false);
   };
 
   // Sync to localStorage

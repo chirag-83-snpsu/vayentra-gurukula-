@@ -25,7 +25,7 @@ export const CbseLessonQuestionReview:React.FC<{topicId:string;token:string}> = 
    <strong>{i+1}. {item.question}</strong>
    <ol type="A">{item.options.map((opt,j)=><li key={j}>{opt}{j===item.correctIndex?' ✓ correct':''}</li>)}</ol>
    <p><strong>Why:</strong> {item.explanation}</p>
-   <p className="t-tiny">Targeted learning signal: {item.misconceptionCode.replaceAll('_',' ').toLowerCase()} · Status: {item.status}</p>
+   <p className="t-tiny">Targeted learning signal: {item.misconceptionCode.replace(/_/g,' ').toLowerCase()} · Status: {item.status}</p>
   </div>)}
  </section>;
 };
