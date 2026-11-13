@@ -1,0 +1,193 @@
+{
+  "curriculum": "CBSE Class 1 English (Mridang)",
+  "edition": "2026-27",
+  "version": "2.0.0-premium",
+  "voiceEngine": {
+    "provider": "Studio Master Offline Audio / Tara (en_IN) Indian Primary Educator Voice",
+    "locale": "en-IN",
+    "deliveryRate": "150 words/min (optimized for ages 6-7)",
+    "recurringCostPerPlay": "₹0.00 (Pre-generated offline assets, no API key exposure)"
+  },
+  "chapters": [
+    {
+      "chapterNumber": 1,
+      "chapterTitle": "Two Little Hands",
+      "videoTitle": "Clap, Tap, Smile: Learning Actions with Two Little Hands",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch1_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch1_two_little_hands.vtt",
+      "posterUrl": "/media/class1_english/posters/ch1_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Bodily Action Curiosity Hook",
+        "2. Rhythmic Movement: Clap, Tap, Nod",
+        "3. Healthy Habits: Handwashing Phonics & Vocabulary",
+        "4. Interactive Observation: Action Word Matching",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback with Explanations",
+        "7. Chapter Recap & Kindness Action"
+      ]
+    },
+    {
+      "chapterNumber": 2,
+      "chapterTitle": "Greetings",
+      "videoTitle": "Smiling Sunshine: Hello, Namaste & Good Morning",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch2_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch2_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch2_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Morning Sunrise Hook",
+        "2. Polite Indian Greetings: Namaste, Good Morning",
+        "3. Evening Courtesy & Kind Words",
+        "4. Interactive Observation: Time of Day Matching",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    },
+    {
+      "chapterNumber": 3,
+      "chapterTitle": "Picture Time",
+      "videoTitle": "The Wonder Pond: Look, Notice & Describe",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch3_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch3_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch3_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Picture Book Hook",
+        "2. Descriptive Visual Storytelling: Pond, Frog, Lotus",
+        "3. Spatial Words: In, On, Under",
+        "4. Interactive Observation: Hidden Frog Hunt",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    },
+    {
+      "chapterNumber": 4,
+      "chapterTitle": "The Cap Seller and the Monkeys",
+      "videoTitle": "Clever Thinking under the Banyan: The Cap Seller & Playful Monkeys",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch4_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch4_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch4_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Story Hook",
+        "2. The Banyan Nap & The Missing Caps",
+        "3. Imitation & Clever Problem-Solving",
+        "4. Interactive Observation: Counting Red & Blue Caps",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    },
+    {
+      "chapterNumber": 5,
+      "chapterTitle": "A Farm",
+      "videoTitle": "Barnyard Chorus: Meet the Friendly Animals on the Farm",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch5_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch5_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch5_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Farm Gate Hook",
+        "2. Animal Sounds & Phonics: Cow, Sheep, Duck",
+        "3. Farm Helper Roles & Animal Care",
+        "4. Interactive Observation: Spot the Ducklings",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    },
+    {
+      "chapterNumber": 6,
+      "chapterTitle": "Fun with Pictures",
+      "videoTitle": "Shape Detectives: Spotting Circles, Triangles & Rectangles in Nature",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch6_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch6_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch6_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Shape Detective Lens",
+        "2. Geometry in Nature: Round Sun, Triangular Pine",
+        "3. Creative Drawing with Shapes",
+        "4. Interactive Observation: Find the Rectangle Window",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    },
+    {
+      "chapterNumber": 7,
+      "chapterTitle": "The Food We Eat",
+      "videoTitle": "Rainbow on My Plate: Healthy Fruits, Veggies & Grains",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch7_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch7_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch7_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Lunch Thali Hook",
+        "2. The 5 Colours of Nutrition (Carrot, Spinach, Rice)",
+        "3. Table Manners & Gratitude to Farmers",
+        "4. Interactive Observation: Build a Balanced Thali",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    },
+    {
+      "chapterNumber": 8,
+      "chapterTitle": "The Four Seasons",
+      "videoTitle": "The Wheel of Seasons: Summer, Monsoon, Autumn & Winter",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch8_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch8_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch8_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Weather Tree Hook",
+        "2. Summer Sun & Monsoon Puddles",
+        "3. Golden Autumn & Crisp Winter Sweaters",
+        "4. Interactive Observation: Pick the Rainy Day Gear",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    },
+    {
+      "chapterNumber": 9,
+      "chapterTitle": "Anandi's Rainbow",
+      "videoTitle": "VIBGYOR Sky: Painting the Garden with Seven Magical Colours",
+      "durationSeconds": 180,
+      "audioNarrationUrl": "/media/class1_english/audio/ch9_full.m4a",
+      "captionVttUrl": "/media/class1_english/captions/ch9_caption.vtt",
+      "posterUrl": "/media/class1_english/posters/ch9_poster.svg",
+      "reviewStatus": "reviewed",
+      "publishingStatus": "published",
+      "pedagogicalPhases": [
+        "1. Welcome & Anandi's Paintbrush Hook",
+        "2. Sunlight Through Raindrops: Physics of Light for Kids",
+        "3. Seven Colours: Violet to Red (VIBGYOR)",
+        "4. Interactive Observation: Colour the Petals",
+        "5. Formative Concept Check (4 Questions)",
+        "6. Positive Corrective Feedback",
+        "7. Chapter Recap"
+      ]
+    }
+  ]
+}

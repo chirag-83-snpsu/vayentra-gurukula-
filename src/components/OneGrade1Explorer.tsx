@@ -3,18 +3,20 @@ import {ArrowLeft,ArrowRight,BookHeart,BookOpen,CheckCircle2,ChevronDown,Graduat
  Lightbulb,LockKeyhole,RefreshCw,ShieldCheck,Sparkles,Target,WalletCards,Volume2,VolumeX} from 'lucide-react';
 import {useApp} from '../context/AppContext';
 import {OneGrade1MathsScene,type PictureScene} from './OneGrade1MathsScene';
+import {OneGrade1AiVideoPlayer,type AiVideoLesson} from './OneGrade1AiVideoPlayer';
 import '../styles/one-grade1.css';
+import '../styles/one-grade1-video.css';
 
 type Unit={id:string;title:string;status:string};
-type Chapter={id:string;number:number;title:string;reviewStatus:string;lessonAvailability:string;lessonCount:number;units:Unit[]};
+type Chapter={id:string;number:number;title:string;reviewStatus:string;lessonAvailability:string;lessonCount:number;hasAiVideo?:boolean;units:Unit[]};
 type Subject={id:string;name:string;kind:string;book:string;sourceStatus:string;reviewStatus:string;chapters:Chapter[];approvedLessons:number;plannedChapters:number};
 type MapData={board:string;grade:number;edition:string;trackStatus:string;subjects:Subject[];note:string};
 type Catalogue={learner:{grade:number;board:string};catalogue:MapData;access:'locked'|'pilot_or_entitled';progress:{checkedLessons:number;attemptsRecorded:number;latestChecks:Array<{unitId:string;correct:number;total:number;checkedAt:string}>}|null};
 type Question={id:string;position:number;prompt:string;options:string[]};
-type Lesson={id:string;subject:string;chapter:string;title:string;objective:string;story:string;homeActivity:string;questions:Question[];expectedMinutes:number;curriculumKind:string;pictureScene?:PictureScene|null;guidedSteps?:string[];guardianGuide?:string|null};
+type Lesson={id:string;subject:string;chapter:string;title:string;objective:string;story:string;homeActivity:string;questions:Question[];expectedMinutes:number;curriculumKind:string;pictureScene?:PictureScene|null;guidedSteps?:string[];guardianGuide?:string|null;aiVideo?:AiVideoLesson|null};
 type Result={correct:number;total:number;feedback:Array<{questionId:string;chosenIndex:number;correctIndex:number;correct:boolean;reason:string}>;replayed:boolean};
 
-const subjectIcon=(name:string)=>name.includes('Money')?'money':name.includes('AI')?'ai':name.includes('Mathematics')?'math':'book';
+const subjectIcon=(name:string)=>name.includes('Money')?'money':name.includes('AI')?'ai':name.includes('Mathematics')?'math':name.includes('Kannada')?'kannada':'book';
 export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({parentPreviewStudentId})=>{
  const {authToken}=useApp();
  const [catalogue,setCatalogue]=useState<Catalogue|null>(null);
@@ -107,6 +109,9 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
   {catalogue&&lesson?<article className="vg1-lesson">
     <button type="button" className="vg1-minibutton" onClick={closeLesson}><ArrowLeft size={16}/> Back to subjects</button>
     <div className="vg1-lesson-title"><span>{lesson.subject} · {lesson.chapter}</span><h3>{lesson.title}</h3><p><Target size={18}/>{lesson.objective}</p></div>
+    {lesson.aiVideo && (
+      <OneGrade1AiVideoPlayer video={lesson.aiVideo} lessonTitle={lesson.title} />
+    )}
     {lesson.pictureScene&&<OneGrade1MathsScene scene={lesson.pictureScene} title={lesson.title}/>}
     {lesson.guidedSteps&&lesson.guidedSteps.length>0&&<section className="vg1m-guided" aria-label="Try these steps">
       <h4>Let's discover together</h4><ol>{lesson.guidedSteps.map((step,i)=><li key={i}><span>{i+1}</span>{step}</li>)}</ol>
@@ -128,7 +133,7 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
         onClick={()=>{setAnswers(prev=>({...prev,[q.id]:j}));retryKey.current=null;}}>
         <b>{String.fromCharCode(65+j)}</b>{choice}
        </button>)}</div>
-       {answer&&<div className={'vg1-reason'+(answer.correct?' correct':' revisit')}><strong>{answer.correct?'Well noticed!':'Let's look again'}</strong><p>{answer.reason}</p></div>}
+       {answer&&<div className={'vg1-reason'+(answer.correct?' correct':' revisit')}><strong>{answer.correct ? 'Well noticed!' : "Let's look again"}</strong><p>{answer.reason}</p></div>}
       </div>;
      })}
      {notice&&<p role="status" className="vg1-notice">{notice}</p>}
@@ -145,10 +150,12 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
     <div className="vg1-subjects" aria-label="Class 1 subjects">
      {catalogue.catalogue.subjects.map(s=><button key={s.id} type="button" onClick={()=>setActiveSubject(s.id)}
        aria-pressed={activeSubject===s.id} className={'vg1-subject'+(activeSubject===s.id?' active':'')}>
-      <span className="vg1-subject-icon">{subjectIcon(s.name)==='money'?<WalletCards size={23}/>:subjectIcon(s.name)==='ai'?<Sparkles size={23}/>:subjectIcon(s.name)==='math'?<Target size={23}/>:<BookOpen size={23}/>}</span>
+      <span className="vg1-subject-icon">{subjectIcon(s.name)==='money'?<WalletCards size={23}/>:subjectIcon(s.name)==='ai'?<Sparkles size={23}/>:subjectIcon(s.name)==='math'?<Target size={23}/>:subjectIcon(s.name)==='kannada'?<BookHeart size={23}/>:<BookOpen size={23}/>}</span>
       <strong>{s.name.replace('Vayentra Original: ','')}</strong>
       <small>{s.kind==='vayentra_original_enrichment'?'Vayentra original enrichment':s.book}</small>
-      <span className="vg1-count">{s.approvedLessons} published · {s.plannedChapters} mapped</span>
+      <span className="vg1-count">
+        {s.approvedLessons} published · {s.plannedChapters} mapped
+      </span>
      </button>)}
     </div>
     {subject&&<article className="vg1-chapters">
@@ -157,7 +164,10 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
        <span className="vg1-verified">{subject.reviewStatus==='reviewed'?'Reviewed':'Mapping in progress'}</span></header>
      {subject.chapters.length?subject.chapters.map(ch=><div className="vg1-chapter" key={ch.id}>
       <div className="vg1-chapter-title"><span>{String(ch.number).padStart(2,'0')}</span>
-       <div><strong>{ch.title}</strong><small>{ch.lessonAvailability==='approved_lessons_available'?'Approved lessons available':'Original lessons being prepared or reviewed'}</small></div></div>
+       <div>
+        <strong>{ch.title}</strong>
+        <small>{ch.lessonAvailability==='approved_lessons_available'?'Approved lessons available':'Original lessons being prepared or reviewed'}</small>
+       </div></div>
       {ch.units.length?ch.units.map(unit=><button key={unit.id} type="button" className="vg1-open"
        onClick={()=>void openLesson(unit.id)} disabled={!canAccess||loadingLesson}>
        {canAccess?'Open learning activity':'Access pending'} <ChevronDown size={16}/>
