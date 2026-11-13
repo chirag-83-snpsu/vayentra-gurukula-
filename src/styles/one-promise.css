@@ -1,0 +1,37 @@
+/* Public Vayentra ONE story — existing premium homepage palette. */
+.vgp .vgone{background:linear-gradient(135deg,#102859,#091a38);color:white;padding:100px 0;position:relative;overflow:hidden}
+.vgp .vgone::before{content:"";position:absolute;width:550px;height:550px;border:1px solid #ffffff0c;border-radius:50%;left:-300px;top:-260px;box-shadow:0 0 0 90px #ffffff04,0 0 0 170px #ffffff02;pointer-events:none}
+.vgone-inner{display:grid;grid-template-columns:.9fr 1.1fr;gap:70px;align-items:center;position:relative}
+.vgone-kicker{display:flex;align-items:center;gap:8px;color:#edbd73;font-size:11px;font-weight:850;letter-spacing:.14em}
+.vgone-copy h2{color:#fff;font-size:clamp(39px,4.8vw,64px);line-height:1.13;letter-spacing:-.055em;margin:24px 0;font-weight:870}
+.vgone-copy h2 em{color:#ecc077}
+.vgone-copy>p{font-size:16px;line-height:1.8;color:#c3cee2;max-width:535px}
+.vgone-features{display:grid;gap:14px;margin:30px 0}
+.vgone-features span{display:flex;gap:12px;align-items:center;color:#dce3f1;font-size:13px;font-weight:690}
+.vgone-features svg{color:#f2c879}
+.vgone-cta{background:#eec17b;border:1px solid #eec17b;color:#10295c;padding:16px 19px;border-radius:9px;font-weight:790;font-size:13px;display:flex;gap:12px;align-items:center;justify-content:center;min-height:51px;cursor:pointer}
+.vgone-cta:hover{background:#fcd59b}
+.vgone-copy>small{display:block;font-size:11px;color:#889ec1;line-height:1.7;max-width:510px;margin-top:17px}
+.vgone-path{background:#fff;color:#142a56;border-radius:17px;box-shadow:0 25px 65px #02091d7a;padding:27px 30px;border:1px solid #e0e8f7}
+.vgone-path-head{display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #e8ecf4;padding-bottom:17px;color:#607391;font-size:10px;font-weight:860;letter-spacing:.13em}
+.vgone-path-head span:last-child{color:#a47735}
+.vgone-path-intro{margin:23px 0 18px}
+.vgone-path-intro strong{color:#112b60;font-size:20px;letter-spacing:-.02em}
+.vgone-path-intro p{color:#7687a1;font-size:12px;line-height:1.65;margin-top:8px}
+.vgone-path label{font-size:12px;font-weight:750;color:#324d7c;display:block;margin-bottom:7px}
+.vgone-path select{width:100%;padding:12px 14px;border:1px solid #cbd7e9;background:#f9fbfe;color:#1a386f;border-radius:8px;font-weight:720;font-size:13px;min-height:46px}
+.vgone-years{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;margin:25px 0}
+.vgone-year{min-width:0;min-height:79px;background:#f0f3f9;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;border:1px solid #e5e9f2}
+.vgone-year b{font-size:16px;font-weight:850;color:#b0bbcd}
+.vgone-year small{font-size:8px;color:#9eaabf}
+.vgone-year.future{background:#edf3fc;border-color:#dbe7f9}
+.vgone-year.future b{color:#1c458a}
+.vgone-year.joining{background:#c69747;border-color:#c69747}
+.vgone-year.joining b,.vgone-year.joining small{color:#fff}
+.vgone-outcome{background:#f2f5fb;padding:16px;display:flex;gap:12px;align-items:start;border-radius:10px}
+.vgone-outcome>span{background:#e0e8f5;color:#244785;padding:9px;border-radius:8px}
+.vgone-outcome strong{font-size:14px;color:#1b356d}
+.vgone-outcome p{font-size:12px;color:#657997;line-height:1.7;margin-top:6px}
+.vgone-disclaimer{font-size:10px;color:#8a99af;line-height:1.6;margin-top:16px}
+@media(max-width:1000px){.vgone-inner{grid-template-columns:1fr;gap:34px}.vgp .vgone{padding:75px 0}.vgone-copy{max-width:670px}}
+@media(max-width:620px){.vgp .vgone{padding:65px 0}.vgone-copy h2{font-size:42px}.vgone-copy>p{font-size:14px}.vgone-path{padding:20px 16px}.vgone-year{min-height:61px}.vgone-year b{font-size:12px}.vgone-year small{font-size:7px}.vgone-path-head{font-size:8px}}
