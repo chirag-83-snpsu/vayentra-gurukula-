@@ -18,9 +18,11 @@ import { oneOnboardingRouter } from './routes/oneOnboarding.js';
 import { oneStudioRouter } from './routes/oneStudio.js';
 import { grade1CurriculumRouter } from './routes/grade1Curriculum.js';
 import { grade2CurriculumRouter } from './routes/grade2Curriculum.js';
+import { grade3CurriculumRouter } from './routes/grade3Curriculum.js';
 import { paymentsRouter } from './routes/payments.js';
 import { seedAndPublishGrade1Curriculum } from './services/seedAndPublishGrade1Curriculum.js';
 import { seedAndPublishGrade2Curriculum } from './services/seedAndPublishGrade2Curriculum.js';
+import { seedAndPublishGrade3Curriculum } from './services/seedAndPublishGrade3Curriculum.js';
 import { seedAndPublishClasses3To10Curriculum } from './services/seedAndPublishClasses3To10Curriculum.js';
 
 // Phase 0 safety gate: production must never seed demo students, default passwords,
@@ -34,6 +36,7 @@ initDatabase();
 if (process.env.NODE_ENV !== 'test') {
   seedAndPublishGrade1Curriculum();
   seedAndPublishGrade2Curriculum();
+  seedAndPublishGrade3Curriculum();
   seedAndPublishClasses3To10Curriculum();
 }
 
@@ -105,6 +108,7 @@ app.use('/api/v1/one-onboarding', oneOnboardingRouter);
 app.use('/api/v1/one-studio', oneStudioRouter);
 app.use('/api/v1/grade1', grade1CurriculumRouter);
 app.use('/api/v1/grade2', grade2CurriculumRouter);
+app.use('/api/v1/grade3', grade3CurriculumRouter);
 app.use('/api/v1/one-content', oneContentRouter);
 app.use('/api/v1', apiRouter);
 

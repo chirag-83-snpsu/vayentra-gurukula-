@@ -206,6 +206,116 @@ const UNIVERSAL_LESSONS: Record<number, ConceptLesson[]> = {
           explanation: 'क + इ = कि (छोटी \'इ\' की मात्रा व्यंजन के बाईं ओर लगाई जाती है)।'
         }
       ]
+    },
+    {
+      id: 'c3-eng-wooden-bowl',
+      grade: 3,
+      board: 'CBSE',
+      subject: 'English',
+      chapterNumber: 3,
+      chapterTitle: 'The Wooden Bowl & Kindness',
+      lessonTitle: 'The Wooden Bowl: Respect, Dignity & Family Compassion',
+      objective: 'Learn the moral imperative of respecting aging elders and how children\'s compassionate actions mirror adult behavior.',
+      locationContext: 'A peaceful family verandah in Mysuru',
+      storyHook: 'When grandfather\'s trembling hands broke a glass plate, his son set a small table in the corner and gave him meals in a wooden bowl. But then father saw eight-year-old Arjun carving wood scraps on the verandah!',
+      theWhyExplanation: 'Respect and empathy within families form the moral foundation of human culture. When we treat frail elders with patience and dignity, we demonstrate to the next generation how compassion looks in action. Language and storytelling give us a mirror to reflect upon our own habits and build generous, loving homes.',
+      visualModelType: 'diagram',
+      offlineActivity: 'Spend fifteen quiet minutes with a grandparent or an elderly neighbor. Ask them to share a memory from when they were in Class 3.',
+      guidedSteps: [
+        'Notice why grandfather\'s hands were trembling.',
+        'Reflect on Arjun\'s innocent craft: "I am making a wooden bowl for you and Amma when you grow old."',
+        'Understand how kindness and dignified care keep families united.'
+      ],
+      questions: [
+        {
+          id: 'c3-eng-q1',
+          prompt: 'What was little Arjun carving from wood scraps on the verandah?',
+          options: ['A wooden bowl for his parents when they grow old', 'A toy boat', 'A cricket bat', 'A wooden flute'],
+          correctIndex: 0,
+          explanation: 'Arjun was carving bowls for his parents, mirroring how they had treated his grandfather.'
+        },
+        {
+          id: 'c3-eng-q2',
+          prompt: 'What core value does this story teach us?',
+          options: ['Treating elders with dignity, patience, and profound love', 'Throwing away broken dishes', 'Eating in complete silence', 'Never talking to grandparents'],
+          correctIndex: 0,
+          explanation: 'Respect, patience, and warmth towards elders form the cornerstone of family wellbeing.'
+        }
+      ]
+    },
+    {
+      id: 'c3-ai-algorithms-chef',
+      grade: 3,
+      board: 'CBSE',
+      subject: 'Vayentra Original: AI & Digital Thinking',
+      chapterNumber: 1,
+      chapterTitle: 'Computational Logic & Step Sequences',
+      lessonTitle: 'Robo-Chef & Step-by-Step Algorithms',
+      objective: 'Understand algorithms as precise, ordered instructions that computers follow without ambiguity.',
+      locationContext: 'Vayentra Future Minds Studio, Bengaluru',
+      storyHook: 'Kabir asked his robot "Robo-Chef" to make a mango milkshake by saying "Pour milk into the blender!" The robot dumped milk against the closed lid because no one told it to open the lid first!',
+      theWhyExplanation: 'Computers do not possess human intuition or common sense. An Algorithm is a step-by-step recipe that must be written in exact, unambiguous order. If you put on your shoes before your socks, you get an error or "bug"! Understanding sequence logic is the very foundation of coding, artificial intelligence, and engineering.',
+      visualModelType: 'circuit',
+      visualModelHtml: '<div style="background:#eff6ff;border:2px solid #3b82f6;border-radius:12px;padding:16px;text-align:center;"><div style="font-size:18px;font-weight:800;color:#1e40af;">Algorithmic Step Pipeline</div><div style="display:flex;gap:8px;justify-content:center;margin-top:10px;"><span style="background:#dbeafe;padding:6px 12px;border-radius:8px;font-weight:700;">1. Open Lid</span> ➔ <span style="background:#dbeafe;padding:6px 12px;border-radius:8px;font-weight:700;">2. Add Mango</span> ➔ <span style="background:#dbeafe;padding:6px 12px;border-radius:8px;font-weight:700;">3. Pour Milk</span> ➔ <span style="background:#dbeafe;padding:6px 12px;border-radius:8px;font-weight:700;">4. Blend</span></div></div>',
+      offlineActivity: 'Write a 4-step algorithm for how you pack your school bag at night. Check whether each step is in the right sequential order.',
+      guidedSteps: [
+        'An algorithm is a step-by-step sequence of instructions to solve a task.',
+        'Step order matters: missing a prerequisite step causes a bug.',
+        'Debugging means diagnosing and fixing instruction mistakes.'
+      ],
+      questions: [
+        {
+          id: 'c3-ai-q1',
+          prompt: 'What is an "Algorithm" in computer science?',
+          options: ['A clear, step-by-step list of instructions to complete a task', 'A physical computer screen', 'A video game controller', 'A battery charger'],
+          correctIndex: 0,
+          explanation: 'An algorithm is an ordered sequence of precise instructions executed to achieve a goal.'
+        },
+        {
+          id: 'c3-ai-q2',
+          prompt: 'What does "Debugging" mean when writing programs or algorithms?',
+          options: ['Finding, diagnosing, and correcting mistakes in instructions', 'Wiping dust off the monitor', 'Buying a new laptop', 'Turning up the volume'],
+          correctIndex: 0,
+          explanation: 'Debugging is the process of identifying and resolving flaws or errors in code.'
+        }
+      ]
+    },
+    {
+      id: 'c3-fin-needs-wants',
+      grade: 3,
+      board: 'CBSE',
+      subject: 'Vayentra Original: Financial Literacy & Money Management',
+      chapterNumber: 1,
+      chapterTitle: 'Needs vs Wants & Smart Budgeting',
+      lessonTitle: 'Needs vs Wants: Making Thoughtful Choices with Money',
+      objective: 'Distinguish between essential human Needs (food, clean water, shelter, schoolbooks) and discretionary Wants (toys, designer novelties).',
+      locationContext: 'Gandhi Bazaar Supermarket, Bengaluru',
+      storyHook: 'Rohan saw a flashy ₹400 toy race car at the store, but mother showed him their ₹500 grocery budget: flour, lentils, milk, and Rohan\'s math notebook. Rohan realized that buying the toy car would leave no money for food!',
+      theWhyExplanation: 'Money is a finite resource earned through honest labor and time. Needs are things essential for survival, health, and education (like nutritious food and notebooks). Wants are pleasant desires that enhance comfort but aren\'t strictly necessary. Fulfilling family needs first before spending on wants ensures financial security and prevents household debt.',
+      visualModelType: 'table',
+      visualModelHtml: '<div style="display:flex;gap:12px;justify-content:center;margin:16px 0;"><div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:10px;padding:12px 18px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#15803d;">NEEDS (First)</div><small style="color:#64748b;font-weight:700;">Dal, Rice, Milk, Books</small></div><div style="background:#fef2f2;border:2px solid #ef4444;border-radius:10px;padding:12px 18px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#991b1b;">WANTS (After)</div><small style="color:#64748b;font-weight:700;">Video Games, Extra Candy</small></div></div>',
+      offlineActivity: 'Look at 5 items in your room. Categorize each item on two sticky notes labelled "Need" or "Want".',
+      guidedSteps: [
+        'Needs: Indispensable for health, survival, safety, and school education.',
+        'Wants: Desirable luxuries that bring fun but can be postponed.',
+        'Smart budgeting always funds Needs completely before purchasing Wants.'
+      ],
+      questions: [
+        {
+          id: 'c3-fin-q1',
+          prompt: 'Which of the following items is an essential "Need" for a Class 3 student?',
+          options: ['Nutritious food, clean drinking water, and school notebooks', 'A third video game console', 'Five packs of chewing gum', 'A toy sports car'],
+          correctIndex: 0,
+          explanation: 'Wholesome nutrition, hydration, and study supplies are essential basic human needs.'
+        },
+        {
+          id: 'c3-fin-q2',
+          prompt: 'Why should families always budget for Needs before spending money on Wants?',
+          options: ['To ensure food, housing, healthcare, and education are always secure', 'Because spending money is forbidden', 'To make children unhappy', 'To fill up bank vaults'],
+          correctIndex: 0,
+          explanation: 'Prioritizing needs ensures household security and prevents poverty or distress.'
+        }
+      ]
     }
   ],
   4: [

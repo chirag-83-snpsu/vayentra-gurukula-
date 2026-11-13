@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { db } from '../db/database.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
@@ -1105,6 +1106,191 @@ adminRouter.post('/messaging/test-dispatch', async (req, res) => {
       success: false,
       code: 'GATEWAY_DISPATCH_ERROR',
       message: err.message
+    });
+  }
+});
+
+/**
+ * GET /api/v1/admin/curriculum/matrix
+ * Comprehensive Class 1-10 curriculum reporting matrix across all boards and subjects.
+ */
+adminRouter.get('/curriculum/matrix', (req, res) => {
+  try {
+    const { grade, board, missingOnly } = req.query;
+
+    let query = `
+      SELECT
+        t.id AS track_id, t.grade, t.board, t.edition_year, t.catalogue_status,
+        s.id AS subject_id, s.subject_title, s.review_status AS subject_review_status,
+        ch.id AS chapter_id, ch.chapter_number, ch.chapter_title, ch.textbook_edition, ch.review_status AS chapter_review_status,
+        (SELECT COUNT(*) FROM one_concepts co WHERE co.chapter_id = ch.id) AS concepts_count,
+        (SELECT COUNT(*) FROM one_concepts co WHERE co.chapter_id = ch.id AND co.content_status = 'published') AS published_concepts_count,
+        (SELECT COUNT(*) FROM one_foundation_units fu JOIN one_concepts co ON co.id = fu.concept_id WHERE co.chapter_id = ch.id) AS units_count,
+        (SELECT COUNT(*) FROM one_foundation_units fu JOIN one_concepts co ON co.id = fu.concept_id WHERE co.chapter_id = ch.id AND fu.status = 'published') AS published_units_count,
+        (SELECT COUNT(*) FROM one_foundation_questions fq JOIN one_foundation_units fu ON fu.id = fq.unit_id JOIN one_concepts co ON co.id = fu.concept_id WHERE co.chapter_id = ch.id) AS questions_count
+      FROM one_curriculum_tracks t
+      JOIN one_subjects s ON s.track_id = t.id
+      JOIN one_chapters ch ON ch.subject_id = s.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (grade) {
+      query += ' AND t.grade = ?';
+      params.push(Number(grade));
+    }
+    if (board) {
+      query += ' AND t.board = ?';
+      params.push(board);
+    }
+
+    query += ' ORDER BY t.grade ASC, t.board ASC, s.subject_title ASC, ch.chapter_number ASC';
+
+    const rows = db.prepare(query).all(...params);
+
+    const items = rows.map((r) => {
+      const isMissing = r.units_count === 0 || r.questions_count === 0;
+      let contentCompletion = 0;
+      if (r.concepts_count > 0) {
+        contentCompletion = Math.round((r.published_concepts_count / r.concepts_count) * 100);
+      }
+      if (r.units_count > 0) {
+        contentCompletion = Math.round((r.published_units_count / r.units_count) * 100);
+      }
+
+      let assessmentReadiness = 'no_questions';
+      if (r.questions_count >= 3) {
+        assessmentReadiness = 'ready';
+      } else if (r.questions_count > 0) {
+        assessmentReadiness = 'partial';
+      }
+
+      let publicationStatus = 'draft';
+      if (r.published_units_count > 0 || (r.published_concepts_count > 0 && r.chapter_review_status === 'reviewed')) {
+        publicationStatus = 'published';
+      }
+
+      return {
+        class: r.grade,
+        board: r.board,
+        trackId: r.track_id,
+        editionYear: r.edition_year,
+        catalogueStatus: r.catalogue_status,
+        subjectId: r.subject_id,
+        subject: r.subject_title,
+        subjectReviewStatus: r.subject_review_status,
+        chapterId: r.chapter_id,
+        chapterNumber: r.chapter_number,
+        chapterTitle: r.chapter_title,
+        textbookEdition: r.textbook_edition,
+        reviewStatus: r.chapter_review_status,
+        publicationStatus,
+        conceptsCount: r.concepts_count,
+        publishedConceptsCount: r.published_concepts_count,
+        unitsCount: r.units_count,
+        publishedUnitsCount: r.published_units_count,
+        questionsCount: r.questions_count,
+        contentCompletion,
+        assessmentReadiness,
+        isMissing
+      };
+    });
+
+    const filteredItems = missingOnly === 'true' ? items.filter((it) => it.isMissing) : items;
+
+    const summary = {
+      totalChapters: items.length,
+      publishedChapters: items.filter((it) => it.publicationStatus === 'published').length,
+      missingLessons: items.filter((it) => it.isMissing).length,
+      assessmentReadyChapters: items.filter((it) => it.assessmentReadiness === 'ready').length
+    };
+
+    return res.json({
+      summary,
+      matrix: filteredItems
+    });
+  } catch (err) {
+    console.error('[Admin Curriculum Matrix Error]:', err);
+    return res.status(500).json({
+      code: 'MATRIX_LOAD_FAILED',
+      message: 'Failed to compute curriculum matrix.'
+    });
+  }
+});
+
+/**
+ * POST /api/v1/admin/curriculum/publish-chapter
+ * Approved-content publishing action for administrator.
+ */
+adminRouter.post('/curriculum/publish-chapter', (req, res) => {
+  const { chapterId, academicReviewReference } = req.body || {};
+  if (!chapterId || typeof chapterId !== 'string') {
+    return res.status(400).json({ code: 'INVALID_CHAPTER_ID', message: 'Valid chapterId is required.' });
+  }
+
+  try {
+    const chapter = db.prepare(`
+      SELECT ch.*, s.track_id, s.subject_title, t.grade, t.board
+      FROM one_chapters ch
+      JOIN one_subjects s ON s.id = ch.subject_id
+      JOIN one_curriculum_tracks t ON t.id = s.track_id
+      WHERE ch.id = ?
+    `).get(chapterId);
+
+    if (!chapter) {
+      return res.status(404).json({ code: 'CHAPTER_NOT_FOUND', message: 'Chapter does not exist.' });
+    }
+
+    db.exec('BEGIN IMMEDIATE');
+
+    // 1. Mark subject reviewed
+    db.prepare("UPDATE one_subjects SET review_status='reviewed' WHERE id=?").run(chapter.subject_id);
+
+    // 2. Mark chapter reviewed
+    db.prepare("UPDATE one_chapters SET review_status='reviewed' WHERE id=?").run(chapterId);
+
+    // 3. Mark concepts published
+    db.prepare(`
+      UPDATE one_concepts
+      SET content_status='published', reviewer_id=?, reviewed_at=datetime('now')
+      WHERE chapter_id=?
+    `).run(req.user.id, chapterId);
+
+    // 4. Mark foundation units published if any
+    db.prepare(`
+      UPDATE one_foundation_units
+      SET status='published', reviewer_id=?, publisher_id=?,
+          review_reference=?, reviewed_at=datetime('now'), published_at=datetime('now')
+      WHERE concept_id IN (SELECT id FROM one_concepts WHERE chapter_id=?)
+    `).run(req.user.id, req.user.id, academicReviewReference || 'ADMIN-APPROVED-PUBLICATION-2026', chapterId);
+
+    // 5. Audit log
+    db.prepare(`
+      INSERT INTO one_content_review_logs (id, item_type, item_id, reviewer_id, editorial_reference, rights_attested, decision)
+      VALUES (?, 'chapter', ?, ?, ?, 1, 'published')
+    `).run('onereview-' + randomUUID(), chapterId, req.user.id, academicReviewReference || 'ADMIN-PUBLISHED-2026');
+
+    db.exec('COMMIT');
+
+    return res.json({
+      success: true,
+      message: `Chapter "${chapter.chapter_title}" published successfully.`,
+      chapter: {
+        id: chapter.id,
+        grade: chapter.grade,
+        board: chapter.board,
+        subject: chapter.subject_title,
+        title: chapter.chapter_title,
+        publicationStatus: 'published',
+        reviewStatus: 'reviewed'
+      }
+    });
+  } catch (err) {
+    db.exec('ROLLBACK');
+    console.error('[Admin Publish Chapter Error]:', err);
+    return res.status(500).json({
+      code: 'PUBLISH_CHAPTER_FAILED',
+      message: 'Failed to publish curriculum chapter.'
     });
   }
 });
