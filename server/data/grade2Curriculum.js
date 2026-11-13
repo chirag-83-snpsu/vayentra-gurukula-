@@ -1,3 +1,13 @@
+import { GRADE2_ENGLISH_MRIDANG_LESSONS } from './grade2EnglishMridang.js';
+import { GRADE2_MATHS_JOYFUL_LESSONS } from './grade2MathsJoyful.js';
+import { GRADE2_EVS_WORLD_AROUND_US_LESSONS } from './grade2EvsWorldAroundUs.js';
+import { GRADE2_KANNADA_SAVIRUDI_LESSONS } from './grade2KannadaSavirudi.js';
+import {
+  GRADE2_STATE_ENGLISH_LESSONS,
+  GRADE2_STATE_MATHS_LESSONS,
+  GRADE2_STATE_EVS_LESSONS
+} from './grade2StateLessons.js';
+
 /**
  * Vayentra Gurukula — Class 2 Foundation Years Curriculum Data
  * Official CBSE (NCERT 2026–27 reference edition) & Karnataka State Board alignment.
@@ -134,7 +144,8 @@ export const GRADE2_CURRICULUM = {
                   explanation: 'Two children were skipping rope together on the path.'
                 }
               ]
-            }
+            },
+            ...GRADE2_ENGLISH_MRIDANG_LESSONS
           ]
         },
         {
@@ -254,7 +265,8 @@ export const GRADE2_CURRICULUM = {
                   explanation: 'Flat surfaces glide along slopes without rolling.'
                 }
               ]
-            }
+            },
+            ...GRADE2_MATHS_JOYFUL_LESSONS
           ]
         },
         {
@@ -734,55 +746,55 @@ export const GRADE2_CURRICULUM = {
               ]
             },
             {
-              chapterNumber: 3,
-              chapterTitle: 'Plants: From Tiny Seed to Sturdy Tree',
-              conceptKey: 'plant-parts-growth',
-              title: 'Seed to Sprout: The Life of a Green Plant',
-              objective: 'Describe what seeds need to germinate and name the main parts of a plant.',
-              story: 'Under the cool brown soil lies a sleepy little bean seed. To wake up, it needs three friends: moist water, warm sunlight, and fresh air! First, a tiny root reaches down into the earth to drink water and hold the plant firmly. Then, a tender green shoot pushes up toward the sunshine. Green leaves unfold like open hands to capture light and make food. Slowly, stems grow strong, buds bloom into flowers, and flowers form sweet fruits holding new seeds inside. Plants give us fresh oxygen, shade, and food.',
-              activity: 'Soak three green gram (moong) seeds in a damp cotton ball inside a small bowl. Observe every day for three days as tiny white roots emerge!',
+              chapterNumber: 2,
+              chapterTitle: 'My Family and Neighbours',
+              conceptKey: 'family-and-neighbours',
+              title: 'Caring Families & Friendly Neighbours',
+              objective: 'Describe diverse family structures (nuclear, joint, extended) and demonstrate cooperative neighbourly habits.',
+              story: 'Every family is a warm circle of love and care! Some children live in nuclear families with parents and siblings. Some live in joint families with loving grandparents, uncles, aunts, and cousins sharing laughter under one roof. Across the garden wall, our neighbours are like an extended family. When grandfather needs medicine, neighbour Uncle Ramesh cheerfully brings it from the pharmacy. When our garden flowers bloom, we share jasmine bouquets with neighbours. Caring for family and helping neighbours makes our community peaceful, safe, and joyful!',
+              activity: 'Draw a family tree with your grandparents, parents, siblings, and cousins. Share one kind deed you did for a neighbour.',
               guidedSteps: [
-                'Name the three things a seed needs to grow: Water, Air, Sunlight.',
-                'Point out the roots, stem, leaf, and flower on a potted home plant.',
-                'Water a home plant gently with a small cup.'
+                'Identify family relationships: Grandparents, Parents, Siblings, Cousins.',
+                'Discuss: How do family members help each other in daily chores?',
+                'Say hello with a smile to your next-door neighbour today.'
               ],
-              teacherPrompt: 'Help children understand that plants are living beings that need daily care and clean water.',
+              teacherPrompt: 'Emphasize that love, respect, and mutual care define a family, regardless of its size or structure.',
               visualScene: {
-                kind: 'plant-growth',
+                kind: 'family-home',
                 elements: [
-                  { id: 'roots', label: 'Roots under soil', color: '#78350f' },
-                  { id: 'stem', label: 'Stem standing tall', color: '#15803d' },
-                  { id: 'leaves', label: 'Green Leaves making food', color: '#22c55e' },
-                  { id: 'sun', label: 'Golden Sunlight', color: '#eab308' }
+                  { id: 'family', label: 'Loving Family Gathering', color: '#f59e0b' },
+                  { id: 'grandparents', label: 'Grandparents Sharing Stories', color: '#ca8a04' },
+                  { id: 'neighbour', label: 'Friendly Neighbour Greeting', color: '#10b981' }
                 ]
               },
               questions: [
                 {
-                  prompt: 'What three things does a seed need to sprout into a healthy plant?',
-                  options: ['Water, air, and sunlight', 'Juice, milk, and dark closets', 'Cold ice, sugar, and salt'],
+                  prompt: 'What makes a family strong and happy?',
+                  options: ['Love, kindness, mutual respect, and helping each other', 'Arguing all the time', 'Never speaking to each other'],
                   answerIndex: 0,
-                  explanation: 'Seeds require moisture (water), oxygen (air), and warm sunlight to germinate.'
+                  explanation: 'Mutual care, patience, and love bind families together.'
                 },
                 {
-                  prompt: 'Which part of the plant stays hidden under the soil to drink water?',
-                  options: ['The Roots', 'The Flowers', 'The Fruits'],
+                  prompt: 'What do we call a family where grandparents, parents, and cousins live together?',
+                  options: ['A Joint Family', 'A Tiny Family', 'A Stranger Group'],
                   answerIndex: 0,
-                  explanation: 'Roots spread underground to anchor the plant and absorb moisture.'
+                  explanation: 'A joint family includes multiple generations living cooperatively together.'
                 },
                 {
-                  prompt: 'What gas do green leaves release that helps all humans and animals breathe?',
-                  options: ['Oxygen', 'Smoke', 'Dust'],
+                  prompt: 'How can we be good neighbours in our community?',
+                  options: ['By greeting politely, keeping shared areas clean, and helping when needed', 'By playing loud music at night', 'By throwing trash over the wall'],
                   answerIndex: 0,
-                  explanation: 'Plants release clean oxygen into the air during daylight.'
+                  explanation: 'Thoughtfulness, cleanliness, and courtesy create harmonious neighbourhoods.'
                 },
                 {
-                  prompt: 'Where do new seeds usually grow inside a plant?',
-                  options: ['Inside the fruits', 'On top of the stones', 'Under the water tap'],
+                  prompt: 'Who can children talk to when they need advice or feel worried?',
+                  options: ['Trusted family members or school teachers', 'Strangers on the road', 'Nobody at all'],
                   answerIndex: 0,
-                  explanation: 'Fruits protect seeds so new plants can grow.'
+                  explanation: 'Parents, grandparents, and teachers provide guidance and safe support.'
                 }
               ]
-            }
+            },
+            ...GRADE2_EVS_WORLD_AROUND_US_LESSONS
           ]
         },
         {
@@ -847,7 +859,8 @@ export const GRADE2_CURRICULUM = {
                   explanation: 'ಮಕ್ಕಳು ವಿದ್ಯೆ ಕಲಿಯಲು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾರೆ.'
                 }
               ]
-            }
+            },
+            ...GRADE2_KANNADA_SAVIRUDI_LESSONS
           ]
         }
       ]
@@ -917,7 +930,8 @@ export const GRADE2_CURRICULUM = {
                   explanation: 'ಮಕ್ಕಳು ವಿದ್ಯೆ ಕಲಿಯಲು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾರೆ.'
                 }
               ]
-            }
+            },
+            ...GRADE2_KANNADA_SAVIRUDI_LESSONS
           ]
         },
         {
@@ -980,7 +994,8 @@ export const GRADE2_CURRICULUM = {
                   explanation: 'The story mentions Appu has soft, floppy ears.'
                 }
               ]
-            }
+            },
+            ...GRADE2_STATE_ENGLISH_LESSONS
           ]
         },
         {
@@ -1045,7 +1060,8 @@ export const GRADE2_CURRICULUM = {
                   explanation: '10 bundles of 10 make one hundred (100).'
                 }
               ]
-            }
+            },
+            ...GRADE2_STATE_MATHS_LESSONS
           ]
         },
         {
@@ -1108,7 +1124,8 @@ export const GRADE2_CURRICULUM = {
                   explanation: 'Every living being requires clean water to survive.'
                 }
               ]
-            }
+            },
+            ...GRADE2_STATE_EVS_LESSONS
           ]
         }
       ]

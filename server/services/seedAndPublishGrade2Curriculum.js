@@ -88,23 +88,36 @@ export function seedAndPublishGrade2Curriculum(targetDb) {
             const conceptId = 'one-g2-' + boardEntry.board.toLowerCase() + '-' + lesson.conceptKey;
             const unitId = 'one-fdn-' + conceptId;
             const existingConcept = getConcept.get(chapterId, 1);
+            let effectiveConceptId = conceptId;
             if (!existingConcept) {
               insConcept.run(conceptId, chapterId, 1, lesson.title, lesson.story, reviewerId);
             } else {
+              effectiveConceptId = existingConcept.id;
               db.prepare("UPDATE one_concepts SET title=?, explanation_original=?, content_status='published', reviewer_id=?, reviewed_at=datetime('now') WHERE id=?")
                 .run(lesson.title, lesson.story, reviewerId, existingConcept.id);
             }
-            const existingUnit = db.prepare('SELECT id FROM one_foundation_units WHERE id=?').get(unitId);
+            const existingUnit = db.prepare('SELECT id FROM one_foundation_units WHERE id=? OR concept_id=?').get(unitId, effectiveConceptId);
+            let effectiveUnitId = unitId;
             if (!existingUnit) {
-              insUnit.run(unitId, existingConcept?.id || conceptId, unitId, 2, boardEntry.board,
+              insUnit.run(unitId, effectiveConceptId, unitId, 2, boardEntry.board,
                 'school_support', lesson.objective, lesson.story, lesson.activity, reviewerId, adminId);
-              insScene.run(unitId, JSON.stringify(lesson.visualScene || {}), JSON.stringify(lesson.guidedSteps || []), lesson.teacherPrompt || '');
-              db.prepare('DELETE FROM one_foundation_questions WHERE unit_id=?').run(unitId);
-              lesson.questions.forEach((q, j) => {
-                insQuestion.run(unitId + '-q' + (j + 1), unitId, j + 1, q.prompt, JSON.stringify(q.options), q.answerIndex, q.explanation);
-              });
-              publishedUnitsCount++;
+            } else {
+              effectiveUnitId = existingUnit.id;
+              db.prepare(`
+                UPDATE one_foundation_units
+                SET concept_id=?, unit_key=?, grade=2, board=?, curriculum_kind='school_support',
+                    objective=?, story=?, home_activity=?, expected_minutes=10,
+                    status='published', reviewer_id=?, review_reference='ACAD-2026-GRADE2-FOUNDATION-VERIFIED',
+                    reviewed_at=datetime('now'), publisher_id=?, published_at=datetime('now')
+                WHERE id=?
+              `).run(effectiveConceptId, unitId, boardEntry.board, lesson.objective, lesson.story, lesson.activity, reviewerId, adminId, existingUnit.id);
             }
+            insScene.run(effectiveUnitId, JSON.stringify(lesson.visualScene || {}), JSON.stringify(lesson.guidedSteps || []), lesson.teacherPrompt || '');
+            db.prepare('DELETE FROM one_foundation_questions WHERE unit_id=?').run(effectiveUnitId);
+            lesson.questions.forEach((q, j) => {
+              insQuestion.run(effectiveUnitId + '-q' + (j + 1), effectiveUnitId, j + 1, q.prompt, JSON.stringify(q.options), q.answerIndex, q.explanation);
+            });
+            publishedUnitsCount++;
           }
         });
       }
@@ -118,23 +131,36 @@ export function seedAndPublishGrade2Curriculum(targetDb) {
           const conceptId = 'one-g2-' + boardEntry.board.toLowerCase() + '-' + mod.slug;
           const unitId = 'one-fdn-' + conceptId;
           const existingConcept = getConcept.get(chapterId, 1);
+          let effectiveConceptId = conceptId;
           if (!existingConcept) {
             insConcept.run(conceptId, chapterId, 1, mod.title, mod.story, reviewerId);
           } else {
+            effectiveConceptId = existingConcept.id;
             db.prepare("UPDATE one_concepts SET title=?, explanation_original=?, content_status='published', reviewer_id=?, reviewed_at=datetime('now') WHERE id=?")
               .run(mod.title, mod.story, reviewerId, existingConcept.id);
           }
-          const existingUnit = db.prepare('SELECT id FROM one_foundation_units WHERE id=?').get(unitId);
+          const existingUnit = db.prepare('SELECT id FROM one_foundation_units WHERE id=? OR concept_id=?').get(unitId, effectiveConceptId);
+          let effectiveUnitId = unitId;
           if (!existingUnit) {
-            insUnit.run(unitId, existingConcept?.id || conceptId, unitId, 2, boardEntry.board,
+            insUnit.run(unitId, effectiveConceptId, unitId, 2, boardEntry.board,
               'vayentra_enrichment', mod.objective, mod.story, mod.activity, reviewerId, adminId);
-            insScene.run(unitId, '{}', JSON.stringify(['Read the story together with a trusted adult.', 'Reflect on how this applies to everyday life.']), 'Guide the child through the thinking check questions.');
-            db.prepare('DELETE FROM one_foundation_questions WHERE unit_id=?').run(unitId);
-            mod.questions.forEach((q, j) => {
-              insQuestion.run(unitId + '-q' + (j + 1), unitId, j + 1, q.prompt, JSON.stringify(q.options), q.answerIndex, q.explanation);
-            });
-            publishedUnitsCount++;
+          } else {
+            effectiveUnitId = existingUnit.id;
+            db.prepare(`
+              UPDATE one_foundation_units
+              SET concept_id=?, unit_key=?, grade=2, board=?, curriculum_kind='vayentra_enrichment',
+                  objective=?, story=?, home_activity=?, expected_minutes=10,
+                  status='published', reviewer_id=?, review_reference='ACAD-2026-GRADE2-FOUNDATION-VERIFIED',
+                  reviewed_at=datetime('now'), publisher_id=?, published_at=datetime('now')
+              WHERE id=?
+            `).run(effectiveConceptId, unitId, boardEntry.board, mod.objective, mod.story, mod.activity, reviewerId, adminId, existingUnit.id);
           }
+          insScene.run(effectiveUnitId, '{}', JSON.stringify(['Read the story together with a trusted adult.', 'Reflect on how this applies to everyday life.']), 'Guide the child through the thinking check questions.');
+          db.prepare('DELETE FROM one_foundation_questions WHERE unit_id=?').run(effectiveUnitId);
+          mod.questions.forEach((q, j) => {
+            insQuestion.run(effectiveUnitId + '-q' + (j + 1), effectiveUnitId, j + 1, q.prompt, JSON.stringify(q.options), q.answerIndex, q.explanation);
+          });
+          publishedUnitsCount++;
         });
       }
     }
