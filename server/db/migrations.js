@@ -1919,6 +1919,75 @@ export function runMigrations() {
       console.log('[Vayentra ONE] Migration 017 completed successfully.');
     }
 
+    // 019 — Payment security, durable webhooks, activation tokens, and unique payment constraints
+    const applied019 = db.prepare("SELECT id FROM migrations WHERE name='019_payment_security_webhooks_activation_tokens'").get();
+    if (!applied019) {
+      // 1. Durable Webhook Events Ledger
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS payment_webhook_events (
+          id TEXT PRIMARY KEY,
+          event_id TEXT NOT NULL UNIQUE,
+          event_type TEXT NOT NULL,
+          payment_id TEXT,
+          order_id TEXT,
+          payload_json TEXT NOT NULL,
+          processed_status TEXT NOT NULL CHECK(processed_status IN ('processed', 'ignored', 'failed')),
+          error_message TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `).run();
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_webhook_events_event_id ON payment_webhook_events(event_id)').run();
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_webhook_events_payment_id ON payment_webhook_events(payment_id)').run();
+
+      // 2. Database-level unique constraint on captured payments
+      db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_order_id ON payments(order_id)').run();
+      db.prepare(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_razorpay_payment_id 
+        ON payments(razorpay_payment_id) 
+        WHERE razorpay_payment_id IS NOT NULL AND status = 'Captured'
+      `).run();
+
+      // 3. Database-level unique constraint on subscription payment_id
+      db.prepare(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_payment_id 
+        ON student_subscriptions(payment_id) 
+        WHERE payment_id IS NOT NULL
+      `).run();
+
+      // 4. Secure Account Activation Tokens (Single-use, expiring)
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS account_activation_tokens (
+          token TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL REFERENCES users(id),
+          student_id TEXT NOT NULL REFERENCES students(id),
+          guardian_id TEXT NOT NULL REFERENCES guardians(id),
+          token_type TEXT NOT NULL DEFAULT 'student_activation' CHECK(token_type IN ('student_activation', 'password_reset', 'parent_verify')),
+          expires_at TEXT NOT NULL,
+          used_at TEXT,
+          is_used INTEGER NOT NULL DEFAULT 0 CHECK(is_used IN (0, 1)),
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `).run();
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_act_tokens_student ON account_activation_tokens(student_id)').run();
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_act_tokens_user ON account_activation_tokens(user_id)').run();
+
+      // 5. Payment Refunds Table
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS payment_refunds (
+          id TEXT PRIMARY KEY,
+          payment_id TEXT NOT NULL REFERENCES payments(id),
+          razorpay_refund_id TEXT UNIQUE,
+          amount_inr REAL NOT NULL,
+          reason TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'processed' CHECK(status IN ('processed', 'pending', 'rejected')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `).run();
+
+      db.prepare("INSERT INTO migrations(name) VALUES('019_payment_security_webhooks_activation_tokens')").run();
+      console.log('[Vayentra Security] Migration 019 completed successfully.');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');

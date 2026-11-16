@@ -209,3 +209,173 @@ authRouter.post('/child/add',authenticateToken,requireRole(['parent','admin']),(
     message:'Direct child registration has been retired. Submit a Vayentra ONE guardian application and complete administrator review.'
   });
 });
+
+// ========================================================
+// 8. Secure Single-Use Account Activation (Fix 4: No predictable default passwords)
+// ========================================================
+function validatePasswordStrength(password) {
+  if (typeof password !== 'string' || password.length < 8) {
+    return 'Password must be at least 8 characters long.';
+  }
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter.';
+  }
+  if (!/[a-z]/.test(password)) {
+    return 'Password must contain at least one lowercase letter.';
+  }
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one number.';
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return 'Password must contain at least one special character.';
+  }
+  return null;
+}
+
+authRouter.post('/activate-account', (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({
+      code: 'MISSING_PARAMETERS',
+      message: 'Activation token and new password are required.'
+    });
+  }
+
+  const tokenRecord = db.prepare(`
+    SELECT * FROM account_activation_tokens 
+    WHERE token = ?
+  `).get(token);
+
+  if (!tokenRecord) {
+    return res.status(404).json({
+      code: 'INVALID_ACTIVATION_TOKEN',
+      message: 'The activation link or token is invalid.'
+    });
+  }
+
+  if (tokenRecord.is_used === 1) {
+    return res.status(400).json({
+      code: 'TOKEN_ALREADY_USED',
+      message: 'This activation token has already been used. Please log in or request a new reset link.'
+    });
+  }
+
+  const now = new Date();
+  const expiresAt = new Date(tokenRecord.expires_at);
+  if (now > expiresAt) {
+    return res.status(400).json({
+      code: 'TOKEN_EXPIRED',
+      message: 'This activation link has expired (valid for 48 hours). Please contact your parent or support for a new activation link.'
+    });
+  }
+
+  const pwdErr = validatePasswordStrength(password);
+  if (pwdErr) {
+    return res.status(400).json({
+      code: 'WEAK_PASSWORD',
+      message: pwdErr
+    });
+  }
+
+  const newHash = bcrypt.hashSync(password, 10);
+
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    db.prepare(`
+      UPDATE users 
+      SET password_hash = ?
+      WHERE id = ?
+    `).run(newHash, tokenRecord.user_id);
+
+    db.prepare(`
+      UPDATE account_activation_tokens
+      SET is_used = 1, used_at = datetime('now')
+      WHERE token = ?
+    `).run(token);
+
+    db.exec('COMMIT');
+
+    try {
+      db.prepare(`
+        INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
+        VALUES (?, ?, 'ACCOUNT_ACTIVATED', 'User', ?, ?)
+      `).run(`aud-${Date.now()}`, tokenRecord.user_id, req.ip || '127.0.0.1', JSON.stringify({ studentId: tokenRecord.student_id }));
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      message: 'Account successfully activated! You may now sign in using your email and password.'
+    });
+  } catch (err) {
+    db.exec('ROLLBACK');
+    console.error('[Account Activation Error]:', err);
+    res.status(500).json({ code: 'ACTIVATION_FAILED', message: 'Unable to activate account.' });
+  }
+});
+
+// ========================================================
+// 9. Parent-Managed Student Credential Reset (Fix 4: Parent controls linked student access)
+// ========================================================
+authRouter.post('/parent/set-student-credentials', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
+  const { studentId, password, childPin } = req.body;
+
+  if (!studentId) {
+    return res.status(400).json({ code: 'MISSING_STUDENT_ID', message: 'studentId is required.' });
+  }
+
+  const student = db.prepare('SELECT id, guardian_id, name FROM students WHERE id = ?').get(studentId);
+  if (!student) {
+    return res.status(404).json({ code: 'STUDENT_NOT_FOUND', message: 'Student profile not found.' });
+  }
+
+  // Security check: parent can only manage their linked child
+  if (req.user.role === 'parent' && req.user.guardianId && student.guardian_id !== req.user.guardianId) {
+    return res.status(403).json({
+      code: 'STUDENT_ACCESS_DENIED',
+      message: 'You can only manage credentials for your linked children.'
+    });
+  }
+
+  const updates = [];
+
+  if (password) {
+    const pwdErr = validatePasswordStrength(password);
+    if (pwdErr) {
+      return res.status(400).json({ code: 'WEAK_PASSWORD', message: pwdErr });
+    }
+    const link = db.prepare('SELECT user_id FROM one_student_account_links WHERE student_id = ?').get(studentId);
+    if (!link) {
+      return res.status(404).json({ code: 'STUDENT_USER_NOT_LINKED', message: 'Student has no linked user account.' });
+    }
+    const newHash = bcrypt.hashSync(password, 10);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, link.user_id);
+    updates.push('password');
+  }
+
+  if (childPin) {
+    if (!/^\d{4}$/.test(String(childPin))) {
+      return res.status(400).json({ code: 'INVALID_PIN', message: 'Child PIN must be a 4-digit numeric code.' });
+    }
+    db.prepare('UPDATE students SET child_pin = ? WHERE id = ?').run(String(childPin), studentId);
+    updates.push('child_pin');
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ code: 'NO_UPDATES_PROVIDED', message: 'Provide either a new password or childPin to update.' });
+  }
+
+  try {
+    db.prepare(`
+      INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
+      VALUES (?, ?, 'STUDENT_CREDENTIALS_UPDATED_BY_PARENT', 'Student', ?, ?)
+    `).run(`aud-${Date.now()}`, req.user.email, req.ip || '127.0.0.1', JSON.stringify({ studentId, updates }));
+  } catch (e) {}
+
+  res.json({
+    success: true,
+    message: `Student credentials successfully updated (${updates.join(', ')}).`,
+    updatedFields: updates
+  });
+});
+

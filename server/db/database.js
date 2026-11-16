@@ -12,6 +12,21 @@ const DB_PATH = process.env.VAYENTRA_DB_PATH ||
 
 export const db = new DatabaseSync(DB_PATH);
 
+// Helper for atomic nestable transactions via SQLite SAVEPOINTs
+export function withTransaction(fn) {
+  const spName = `sp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  db.exec(`SAVEPOINT ${spName};`);
+  try {
+    const result = fn();
+    db.exec(`RELEASE SAVEPOINT ${spName};`);
+    return result;
+  } catch (err) {
+    db.exec(`ROLLBACK TO SAVEPOINT ${spName};`);
+    db.exec(`RELEASE SAVEPOINT ${spName};`);
+    throw err;
+  }
+}
+
 // Enable foreign key constraints, WAL mode & busy timeout for concurrent safety
 db.exec('PRAGMA foreign_keys = ON;');
 try {

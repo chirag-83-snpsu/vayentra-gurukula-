@@ -14,6 +14,26 @@ interface CheckoutProps {
   onFailed?: (errorMsg: string) => void;
 }
 
+function loadRazorpayScript(): Promise<boolean> {
+  if (typeof (window as any).Razorpay === 'function') {
+    return Promise.resolve(true);
+  }
+  return new Promise((resolve) => {
+    const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve(true));
+      existing.addEventListener('error', () => resolve(false));
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export const CheckoutPage: React.FC<CheckoutProps> = ({
   admissionId,
   studentId,
@@ -26,7 +46,6 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
   const [error, setError] = useState('');
   const [orderData, setOrderData] = useState<any>(null);
   const [details, setDetails] = useState<any>(null);
-  const [testSimOpen, setTestSimOpen] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
 
   useEffect(() => {
@@ -121,51 +140,51 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
       if (!orderRes.ok) throw new Error(order.message || 'Failed to initialize payment order.');
       setOrderData(order);
 
-      // Check if real Razorpay script is mounted in window
+      // Ensure Razorpay SDK is loaded dynamically
+      const scriptReady = await loadRazorpayScript();
       const rzpWindow = (window as any).Razorpay;
-      if (typeof rzpWindow === 'function') {
-        const options = {
-          key: order.keyId,
-          amount: order.amountPaise,
-          currency: order.currency,
-          name: 'Vayentra Gurukula Academy',
-          description: `Annual Foundation Pass: Class ${details.grade} (${details.board})`,
-          order_id: order.orderId,
-          handler: async function (response: any) {
-            await verifyPayment({
-              razorpay_order_id: response.razorpay_order_id || order.orderId,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              studentId: details.studentId,
-              admissionId: details.admissionId
-            });
-          },
-          prefill: {
-            name: details.guardianName || 'Parent',
-            contact: details.guardianPhone || ''
-          },
-          theme: {
-            color: '#0d9488'
-          },
-          modal: {
-            ondismiss: function () {
-              setProcessing(false);
-            }
-          }
-        };
-
-        const rzp = new rzpWindow(options);
-        rzp.on('payment.failed', function (resp: any) {
-          setProcessing(false);
-          const msg = resp.error?.description || 'Payment rejected by bank.';
-          setError(msg);
-          if (onFailed) onFailed(msg);
-        });
-        rzp.open();
-      } else {
-        // Razorpay test simulation mode
-        setTestSimOpen(true);
+      if (!scriptReady || typeof rzpWindow !== 'function') {
+        throw new Error('Razorpay Checkout gateway is currently loading or blocked. Please ensure you are connected to the internet and disable any browser content blockers.');
       }
+
+      const options = {
+        key: order.keyId,
+        amount: order.amountPaise,
+        currency: order.currency,
+        name: 'Vayentra Gurukula Academy',
+        description: `Annual Foundation Pass: Class ${details.grade} (${details.board})`,
+        order_id: order.orderId,
+        handler: async function (response: any) {
+          await verifyPayment({
+            razorpay_order_id: response.razorpay_order_id || order.orderId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            studentId: details.studentId,
+            admissionId: details.admissionId
+          });
+        },
+        prefill: {
+          name: details.guardianName || 'Parent',
+          contact: details.guardianPhone || ''
+        },
+        theme: {
+          color: '#0d9488'
+        },
+        modal: {
+          ondismiss: function () {
+            setProcessing(false);
+          }
+        }
+      };
+
+      const rzp = new rzpWindow(options);
+      rzp.on('payment.failed', function (resp: any) {
+        setProcessing(false);
+        const msg = resp.error?.description || 'Payment rejected by bank.';
+        setError(msg);
+        if (onFailed) onFailed(msg);
+      });
+      rzp.open();
     } catch (err) {
       setProcessing(false);
       const msg = err instanceof Error ? err.message : 'Payment process failed.';
@@ -194,51 +213,6 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
     } catch (err) {
       setProcessing(false);
       const msg = err instanceof Error ? err.message : 'Verification failed.';
-      setError(msg);
-      if (onFailed) onFailed(msg);
-    }
-  }
-
-  // Simulated payment test helper with real HMAC-SHA256 signature
-  async function simulateTestPayment(success: boolean) {
-    setTestSimOpen(false);
-    if (!orderData || !details) return;
-
-    if (!success) {
-      setProcessing(false);
-      const msg = 'Payment declined by card issuer in test simulation.';
-      setError(msg);
-      if (onFailed) onFailed(msg);
-      return;
-    }
-
-    try {
-      const testPaymentId = `pay_sim_${Date.now()}`;
-      // Obtain authentic HMAC-SHA256 test signature from backend
-      const sigRes = await fetch('/api/v1/payments/test-signature', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: orderData.orderId,
-          paymentId: testPaymentId
-        })
-      });
-
-      const sigData = await sigRes.json();
-      if (!sigRes.ok || !sigData.signature) {
-        throw new Error(sigData.message || 'Failed to generate test signature.');
-      }
-
-      await verifyPayment({
-        razorpay_order_id: orderData.orderId,
-        razorpay_payment_id: testPaymentId,
-        razorpay_signature: sigData.signature,
-        studentId: details.studentId,
-        admissionId: details.admissionId
-      });
-    } catch (err) {
-      setProcessing(false);
-      const msg = err instanceof Error ? err.message : 'Simulation failed.';
       setError(msg);
       if (onFailed) onFailed(msg);
     }
@@ -315,7 +289,7 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
               Your payment of <strong>₹599.00</strong> was confirmed. 365 days of full curriculum access have been activated for <strong>{paymentSuccess.studentName || details?.studentName}</strong>.
             </p>
 
-            {/* Credentials Card */}
+            {/* Credentials & Access Summary Card - No Predictable Password */}
             <div style={{
               background: 'var(--color-paper-subtle, #f8fafc)',
               borderRadius: '12px',
@@ -325,7 +299,7 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
               marginBottom: '24px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-navy-primary)', fontWeight: 700, fontSize: '14px', marginBottom: '14px' }}>
-                <Key size={16} /> Authorized Learner Credentials
+                <Key size={16} /> Authorized Learner Entitlement
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
                 <div>
@@ -333,17 +307,20 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
                   <div style={{ fontWeight: 700, color: '#0f172a' }}>{paymentSuccess.enrollmentNumber || details?.studentId}</div>
                 </div>
                 <div>
-                  <small style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>Student Login Email</small>
+                  <small style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>Student Account Email</small>
                   <div style={{ fontWeight: 700, color: '#0f172a' }}>{paymentSuccess.studentEmail || `student_${details?.studentId?.substring(0, 8)}@vayentra.org`}</div>
-                </div>
-                <div>
-                  <small style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>Default Password</small>
-                  <div style={{ fontWeight: 700, color: '#0f172a', fontFamily: 'monospace' }}>Gurukula@2026</div>
                 </div>
                 <div>
                   <small style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>Access Expiry</small>
                   <div style={{ fontWeight: 700, color: '#16a34a' }}>365 Days Active</div>
                 </div>
+                <div>
+                  <small style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>Password Management</small>
+                  <div style={{ fontWeight: 600, color: '#0284c7' }}>Parent-Controlled via Family Hub</div>
+                </div>
+              </div>
+              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', fontSize: '12px', color: '#475569' }}>
+                A secure single-use activation link has been generated. The verified guardian can manage credentials anytime from the Parent Dashboard.
               </div>
             </div>
 
@@ -365,7 +342,7 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
                   textDecoration: 'none'
                 }}
               >
-                <Download size={16} /> Download Official GST Tax Invoice (SAC 9992)
+                <Download size={16} /> Download Payment & Fee Receipt
               </a>
 
               <button
@@ -438,11 +415,11 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
             <div style={{ border: '1px solid var(--color-border-subtle)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '10px' }}>
                 <span>Annual Foundation Pass (365 Days)</span>
-                <span>₹507.63</span>
+                <span>₹599.00</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--color-text-subtle)', marginBottom: '10px' }}>
-                <span>GST @ 18% (SAC 9992 Educational Tech)</span>
-                <span>₹91.37</span>
+                <span>Applicable Taxes</span>
+                <span>Inclusive</span>
               </div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: '12px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 800, color: 'var(--color-navy-primary)' }}>
@@ -457,13 +434,13 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
                 <CheckCircle2 size={14} color="#16a34a" /> Instant access activated immediately upon payment verification
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={14} color="#16a34a" /> Official GST Tax Invoice generated with SAC Code 9992
+                <CheckCircle2 size={14} color="#16a34a" /> Official Fee Receipt generated and sent to registered parent
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <CheckCircle2 size={14} color="#16a34a" /> 14-day 100% money-back guarantee under our transparent refund policy
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={14} color="#16a34a" /> Physical tuition classroom coaching is separate and optional
+                <CheckCircle2 size={14} color="#16a34a" /> Physical tuition coaching is separate and optional
               </div>
             </div>
 
@@ -490,42 +467,6 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
           </div>
         )}
       </main>
-
-      {/* Test Mode Simulator Modal (Fallback) */}
-      {testSimOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.75)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px'
-        }}>
-          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', maxWidth: '440px', width: '100%', textAlign: 'center' }}>
-            <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: '#f0fdfa', color: 'var(--color-teal-primary, #0d9488)', marginBottom: '14px' }}>
-              <CreditCard size={28} />
-            </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px', color: '#0f172a' }}>Razorpay Test Sandbox</h3>
-            <p style={{ fontSize: '13px', color: 'var(--color-text-subtle)', marginBottom: '20px' }}>
-              Simulated gateway order <strong>{orderData?.orderId}</strong> for <strong>{details?.studentName}</strong> (₹599.00). Select outcome:
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button
-                type="button"
-                className="btn btn-teal"
-                onClick={() => simulateTestPayment(true)}
-                style={{ padding: '12px', justifyContent: 'center', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Simulate Successful Payment (Authorize ₹599)
-              </button>
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => simulateTestPayment(false)}
-                style={{ padding: '12px', justifyContent: 'center', color: '#b91c1c', cursor: 'pointer', border: '1px solid #fee2e2' }}
-              >
-                Simulate Bank Decline / Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

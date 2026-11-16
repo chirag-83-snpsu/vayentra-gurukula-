@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { randomUUID } from 'node:crypto';
+import crypto, { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { db } from '../db/database.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
@@ -134,28 +134,30 @@ admissionsRouter.post('/apply', (req, res) => {
 
     if (!user) {
       const userId = `usr-par-${Date.now().toString(36)}`;
-      const defaultPassword = 'Gurukula@2026';
-      const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+      const guardianSecureSecret = crypto.randomBytes(32).toString('hex');
+      const passwordHash = bcrypt.hashSync(guardianSecureSecret, 10);
       db.prepare(`
         INSERT INTO users (id, name, mobile, email, role, password_hash)
         VALUES (?, ?, ?, ?, 'parent', ?)
       `).run(userId, guardianName, phone, email || null, passwordHash);
 
       const guardianId = `par-${Date.now().toString(36)}`;
+      const initialParentPin = Math.floor(1000 + Math.random() * 9000).toString();
       db.prepare(`
         INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, outstanding_fee, emergency_phone)
-        VALUES (?, ?, '1234', 'Active', 'Annual Gurukula Foundation Pass', 0.0, ?)
-      `).run(guardianId, userId, phone);
+        VALUES (?, ?, ?, 'Active', 'Annual Gurukula Foundation Pass', 0.0, ?)
+      `).run(guardianId, userId, initialParentPin, phone);
 
       guardian = { id: guardianId, user_id: userId };
     } else {
       guardian = db.prepare('SELECT id, user_id FROM guardians WHERE user_id = ?').get(user.id);
       if (!guardian) {
         const guardianId = `par-${Date.now().toString(36)}`;
+        const initialParentPin = Math.floor(1000 + Math.random() * 9000).toString();
         db.prepare(`
           INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, outstanding_fee, emergency_phone)
-          VALUES (?, ?, '1234', 'Active', 'Annual Gurukula Foundation Pass', 0.0, ?)
-        `).run(guardianId, user.id, phone);
+          VALUES (?, ?, ?, 'Active', 'Annual Gurukula Foundation Pass', 0.0, ?)
+        `).run(guardianId, user.id, initialParentPin, phone);
         guardian = { id: guardianId, user_id: user.id };
       }
     }
@@ -164,13 +166,14 @@ admissionsRouter.post('/apply', (req, res) => {
     const shortStudentId = Math.random().toString(36).substring(2, 7);
     const studentId = `stu-adm-${shortStudentId}`;
     const enrollmentNumber = `VG-ONE-2026-${shortStudentId.toUpperCase()}`;
+    const childSecurePin = Math.floor(1000 + Math.random() * 9000).toString();
 
     db.prepare(`
       INSERT INTO students (
         id, guardian_id, name, avatar, grade, board, medium, school_name,
         child_pin, status, enrollment_number, has_consent, consent_timestamp
-      ) VALUES (?, ?, ?, '🎒', ?, ?, ?, ?, '0000', 'active', ?, 1, datetime('now'))
-    `).run(studentId, guardian.id, studentName, grade, board, medium, schoolName, enrollmentNumber);
+      ) VALUES (?, ?, ?, '🎒', ?, ?, ?, ?, ?, 'active', ?, 1, datetime('now'))
+    `).run(studentId, guardian.id, studentName, grade, board, medium, schoolName, childSecurePin, enrollmentNumber);
 
     // 4. Provision ONE Membership (entitlement_status = 'pending' until ₹599 is paid)
     db.prepare(`
@@ -195,10 +198,10 @@ admissionsRouter.post('/apply', (req, res) => {
       ON CONFLICT(student_id) DO UPDATE SET notice_version = 'v2026.1'
     `).run(studentId, guardian.id);
 
-    // 7. Create Student Login Account
+    // 7. Create Student Login Account with random unguessable secret & single-use activation token
     const studentEmail = `student_${shortStudentId}@vayentra.org`;
-    const studentPassword = 'Gurukula@2026';
-    const studentPassHash = bcrypt.hashSync(studentPassword, 10);
+    const randomUnguessableSecret = crypto.randomBytes(32).toString('hex');
+    const studentPassHash = bcrypt.hashSync(randomUnguessableSecret, 10);
     const studentUserId = `usr-stu-${shortStudentId}`;
     db.prepare(`
       INSERT OR IGNORE INTO users (id, email, name, role, password_hash)
@@ -210,6 +213,15 @@ admissionsRouter.post('/apply', (req, res) => {
       VALUES (?, ?)
       ON CONFLICT(user_id) DO UPDATE SET student_id = ?
     `).run(studentUserId, studentId, studentId);
+
+    // Generate cryptographically secure, single-use activation token with 48h TTL
+    const activationToken = crypto.randomBytes(32).toString('hex');
+    const activationExpiresAt = new Date(Date.now() + 48 * 3600 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+    db.prepare(`
+      INSERT INTO account_activation_tokens (
+        token, user_id, student_id, guardian_id, token_type, expires_at, is_used
+      ) VALUES (?, ?, ?, ?, 'student_activation', ?, 0)
+    `).run(activationToken, studentUserId, studentId, guardian.id, activationExpiresAt);
 
     // 8. Record in admissions table
     db.prepare(`
@@ -239,11 +251,14 @@ admissionsRouter.post('/apply', (req, res) => {
       annualFeeInr: ANNUAL_PRICE_INR,
       status: 'payment_pending',
       checkoutUrl: `/checkout?admissionId=${admissionId}`,
-      credentials: {
-        guardianLogin: phone,
-        studentEmail,
-        defaultPassword: 'Gurukula@2026'
+      activation: {
+        token: activationToken,
+        expiresAt: activationExpiresAt,
+        activationUrl: `/activate?token=${activationToken}`,
+        instructions: 'Single-use 48-hour secure activation token generated. Guardian or student must set a custom strong password.'
       },
+      studentEmail,
+      enrollmentNumber,
       message: 'Admission successfully verified. Proceed to complete annual platform fee checkout.'
     });
   } catch (err) {

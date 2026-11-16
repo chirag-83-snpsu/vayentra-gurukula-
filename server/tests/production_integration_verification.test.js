@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { RAZORPAY_WEBHOOK_SECRET } from '../services/subscriptionService.js';
+import { RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET } from '../services/subscriptionService.js';
 
 const BASE_URL = 'http://localhost:5001';
 
@@ -126,7 +126,7 @@ test('PRODUCTION INTEGRATION VERIFICATION SUITE', async (t) => {
   await t.test('Workflow D: HMAC Signature Simulation & Verification (POST /api/v1/payments/verify)', async () => {
     testPaymentId = `pay_test_${Date.now()}`;
 
-    // 1. Obtain test signature computed by server with authentic HMAC-SHA256
+    // 1. Verify that public simulation endpoint is completely removed (Returns 404)
     const sigRes = await api('/api/v1/payments/test-signature', {
       method: 'POST',
       body: {
@@ -134,16 +134,20 @@ test('PRODUCTION INTEGRATION VERIFICATION SUITE', async (t) => {
         paymentId: testPaymentId
       }
     });
-    assert.equal(sigRes.status, 200);
-    assert.ok(sigRes.json.signature);
+    assert.equal(sigRes.status, 404, 'Public test-signature endpoint must return 404 Not Found');
 
-    // 2. Submit payment verification payload
+    // 2. Generate isolated test HMAC-SHA256 signature for valid testing
+    const hmac = crypto.createHmac('sha256', RAZORPAY_KEY_SECRET);
+    hmac.update(`${testOrderId}|${testPaymentId}`);
+    const authenticSignature = hmac.digest('hex');
+
+    // 3. Submit payment verification payload
     const verifyRes = await api('/api/v1/payments/verify', {
       method: 'POST',
       body: {
         razorpay_order_id: testOrderId,
         razorpay_payment_id: testPaymentId,
-        razorpay_signature: sigRes.json.signature,
+        razorpay_signature: authenticSignature,
         studentId: testStudentId,
         admissionId: testAdmissionId
       }
@@ -153,7 +157,6 @@ test('PRODUCTION INTEGRATION VERIFICATION SUITE', async (t) => {
     assert.equal(verifyRes.json.success, true);
     assert.ok(verifyRes.json.invoiceNumber);
     assert.equal(verifyRes.json.amountInr, 599);
-    assert.equal(verifyRes.json.gstInr, 91.37);
     assert.ok(verifyRes.json.receiptUrl);
     assert.ok(verifyRes.json.subscription);
     assert.equal(verifyRes.json.subscription.status, 'active');
