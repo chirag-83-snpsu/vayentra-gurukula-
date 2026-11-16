@@ -204,7 +204,7 @@ authRouter.post('/pin/verify', authenticateToken, (req, res) => {
     return res.status(404).json({ success: false, authorized: false, message: 'Guardian profile not found.' });
   }
 
-  if (pin === guardian.parent_pin) {
+  if (typeof pin === 'string' && /^\d{4}$/.test(pin) && guardian.parent_pin?.startsWith('$2') && bcrypt.compareSync(pin, guardian.parent_pin)) {
     return res.json({ success: true, authorized: true });
   }
 
@@ -368,7 +368,7 @@ authRouter.post('/parent/set-student-credentials', authenticateToken, requireRol
     if (!/^\d{4}$/.test(String(childPin))) {
       return res.status(400).json({ code: 'INVALID_PIN', message: 'Child PIN must be a 4-digit numeric code.' });
     }
-    db.prepare('UPDATE students SET child_pin = ? WHERE id = ?').run(String(childPin), studentId);
+    db.prepare('UPDATE students SET child_pin = ? WHERE id = ?').run(bcrypt.hashSync(String(childPin), 10), studentId);
     updates.push('child_pin');
   }
 
