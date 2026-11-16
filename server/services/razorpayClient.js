@@ -22,6 +22,9 @@ export function isRazorpayConfigured() {
  * Shared across separate Node.js processes (daemon server & test runner).
  */
 export function registerSandboxPayment(paymentId, details) {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('Sandbox payment registration is only permitted in automated tests.');
+  }
   db.prepare(`
     CREATE TABLE IF NOT EXISTS gateway_sandbox_payments (
       payment_id TEXT PRIMARY KEY,
@@ -111,6 +114,11 @@ export async function createGatewayOrder({
     }
   }
 
+  // Never generate synthetic gateway orders outside automated tests.
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('GATEWAY_NOT_CONFIGURED: A real Razorpay test/live integration is required for orders.');
+  }
+
   // Official Sandbox Test Mode Adapter
   const orderId = `order_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
   return {
@@ -129,8 +137,8 @@ export async function createGatewayOrder({
 export async function fetchGatewayPayment(paymentId) {
   if (!paymentId) return null;
 
-  // 1. Check persistent SQLite gateway sandbox table first
-  try {
+  // 1. Sandbox payments are only trusted by the automated test runner.
+  if (process.env.NODE_ENV === 'test') try {
     const row = db.prepare('SELECT details_json FROM gateway_sandbox_payments WHERE payment_id = ?').get(paymentId);
     if (row) {
       return JSON.parse(row.details_json);
@@ -160,7 +168,7 @@ export async function fetchGatewayPayment(paymentId) {
   }
 
   // 3. Fallback for test fixtures in test mode if payment starts with standard sandbox test prefix
-  if (paymentId.startsWith('pay_genuine_') || paymentId.startsWith('pay_test_') || paymentId.startsWith('pay_rzp_')) {
+  if (process.env.NODE_ENV === 'test' && (paymentId.startsWith('pay_genuine_') || paymentId.startsWith('pay_test_') || paymentId.startsWith('pay_rzp_'))) {
     return {
       id: paymentId,
       entity: 'payment',
