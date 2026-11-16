@@ -82,7 +82,7 @@ export const UniversalStateWrapper: React.FC<UniversalStateWrapperProps> = ({
             <RefreshCw size={16} /> Try again
           </button>
         )}
-        <div className="t-tiny">Request ID: VAY-{Math.random().toString(36).substr(2, 9).toUpperCase()}</div>
+        <div className="t-tiny">Request ID: VAY-{Math.random().toString(36).substring(2, 11).toUpperCase()}</div>
       </div>
     );
   }

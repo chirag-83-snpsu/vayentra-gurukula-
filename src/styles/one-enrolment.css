@@ -1,0 +1,78 @@
+/* Premium onboarding & learner spaces — Vayentra ONE, isolated from the public homepage */
+.vg-one{font-family:Inter,system-ui,-apple-system,sans-serif;color:#152b57;display:flex;flex-direction:column;gap:24px;min-width:0}
+.vg-one *{box-sizing:border-box}
+.vg-one button{cursor:pointer}
+.vg-one button:focus-visible,.vg-one input:focus-visible,.vg-one select:focus-visible,.vg-one textarea:focus-visible{outline:3px solid #f2c879;outline-offset:2px}
+.vg-one-hero{border-radius:20px;padding:40px 47px;background:radial-gradient(circle at 80% 18%,#34548d67,transparent 45%),linear-gradient(115deg,#07182e,#163975);display:grid;grid-template-columns:1.35fr .65fr;align-items:center;gap:28px;color:#fff;overflow:hidden}
+.vg-one-kicker{font-size:11px;letter-spacing:.15em;font-weight:800;color:#e7be79;display:inline-flex;gap:9px;align-items:center}
+.vg-one-hero h2{font-size:clamp(29px,3.7vw,52px);letter-spacing:-.055em;line-height:1.14;color:#fff;margin:16px 0}
+.vg-one-hero h2 em{font-style:normal;color:#e9bb73}
+.vg-one-hero p{color:#c9d6ed;font-size:14px;line-height:1.75;max-width:640px}
+.vg-one-pass{justify-self:center;display:flex;min-height:190px;max-width:260px;width:100%;flex-direction:column;gap:17px;padding:23px;border-radius:15px;border:1px solid #fbe2ac77;background:linear-gradient(135deg,#ffebbd,#dda651);box-shadow:14px 15px 0 #ffffff11,0 15px 40px #00000035;color:#253962}
+.vg-one-pass>span,.vg-one-pass small{font-size:9px;letter-spacing:.15em;font-weight:850}
+.vg-one-pass svg{color:#7a622f}
+.vg-one-pass strong{font-size:clamp(21px,2.2vw,30px);line-height:1.15;letter-spacing:-.04em;overflow-wrap:anywhere}
+.vg-one-pass small{margin-top:auto;border-top:1px solid #8b642756;padding-top:12px}
+.vg-one-columns{display:grid;grid-template-columns:1.05fr .95fr;gap:21px;align-items:start}
+.vg-one-card{padding:29px;background:#fff;border:1px solid #dde5f2;border-radius:16px;box-shadow:0 13px 42px #112b5b0c;min-width:0}
+.vg-one-eyebrow{color:#ac7b37;font-size:10px;font-weight:850;letter-spacing:.14em;display:inline-flex;gap:8px;align-items:center}
+.vg-one-card h3{color:#18366c;font-size:clamp(20px,2.4vw,27px);letter-spacing:-.04em;line-height:1.2;margin:11px 0}
+.vg-one-card>p,.vg-one-card-head p{color:#697990;font-size:13px;line-height:1.7}
+.vg-one-form,.vg-one-review-form{display:flex;flex-direction:column;gap:11px;margin-top:24px}
+.vg-one-form label,.vg-one-review-form label{font-size:12px;color:#2b4069;font-weight:750}
+.vg-one-form input:not([type="checkbox"]),.vg-one-form select,.vg-one-review-form input,.vg-one-review-form select,.vg-one-review-form textarea{width:100%;min-height:47px;padding:11px 12px;border:1px solid #ccd7e9;border-radius:9px;background:#fff;color:#213967;font:inherit;font-size:14px}
+.vg-one-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.vg-one-form-grid>div{display:flex;flex-direction:column;gap:10px}
+.vg-one-ack{display:flex!important;align-items:flex-start;gap:11px;font-size:12px!important;font-weight:500!important;color:#5c6e88!important;line-height:1.65}
+.vg-one-ack input{width:18px;height:18px;accent-color:#163973;flex-shrink:0;margin-top:2px}
+.vg-one-primary{background:#193d80;color:#fff;border:0;border-radius:9px;min-height:48px;padding:12px 19px;font-size:13px;font-weight:780;display:flex;justify-content:center;align-items:center;gap:10px}
+.vg-one-primary:hover:not(:disabled){background:#2858a6}
+.vg-one-primary:disabled{opacity:.5;cursor:not-allowed}
+.vg-one-error,.vg-one-success{font-size:12px;line-height:1.65;padding:12px;border-radius:8px}
+.vg-one-error{background:#fff2f0;border:1px solid #f1c6c0;color:#a63e3b}
+.vg-one-success{background:#eef9f2;border:1px solid #b8e6c6;color:#236b44}
+.vg-one-caption{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#8490a5;line-height:1.65;margin-top:9px}
+.vg-one-caption svg{flex-shrink:0;margin-top:1px}
+.vg-one-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.vg-one-minibutton{display:inline-flex;align-items:center;gap:7px;border:1px solid #c7d5ea;color:#193b7b;background:#f7f9fd;border-radius:8px;padding:9px 11px;min-height:38px;font-size:11px;font-weight:750}
+.vg-one-empty{min-height:170px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:10px;background:#f5f8fc;border:1px dashed #cbd7ea;border-radius:12px;padding:24px;color:#7d8ca2}
+.vg-one-empty strong{color:#264272}.vg-one-empty p{font-size:12px;line-height:1.65;max-width:350px}
+.vg-one-apps,.vg-one-review-list{display:grid;gap:12px}
+.vg-one-apps{margin-top:17px}
+.vg-one-application{padding:15px 17px;background:#f8fafd;border:1px solid #e2e9f3;border-radius:11px}
+.vg-one-app-top,.vg-one-review-head{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.vg-one-app-top strong{color:#193b73;font-size:14px}
+.vg-one-application>p,.vg-one-review-head p{font-size:12px;color:#7888a1;margin-top:7px}
+.vg-one-status{padding:6px 10px;border-radius:999px;font-size:10px;font-weight:850;white-space:nowrap;background:#e7ecf5;color:#5a6a83}
+.vg-one-status.submitted{background:#fff2d8;color:#8d6124}
+.vg-one-status.approved{background:#def6e8;color:#216b46}
+.vg-one-status.rejected{background:#fde7e6;color:#9b3835}
+.vg-one-learner-no{margin-top:11px;background:#fff4dc;padding:11px 12px;border-radius:8px;display:flex;gap:7px;align-items:center;flex-wrap:wrap;color:#8f6429;font-size:11px;overflow-wrap:anywhere}
+.vg-one-learner-no b{color:#1e3d73}
+.vg-one-app-reason{color:#9f3c3c!important}
+.vg-one-info,.vg-one-warning{background:#f3f6fc;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px;margin-top:20px;color:#536c94;font-size:12px;line-height:1.75}
+.vg-one-info svg,.vg-one-warning svg{flex-shrink:0;margin-top:2px;color:#ac813e}
+.vg-one-ops{display:flex;align-items:start;justify-content:space-between;gap:20px}
+.vg-one-ops h2{font-size:29px;letter-spacing:-.05em;color:#193970;margin:10px 0}
+.vg-one-ops p{font-size:13px;color:#687a97;max-width:710px;line-height:1.7}
+.vg-one-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vg-one-filters button{padding:10px 13px;border-radius:9px;background:#f7f9fd;border:1px solid #dce4f0;color:#53698e;font-size:12px;font-weight:750}
+.vg-one-filters button.active{background:#153872;color:white;border-color:#153872}
+.vg-one-review-list{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.vg-one-review-form{border-top:1px solid #e1e7f0;padding-top:17px}
+.vg-one-review-head{margin-bottom:16px}
+.vg-one-reject{background:#fff7f7;color:#a83d3d;border:1px solid #e6bfc0;border-radius:8px;padding:11px;min-height:42px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:750}
+.vg-one-reject:disabled{opacity:.5;cursor:not-allowed}
+.vg-one-learner-body{display:flex;flex-direction:column;gap:19px}
+.vg-one-learner-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.vg-one-learner-stats>div{border-radius:12px;background:#fff;border:1px solid #e0e8f3;padding:20px;display:flex;flex-direction:column;gap:9px}
+.vg-one-learner-stats small{font-size:10px;letter-spacing:.1em;font-weight:850;color:#ac7b35}
+.vg-one-learner-stats strong{font-size:19px;color:#1c3b75}
+.vg-one-subject-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px;margin:22px 0}
+.vg-one-subject{padding:20px;background:#f5f8fc;border:1px solid #e1e9f5;border-radius:12px;display:flex;flex-direction:column;gap:12px}
+.vg-one-subject svg{color:#b18a4a}
+.vg-one-subject strong{font-size:16px;color:#23457c}
+.vg-one-subject p{font-size:12px;color:#7787a1;line-height:1.6}
+@media(max-width:900px){.vg-one-hero{padding:29px;grid-template-columns:1fr}.vg-one-pass{justify-self:start;min-height:155px;max-width:260px}.vg-one-columns{grid-template-columns:1fr}}
+@media(max-width:560px){.vg-one-hero{padding:23px}.vg-one-hero h2{font-size:36px}.vg-one-card{padding:20px}.vg-one-card-head{flex-direction:column}.vg-one-form-grid{grid-template-columns:1fr}.vg-one-learner-stats{grid-template-columns:1fr}.vg-one-ops{flex-direction:column}.vg-one-review-list{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.vg-one *{transition:none!important;animation:none!important}}

@@ -1,15 +1,42 @@
 import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runMigrations } from './migrations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_PATH = path.join(__dirname, 'vayentra.sqlite');
+// Production defaults to a file; automated tests default to isolated in-memory DB.
+ // VAYENTRA_DB_PATH may select a dedicated test/staging file, never a public repo artifact.
+const DB_PATH = process.env.VAYENTRA_DB_PATH ||
+  (process.env.NODE_ENV === 'test' ? ':memory:' : path.join(__dirname, 'vayentra.sqlite'));
 
 export const db = new DatabaseSync(DB_PATH);
 
-// Enable foreign key constraints & WAL mode for performance
+// Helper for atomic nestable transactions via SQLite SAVEPOINTs
+export function withTransaction(fn) {
+  const spName = `sp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  db.exec(`SAVEPOINT ${spName};`);
+  try {
+    const result = fn();
+    db.exec(`RELEASE SAVEPOINT ${spName};`);
+    return result;
+  } catch (err) {
+    db.exec(`ROLLBACK TO SAVEPOINT ${spName};`);
+    db.exec(`RELEASE SAVEPOINT ${spName};`);
+    throw err;
+  }
+}
+
+// Enable foreign key constraints, WAL mode & busy timeout for concurrent safety
 db.exec('PRAGMA foreign_keys = ON;');
+try {
+  db.exec('PRAGMA journal_mode = WAL;');
+} catch (e) {
+  // Already WAL or locked by another process
+}
+try {
+  db.exec('PRAGMA busy_timeout = 5000;');
+} catch (e) {}
 
 export function initDatabase() {
   console.log(`[Vayentra DB] Initializing SQLite database at: ${DB_PATH}`);
@@ -261,7 +288,9 @@ export function initDatabase() {
     );
   `);
 
-  seedInitialData();
+  // Foundation branch is development-only. Never seed demo accounts into production.
+  if(process.env.NODE_ENV !== 'production') seedInitialData();
+  runMigrations();
 }
 
 function seedInitialData() {

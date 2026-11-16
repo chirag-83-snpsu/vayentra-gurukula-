@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
 import { 
   Sparkles, 
   CheckCircle2, 
@@ -14,7 +13,6 @@ import {
 interface ConceptNode {
   id: string;
   name: string;
-  nameKn: string;
   tier: 'foundation' | 'core' | 'advanced';
   status: 'mastered' | 'in_progress' | 'locked';
   masteryPercent: number;
@@ -24,16 +22,12 @@ interface ConceptNode {
 }
 
 export const ConceptMasteryMap: React.FC = () => {
-  const { activeChild, language } = useApp();
-  const isKannada = language === 'Kannada' || activeChild.medium === 'Kannada';
-
   const [selectedConcept, setSelectedConcept] = useState<ConceptNode | null>(null);
 
   const concepts: ConceptNode[] = [
     {
       id: 'c-wholenum',
       name: 'Whole Numbers & Number Line',
-      nameKn: 'ಪೂರ್ಣ ಸಂಖ್ಯೆಗಳು ಮತ್ತು ಸಂಖ್ಯಾ ರೇಖೆ',
       tier: 'foundation',
       status: 'mastered',
       masteryPercent: 100,
@@ -44,7 +38,6 @@ export const ConceptMasteryMap: React.FC = () => {
     {
       id: 'c-int-intro',
       name: 'Integers: Negative Numbers & Direction',
-      nameKn: 'ಪೂರ್ಣಾಂಕಗಳು: ಋಣ ಸಂಖ್ಯೆಗಳು ಮತ್ತು ದಿಕ್ಕು',
       tier: 'foundation',
       status: 'mastered',
       masteryPercent: 100,
@@ -55,7 +48,6 @@ export const ConceptMasteryMap: React.FC = () => {
     {
       id: 'c-int-ops',
       name: 'Sign Arithmetic (Multiplication & Division)',
-      nameKn: 'ಚಿಹ್ನೆಗಳ ಲೆಕ್ಕಾಚಾರ (ಗುಣಾಕಾರ ಮತ್ತು ಭಾಗಾಕಾರ)',
       tier: 'core',
       status: 'in_progress',
       masteryPercent: 65,
@@ -66,7 +58,6 @@ export const ConceptMasteryMap: React.FC = () => {
     {
       id: 'c-bodmas',
       name: 'BODMAS & Bracket Precedence',
-      nameKn: 'ಬೋಡ್ಮಾಸ್ ಮತ್ತು ಆವರಣ ಚಿಹ್ನೆಗಳ ಆದ್ಯತೆ',
       tier: 'core',
       status: 'locked',
       masteryPercent: 0,
@@ -77,7 +68,6 @@ export const ConceptMasteryMap: React.FC = () => {
     {
       id: 'c-rational',
       name: 'Rational Numbers & Fractions',
-      nameKn: 'ಭಾಗಲಬ್ಧ ಸಂಖ್ಯೆಗಳು ಮತ್ತು ಭಿನ್ನರಾಶಿಗಳು',
       tier: 'advanced',
       status: 'locked',
       masteryPercent: 0,
@@ -113,12 +103,10 @@ export const ConceptMasteryMap: React.FC = () => {
         <div>
           <div className="h2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sparkles size={22} color="var(--color-gold-primary)" />
-            {isKannada ? 'ಪರಿಕಲ್ಪನೆಗಳ ನಕ್ಷೆ (ಕೋರ್ಸ್ ಗ್ರಾಫ್)' : 'Curriculum Concept Mastery Map & Prerequisite Graph'}
+            Curriculum Concept Mastery Map & Prerequisite Graph
           </div>
           <div className="t-muted">
-            {isKannada 
-              ? 'ಪ್ರತಿಯೊಂದು ಪಾಠವು ಹಿಂದಿನ ಪರಿಕಲ್ಪನೆಗಳ ಅಡಿಪಾಯದ ಮೇಲೆ ನಿಂತಿದೆ. ಕ್ಲಿಕ್ ಮಾಡಿ ವಿವರಗಳನ್ನು ನೋಡಿ.'
-              : 'Every mathematical topic builds on earlier prerequisites. Visualizing the learning path ensures zero concept gaps.'}
+            Every mathematical topic builds on earlier prerequisites. Visualizing the learning path ensures zero concept gaps.
           </div>
         </div>
 
@@ -131,7 +119,7 @@ export const ConceptMasteryMap: React.FC = () => {
 
       {/* Visual Concept Flow Matrix */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-        {concepts.map((concept, idx) => {
+        {concepts.map((concept) => {
           const isSelected = selectedConcept?.id === concept.id;
           const statusColor = getStatusColor(concept.status);
 
@@ -170,7 +158,7 @@ export const ConceptMasteryMap: React.FC = () => {
                 </div>
 
                 <div className="h2" style={{ fontSize: '17px', marginTop: '10px' }}>
-                  {isKannada ? concept.nameKn : concept.name}
+                  {concept.name}
                 </div>
 
                 <div className="t-tiny" style={{ marginTop: '6px', color: 'var(--color-text-subtle)', lineHeight: 1.4 }}>
@@ -220,7 +208,7 @@ export const ConceptMasteryMap: React.FC = () => {
             <div>
               <span className="chip chip-teal">{selectedConcept.tier.toUpperCase()} CONCEPT NODE</span>
               <div className="h1" style={{ fontSize: '22px', marginTop: '6px' }}>
-                {isKannada ? selectedConcept.nameKn : selectedConcept.name}
+                {selectedConcept.name}
               </div>
               <div className="t-muted" style={{ marginTop: '4px' }}>{selectedConcept.summary}</div>
             </div>

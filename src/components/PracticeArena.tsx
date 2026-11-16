@@ -1,279 +1,85 @@
-import React, { useState, useEffect } from 'react';
+import React,{useCallback,useEffect,useState} from 'react';
+import { ArrowRight, BookOpenCheck, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { FlashcardItem } from '../types';
-import { INITIAL_FLASHCARDS } from '../data/mockData';
-import confetti from 'canvas-confetti';
-import { 
-  Sparkles, 
-  RotateCcw, 
-  CheckCircle2, 
-  HelpCircle, 
-  ArrowRight, 
-  Layers, 
-  Award,
-  BookOpen
-} from 'lucide-react';
+import type { FlashcardItem } from '../types';
 
 export const PracticeArena: React.FC = () => {
-  const { activeChild } = useApp();
-  const [flashcards, setFlashcards] = useState<FlashcardItem[]>(INITIAL_FLASHCARDS);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<string>('All');
+ const {authToken}=useApp();
+ const token=authToken||'';
+ const [cards,setCards]=useState<FlashcardItem[]>([]);
+ const [index,setIndex]=useState(0);
+ const [revealed,setRevealed]=useState(false);
+ const [subject,setSubject]=useState('All');
+ const [loading,setLoading]=useState(true);
+ const [saving,setSaving]=useState(false);
+ const [error,setError]=useState('');
+ const [notice,setNotice]=useState('');
 
-  // Load flashcards from backend
-  useEffect(() => {
-    fetch(`/api/v1/school/practice/flashcards?studentId=${activeChild.id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setFlashcards(data);
-        }
-      })
-      .catch(() => {
-        // Fallback to initial
-      });
-  }, [activeChild.id]);
-
-  const filteredCards = selectedSubject === 'All' 
-    ? flashcards 
-    : flashcards.filter(c => c.subject === selectedSubject);
-
-  const currentCard = filteredCards[currentIndex] || filteredCards[0];
-
-  const handleReview = async (isCorrect: boolean) => {
-    if (!currentCard) return;
-
-    try {
-      const res = await fetch(`/api/v1/school/practice/flashcards/${currentCard.id}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isCorrect })
-      });
-      const data = await res.json();
-
-      // Update local state
-      setFlashcards(prev => prev.map(c => {
-        if (c.id === currentCard.id) {
-          return {
-            ...c,
-            boxLevel: data.newBoxLevel || (isCorrect ? Math.min(5, c.boxLevel + 1) : 1)
-          };
-        }
-        return c;
-      }));
-
-      if (isCorrect && (currentCard.boxLevel + 1 >= 5)) {
-        confetti({
-          particleCount: 70,
-          spread: 60,
-          origin: { y: 0.6 }
-        });
-      }
-    } catch (e) {
-      // Local fallback
-      setFlashcards(prev => prev.map(c => {
-        if (c.id === currentCard.id) {
-          return {
-            ...c,
-            boxLevel: isCorrect ? Math.min(5, c.boxLevel + 1) : 1
-          };
-        }
-        return c;
-      }));
-    }
-
-    setIsFlipped(false);
-    if (currentIndex < filteredCards.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      setCurrentIndex(0);
-    }
-  };
-
-  const boxColors = [
-    '',
-    '#ef4444', // Box 1: Red (Daily)
-    '#f97316', // Box 2: Orange (2 days)
-    '#eab308', // Box 3: Yellow (Weekly)
-    '#3b82f6', // Box 4: Blue (Bi-weekly)
-    '#10b981'  // Box 5: Green (Mastered)
-  ];
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
-      {/* Leitner Box System Header Banner */}
-      <div className="b" style={{
-        background: 'linear-gradient(135deg, var(--color-paper-card) 0%, var(--color-paper-subtle) 100%)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '14px'
-      }}>
-        <div>
-          <div className="h2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Layers size={22} color="var(--color-teal-primary)" />
-            Spaced Repetition Practice Arena (Leitner 5-Box System)
-          </div>
-          <div className="t-muted">
-            Concepts move through 5 spaced memory boxes. Correct answers advance to long-term memory; mistakes return to Box 1 for daily practice.
-          </div>
-        </div>
-
-        {/* Filter Pills */}
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {['All', 'Mathematics', 'Science'].map(subj => (
-            <button
-              key={subj}
-              type="button"
-              className={selectedSubject === subj ? 'btn btn-teal' : 'ghost'}
-              onClick={() => { setSelectedSubject(subj); setCurrentIndex(0); setIsFlipped(false); }}
-              style={{ minHeight: '34px', fontSize: '13px', padding: '4px 12px' }}
-            >
-              {subj}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Leitner Box Tracker Indicators */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
-        {[1, 2, 3, 4, 5].map(boxNum => {
-          const count = flashcards.filter(c => c.boxLevel === boxNum).length;
-          const labels = ['Daily Review', 'Every 2 Days', 'Weekly', 'Bi-Weekly', 'Mastered Memory'];
-          return (
-            <div key={boxNum} className="b" style={{
-              borderLeft: `4px solid ${boxColors[boxNum]}`,
-              padding: '12px',
-              textAlign: 'center'
-            }}>
-              <div className="t-tiny" style={{ fontWeight: 700, color: boxColors[boxNum] }}>
-                BOX {boxNum}
-              </div>
-              <div className="h1" style={{ fontSize: '24px', margin: '2px 0' }}>{count}</div>
-              <div className="t-tiny" style={{ color: 'var(--color-text-subtle)' }}>{labels[boxNum - 1]}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Active Flashcard Canvas */}
-      {currentCard ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-          
-          <div
-            onClick={() => setIsFlipped(!isFlipped)}
-            className="b card-interactive"
-            style={{
-              width: '100%',
-              maxWidth: '640px',
-              minHeight: '280px',
-              borderRadius: '16px',
-              padding: '32px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              textAlign: 'center',
-              cursor: 'pointer',
-              background: isFlipped ? 'var(--color-paper-card)' : 'linear-gradient(135deg, #ffffff 0%, var(--color-paper-subtle) 100%)',
-              borderColor: isFlipped ? 'var(--color-teal-primary)' : 'var(--color-border)',
-              boxShadow: 'var(--shadow-md)',
-              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}
-          >
-            {/* Top Card Badge */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="chip chip-navy">{currentCard.subject} • {currentCard.conceptName}</span>
-              <span className="chip" style={{ borderColor: boxColors[currentCard.boxLevel], color: boxColors[currentCard.boxLevel] }}>
-                Leitner Box {currentCard.boxLevel}
-              </span>
-            </div>
-
-            {/* Central Content */}
-            <div style={{ margin: '24px 0' }}>
-              {!isFlipped ? (
-                <div>
-                  <div className="t-tiny" style={{ color: 'var(--color-text-subtle)', marginBottom: '8px' }}>QUESTION PROMPT</div>
-                  <div className="h1" style={{ fontSize: '24px', color: 'var(--color-navy-primary)' }}>
-                    {currentCard.frontPrompt}
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div className="t-tiny" style={{ color: 'var(--color-success)', marginBottom: '8px', fontWeight: 700 }}>ANSWER & INTUITION</div>
-                  <div className="h1" style={{ fontSize: '26px', color: 'var(--color-success)' }}>
-                    {currentCard.backAnswer}
-                  </div>
-                  <div className="t-muted" style={{ marginTop: '12px', fontSize: '14px', maxWidth: '480px', margin: '12px auto 0 auto' }}>
-                    {currentCard.explanation}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Flip Hint */}
-            <div className="t-tiny" style={{ color: 'var(--color-text-subtle)', fontStyle: 'italic' }}>
-              {isFlipped ? 'Click card to flip back' : 'Click anywhere on card to reveal answer'}
-            </div>
-          </div>
-
-          {/* Flashcard Action Buttons (Only visible when flipped) */}
-          {isFlipped ? (
-            <div style={{ display: 'flex', gap: '14px', width: '100%', maxWidth: '640px' }}>
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => handleReview(false)}
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  minHeight: '46px',
-                  color: 'var(--color-error)',
-                  borderColor: 'var(--color-error)'
-                }}
-              >
-                <RotateCcw size={16} /> Need to Review (Reset to Box 1)
-              </button>
-              <button
-                type="button"
-                className="btn btn-teal"
-                onClick={() => handleReview(true)}
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  minHeight: '46px'
-                }}
-              >
-                <CheckCircle2 size={16} /> I Mastered This! (Promote Card)
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-navy"
-              onClick={() => setIsFlipped(true)}
-              style={{ minHeight: '44px', padding: '0 28px' }}
-            >
-              Reveal Answer
-            </button>
-          )}
-
-          {/* Progress Indicator */}
-          <div className="t-tiny" style={{ color: 'var(--color-text-subtle)' }}>
-            Card {currentIndex + 1} of {filteredCards.length}
-          </div>
-
-        </div>
-      ) : (
-        <div className="b" style={{ textAlign: 'center', padding: '40px' }}>
-          <Sparkles size={36} color="var(--color-gold-primary)" style={{ margin: '0 auto 12px auto' }} />
-          <div className="h2">No flashcards due for review today!</div>
-          <div className="t-muted">All concept cards are in higher Leitner boxes. Check back tomorrow.</div>
-        </div>
-      )}
-
+ const load=useCallback(async(signal?:AbortSignal)=>{
+  setLoading(true);setError('');setNotice('');
+  if(!token){setError('Please sign in with a student account to practise.');setLoading(false);return;}
+  try{
+   const result=await fetch('/api/v1/school/practice/flashcards',{signal,headers:{Authorization:'Bearer '+token}});
+   if(!result.ok)throw new Error('Unable to load your practice cards ('+result.status+').');
+   const data:unknown=await result.json();
+   if(!Array.isArray(data))throw new Error('The practice response was not valid.');
+   if(!signal?.aborted){setCards(data as FlashcardItem[]);setIndex(0);setRevealed(false);}
+  }catch(e){
+   if(!signal?.aborted&&(!(e instanceof Error)||e.name!=='AbortError'))
+    setError(e instanceof Error?e.message:'Practice could not be loaded.');
+  }finally{if(!signal?.aborted)setLoading(false);}
+ },[token]);
+ useEffect(()=>{const controller=new AbortController();void load(controller.signal);return()=>controller.abort();},[load]);
+ const filtered=subject==='All'?cards:cards.filter(c=>c.subject===subject);
+ const current=filtered[index%Math.max(filtered.length,1)];
+ const subjects=['All',...new Set(cards.map(c=>c.subject))];
+ async function review(correct:boolean){
+  if(!current||saving)return;
+  setSaving(true);setError('');setNotice('');
+  try{
+   const response=await fetch('/api/v1/school/practice/flashcards/'+encodeURIComponent(current.id)+'/review',{
+    method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+    body:JSON.stringify({isCorrect:correct})
+   });
+   const body=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(body.message||'Your practice result could not be saved.');
+   if(!Number.isInteger(body.newBoxLevel))throw new Error('The server did not confirm the new review level.');
+   setCards(prev=>prev.map(c=>c.id===current.id?{...c,boxLevel:body.newBoxLevel}:c));
+   setRevealed(false);
+   setIndex(prev=>filtered.length>0?(prev+1)%filtered.length:0);
+   setNotice('Review recorded. Your next practice card is ready.');
+  }catch(e){setError(e instanceof Error?e.message:'Could not record this answer. Please retry.');}
+  finally{setSaving(false);}
+ }
+ return <section className="vg-practice">
+  <div className="b" style={{background:'var(--color-navy-light)',display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+   <div><h2 className="h2"><BookOpenCheck size={21} style={{verticalAlign:'middle',marginRight:8}}/>Daily Practice</h2><p className="t-muted">Review one concept at a time. Mark whether you recalled it correctly to build a reliable practice habit.</p></div>
+   <span className="chip chip-navy">5-box spaced revision</span>
+  </div>
+  {loading&&<div className="b" role="status">Loading practice cards…</div>}
+  {error&&<div className="b" role="alert" style={{borderColor:'var(--color-error)'}}>{error} <button className="ghost" type="button" onClick={()=>void load()}>Try again</button></div>}
+  {notice&&<div className="b" role="status">{notice}</div>}
+  {!loading&&!error&&cards.length===0&&<div className="b">No practice cards have been assigned to your account yet. Ask your teacher to add targeted practice.</div>}
+  {cards.length>0&&!loading&&<div className="vg-practice-filter" role="group" aria-label="Filter practice cards">
+   {subjects.map(name=><button key={name} type="button" className={subject===name?'btn btn-teal':'ghost'} onClick={()=>{setSubject(name);setIndex(0);setRevealed(false);}}>{name}</button>)}
+  </div>}
+  {cards.length>0&&!loading&&<div className="vg-practice-levels" aria-label="Cards in each practice level">
+   {[1,2,3,4,5].map(level=><div key={level} className="b"><strong>{cards.filter(c=>c.boxLevel===level).length}</strong><span>Level {level}</span></div>)}
+  </div>}
+  {current&&!loading&&<>
+   <div className="vg-practice-card">
+    <div className="vg-practice-top"><span className="chip chip-navy">{current.subject} · {current.conceptName}</span><span className="chip">Review level {current.boxLevel}</span></div>
+    <p className="vg-practice-kicker">{revealed?'ANSWER & EXPLANATION':'THINK BEFORE REVEALING'}</p>
+    <h3>{revealed?current.backAnswer:current.frontPrompt}</h3>
+    {revealed&&<p>{current.explanation}</p>}
+    <div className="vg-practice-actions">
+     {!revealed?<button type="button" className="btn btn-teal" onClick={()=>setRevealed(true)}>Reveal explanation <ArrowRight size={17}/></button>:<>
+      <button type="button" className="ghost" disabled={saving} onClick={()=>void review(false)}><RotateCcw size={16}/> Need more practice</button>
+      <button type="button" className="btn btn-teal" disabled={saving} onClick={()=>void review(true)}><CheckCircle2 size={16}/> I recalled it correctly</button>
+     </>}
     </div>
-  );
+   </div>
+   <p className="t-muted" style={{textAlign:'center'}}>Card {(index%filtered.length)+1} of {filtered.length} · Practice is private and linked to your student account</p>
+  </>}
+ </section>;
 };

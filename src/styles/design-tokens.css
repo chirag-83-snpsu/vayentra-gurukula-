@@ -54,7 +54,6 @@
   /* Typography Scales */
   --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-family-display: 'Outfit', 'Cinzel', -apple-system, sans-serif;
-  --font-family-kannada: 'Noto Sans Kannada', var(--font-family-sans);
   --font-family-dyslexic: 'OpenDyslexic', 'Inter', sans-serif;
 
   --font-size-h1: 28px;
@@ -68,7 +67,6 @@
   /* Line Heights */
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
-  --line-height-kannada: 1.65;
 
   /* Spacing Scale */
   --space-1: 4px;
@@ -87,7 +85,14 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Touch Target Dimensions (FR-RSP-07) */
+  /* Responsive Breakpoint Markers */
+  --breakpoint-mobile-compact: 360px;
+  --breakpoint-mobile-standard: 390px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1280px;
+  --breakpoint-desktop-wide: 1440px;
+
+  /* Touch Target Dimensions (Mobile-First Accessible Standards) */
   --target-touch-standard: 48px;
   --target-touch-primary: 64px;
 
@@ -171,10 +176,4 @@
   --color-border-subtle: #ffffff !important;
   --color-ink: #ffffff !important;
   --color-paper-card: #000000 !important;
-}
-
-/* Kannada Typography Override */
-[lang="kn"] {
-  font-family: var(--font-family-kannada);
-  line-height: var(--line-height-kannada);
 }

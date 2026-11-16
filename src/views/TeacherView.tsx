@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import { AttendanceRegister } from '../components/AttendanceRegister';
+import { TeacherAssignmentsDesk } from '../components/TeacherAssignmentsDesk';
+import { LearningCompass } from '../components/LearningCompass';
+import { CbseVideoStudio } from '../components/CbseVideoStudio';
+import {OneStudioEditorial} from '../components/OneStudioEditorial';
+import {OneGrade1Editorial} from '../components/OneGrade1Editorial';
 import { useApp } from '../context/AppContext';
 import { 
   GraduationCap, 
@@ -14,7 +20,7 @@ import {
 
 export const TeacherView: React.FC = () => {
   const { doubts } = useApp();
-  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments'>('heatmap');
+  const [activeTab, setActiveTab] = useState<'today' | 'heatmap' | 'doubts' | 'assignments' | 'attendance' | 'diagnostics' | 'videos' | 'concept_studio' | 'grade1_curriculum'>('attendance');
   const [remedialPackCreated, setRemedialPackCreated] = useState(false);
 
   // Mock Heatmap Data for Class 7 CBSE Mathematics (Wireframe 03 / Diagram 28)
@@ -55,7 +61,7 @@ export const TeacherView: React.FC = () => {
         flexWrap: 'wrap',
         gap: '16px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, flex: '1 1 240px' }}>
           <div style={{
             width: '48px',
             height: '48px',
@@ -64,21 +70,17 @@ export const TeacherView: React.FC = () => {
             color: 'var(--color-teal-primary)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            flexShrink: 0
           }}>
             <GraduationCap size={26} />
           </div>
-          <div>
-            <div className="h1" style={{ fontSize: '22px' }}>Teacher Studio & Faculty Desk</div>
-            <div className="t-muted">Assigned: Class 7-A (Mathematics) • Class 10-B (Physics)</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="h1" style={{ fontSize: 'clamp(18px, 4vw, 22px)', overflowWrap: 'break-word' }}>Teacher Studio & Faculty Desk</div>
+            <div className="t-muted" style={{ fontSize: '13px' }}>Assigned: Class 7-A (Mathematics) • Class 10-B (Physics)</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button type="button" className="btn btn-teal" onClick={() => alert('Starting Live Classroom session...')}>
-            <Calendar size={16} /> Launch Live Room
-          </button>
-        </div>
       </div>
 
       {/* Tabs */}
@@ -88,7 +90,7 @@ export const TeacherView: React.FC = () => {
           className={activeTab === 'heatmap' ? 'btn btn-teal' : 'ghost'}
           onClick={() => setActiveTab('heatmap')}
         >
-          Class Mastery Heatmap (Diagram 28)
+          Class Mastery Heatmap
         </button>
         <button
           type="button"
@@ -111,7 +113,18 @@ export const TeacherView: React.FC = () => {
         >
           Create Assignment
         </button>
+        <button type="button" className={activeTab === 'attendance' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('attendance')}>Daily Attendance</button>
+        <button type="button" className={activeTab === 'diagnostics' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('diagnostics')}>Learning Compass</button>
+        <button type="button" className={activeTab === 'videos' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('videos')}>NCERT & Video Studio</button>
+        <button type="button" className={activeTab === 'concept_studio' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('concept_studio')}>ONE Concept Editorial</button>
+        <button type="button" className={activeTab === 'grade1_curriculum' ? 'btn btn-teal' : 'ghost'} onClick={() => setActiveTab('grade1_curriculum')}>Class 1 Curriculum</button>
       </div>
+
+      {activeTab === 'attendance' && <AttendanceRegister />}
+      {activeTab === 'diagnostics' && <LearningCompass mode="teacher" />}
+      {activeTab === 'videos' && <CbseVideoStudio />}
+      {activeTab === 'concept_studio' && <OneStudioEditorial />}
+      {activeTab === 'grade1_curriculum' && <OneGrade1Editorial />}
 
       {/* HEATMAP TAB (Wireframe 03 / Diagram 28) */}
       {activeTab === 'heatmap' && (
@@ -191,7 +204,7 @@ export const TeacherView: React.FC = () => {
           </div>
 
           <div className="b">
-            <div className="h3">Upcoming Live Sessions</div>
+            <div className="h3">Upcoming Concept Checkpoints & Clinics</div>
             <div style={{ marginTop: '12px', padding: '10px', background: 'var(--color-paper-subtle)', borderRadius: '6px' }}>
               <div style={{ fontWeight: 600 }}>Algebra Prerequisite Clinic</div>
               <div className="t-tiny">Tomorrow at 5:00 PM IST • 24 Students Invited</div>
@@ -219,18 +232,8 @@ export const TeacherView: React.FC = () => {
         </div>
       )}
 
-      {/* CREATE ASSIGNMENT TAB */}
-      {activeTab === 'assignments' && (
-        <div className="b" style={{ maxWidth: '640px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div className="h2">Create Assignment for Class 7-A</div>
-          <input type="text" placeholder="Assignment Title (e.g. Integer Multiplication Drill)" className="in" />
-          <textarea rows={4} placeholder="Instructions and required problems..." style={{ resize: 'none' }} className="in" />
-          <input type="date" className="in" />
-          <button type="button" className="btn btn-teal" onClick={() => alert('Assignment Published to Class 7-A and Parents Notified via WhatsApp.')}>
-            <Plus size={16} /> Publish & Alert Parents
-          </button>
-        </div>
-      )}
+      {/* CREATE & MANAGE ASSIGNMENTS TAB */}
+      {activeTab === 'assignments' && <TeacherAssignmentsDesk />}
 
     </div>
   );

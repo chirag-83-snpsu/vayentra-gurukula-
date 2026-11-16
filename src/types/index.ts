@@ -12,6 +12,14 @@ export type UserRole =
 export type BoardType = 'CBSE' | 'ICSE' | 'STATE_KARNATAKA';
 export type MediumType = 'English' | 'Kannada';
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  avatar?: string;
+}
+
 export interface ChildProfile {
   id: string;
   name: string;
@@ -146,6 +154,7 @@ export interface TechnicalCourse {
   title: string;
   level: string;
   duration: string;
+  durationWeeks?: number;
   description: string;
   skills?: string[];
   labTitle: string;

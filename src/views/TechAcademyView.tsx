@@ -67,7 +67,7 @@ export const TechAcademyView: React.FC = () => {
               Vayentra Technical & Professional Academy
             </div>
             <div style={{ color: '#94a3b8', fontSize: '13px' }}>
-              Hands-On Engineering Sandboxes • Mentor Rubrics • Verifiable Certificates (Diagram 98 & 99)
+              Hands-On Engineering Sandboxes • Mentor Rubrics • Verifiable Certificates
             </div>
           </div>
         </div>

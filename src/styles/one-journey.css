@@ -1,0 +1,53 @@
+/* Vayentra ONE longitudinal journey — scoped parent view styles */
+.vgo{--journey-navy:#142e67;--journey-gold:#c28b35;display:flex;flex-direction:column;gap:19px;color:#172b53;min-width:0}
+.vgo *{box-sizing:border-box}
+.vgo-header{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:26px;background:linear-gradient(110deg,#f8f6ef,#eaf0fb);border:1px solid #e0e6ef;border-radius:14px}
+.vgo-kicker{font-size:10px;letter-spacing:.15em;font-weight:840;color:#ae7a2c}
+.vgo-header h2{font-size:clamp(26px,2.8vw,38px);line-height:1.2;letter-spacing:-.04em;margin:13px 0;color:#142c62}
+.vgo-header h2 span{color:#ca9341;padding-left:10px}
+.vgo-header p{font-size:13px;color:#65748d}
+.vgo-refresh{border:1px solid #b7c7e0;border-radius:8px;background:#fff;color:#24447e;font-size:12px;font-weight:750;padding:10px 13px;display:flex;gap:8px;align-items:center;min-height:40px}
+.vgo-content{display:flex;flex-direction:column;gap:21px}
+.vgo-identity{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#10285a;color:#fff;padding:21px;border-radius:13px}
+.vgo-identity-mark{background:#ffffff1e;color:#efc47c;padding:12px;border-radius:11px}
+.vgo-identity>div{flex:1;display:flex;flex-direction:column;gap:6px}
+.vgo-identity strong{font-size:18px;color:#fff}.vgo-identity small{font-size:12px;color:#c5d2eb}
+.vgo-membership-status{border:1px solid #ffe3a74f;border-radius:30px;padding:8px 11px;color:#e9c789;background:#ffffff16;font-size:11px;font-weight:800}
+.vgo-membership-status.active{color:#d4fbdf;border-color:#6ad19685}
+.vgo-track{display:grid;grid-template-columns:repeat(10,minmax(115px,1fr));gap:9px;overflow-x:auto;padding-bottom:10px}
+.vgo-grade{min-width:115px;min-height:128px;padding:13px;background:#f9fafc;border:1px solid #e2e7f0;border-radius:11px;display:flex;flex-direction:column;gap:6px}
+.vgo-grade-number{color:#abb6c9;font-weight:900;font-size:23px}
+.vgo-grade strong{font-size:13px;color:#324566}.vgo-grade small{font-size:10px;color:#8997ab;line-height:1.5}
+.vgo-grade.active{border-color:#bc8a44;background:#fff7e9}.vgo-grade.active .vgo-grade-number{color:#b88027}
+.vgo-grade.completed{border-color:#bad8cd;background:#f2faf7}.vgo-grade.completed .vgo-grade-number{color:#217a59}
+.vgo-grade-status{font-size:10px;font-weight:760;color:#3d6e63;margin-top:auto}
+.vgo-callout{display:flex;gap:14px;padding:18px;border:1px solid #e8dcbf;background:#fffbf0;border-radius:12px;color:#71582e}
+.vgo-callout>svg{flex-shrink:0;color:#bc8c45}
+.vgo-callout strong{font-size:14px}.vgo-callout p{font-size:12px;line-height:1.7;margin-top:6px}
+.vgo-panels{display:grid;grid-template-columns:1.1fr .9fr;gap:15px}
+.vgo-panel{border:1px solid #e2e8f0;padding:22px;background:#fff;border-radius:13px;min-width:0}
+.vgo-panel-heading{display:flex;gap:10px;align-items:center;color:#244784}
+.vgo-panel-heading h3{font-size:19px;letter-spacing:-.025em;color:#152e65}
+.vgo-panel>p{font-size:12px;line-height:1.75;color:#78869c;margin:13px 0}
+.vgo-empty{padding:21px;border:1px dashed #cdd9e7;background:#f8fafc;border-radius:11px;font-size:13px;color:#637390;display:flex;flex-direction:column;gap:9px;align-items:start;line-height:1.7}
+.vgo-empty svg{color:#b78a4a}.vgo-empty strong{color:#213c76}
+.vgo-marks-list{display:grid;gap:9px;margin-top:18px}
+.vgo-mark{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:13px;border:1px solid #e8ecf4;border-radius:10px}
+.vgo-mark>div{display:flex;flex-direction:column;gap:5px}
+.vgo-mark>div:last-child{text-align:right}
+.vgo-mark strong{color:#1b376b;font-size:13px}.vgo-mark small{color:#7b8da6;font-size:11px}
+.vgo-marks-form{border-top:1px solid #e5eaf2;padding-top:19px;margin-top:23px;display:flex;flex-direction:column;gap:9px}
+.vgo-marks-form h4{font-size:17px;color:#19376e;margin:0}
+.vgo-marks-form p{font-size:12px;color:#7c8a9e;line-height:1.6}
+.vgo-marks-form label{display:block;font-weight:750;font-size:12px;margin:6px 0;color:#3b4c70}
+.vgo-marks-form input,.vgo-marks-form select{width:100%;border:1px solid #cbd6e5;border-radius:8px;min-height:42px;padding:10px 12px;color:#253d69;background:#fff}
+.vgo-form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.vgo-marks-form button{display:flex;align-items:center;justify-content:center;gap:10px;background:#193a7b;color:#fff;border:0;border-radius:8px;padding:12px 15px;min-height:44px;cursor:pointer;font-weight:750;margin-top:8px}
+.vgo-marks-form button:disabled{opacity:.45;cursor:not-allowed}
+.vgo-note{display:flex;align-items:flex-start;gap:10px;margin-top:21px;background:#eef3fc;padding:15px;color:#3f5a86;font-size:12px;line-height:1.6;border-radius:10px}
+.vgo-note svg{flex-shrink:0;margin-top:2px}
+.vgo-error{border:1px solid #f1bab5;background:#fff3f1;color:#9f3731;padding:12px;border-radius:10px}
+.vgo-notice{border:1px solid #a8dac2;background:#ecfbf3;color:#26744e;padding:12px;border-radius:10px}
+.vgo :is(button,input,select):focus-visible{outline:3px solid #e8bc73;outline-offset:2px}
+@media(max-width:850px){.vgo-panels{grid-template-columns:1fr}.vgo-header{padding:18px}.vgo-identity{padding:17px}}
+@media(max-width:530px){.vgo-header h2{font-size:27px}.vgo-form-row{grid-template-columns:1fr}.vgo-track{grid-template-columns:repeat(10,115px)}.vgo-panel{padding:16px}}
