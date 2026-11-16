@@ -60,6 +60,7 @@ export const OneGrade1AiVideoPlayer: React.FC<Props> = ({ video, lessonTitle }) 
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [audioError, setAudioError] = useState(false);
+  const [phonicsQuestionAnswer, setPhonicsQuestionAnswer] = useState<number | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -263,15 +264,15 @@ export const OneGrade1AiVideoPlayer: React.FC<Props> = ({ video, lessonTitle }) 
       <div className="vg1-video-header">
         <div className="vg1-video-header-badge">
           <Clapperboard size={16} />
-          <span>VAYENTRA AI STUDIO · CLASS 1 MRIDANG</span>
+          <span>VAYENTRA FOUNDATION STUDIO · CLASS 1 MRIDANG</span>
         </div>
         <div className="vg1-video-header-right">
           <span>Scene {activeSceneIndex + 1} of {scenes.length}</span>
-          <span className="chip" style={{ background: '#0369a1', color: '#e0f2fe', padding: '2px 8px', fontSize: '11px', borderRadius: '4px' }}>
-            HD 1080p
+          <span className="chip" style={{ background: '#065f46', color: '#ecfdf5', padding: '2px 8px', fontSize: '11px', borderRadius: '4px', fontWeight: 600 }}>
+            Curriculum Aligned
           </span>
-          <span style={{ color: '#22c55e', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <CheckCircle2 size={13} /> NCERT Verified
+          <span style={{ color: '#d97706', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '11px', fontWeight: 600 }}>
+            Educator Reviewed · Owner Sign-Off Pending
           </span>
         </div>
       </div>
@@ -783,6 +784,87 @@ export const OneGrade1AiVideoPlayer: React.FC<Props> = ({ video, lessonTitle }) 
               <span>{sc.title.split(':')[0]}</span>
             </button>
           ))}
+        </div>
+
+        {/* Phonics & Vocabulary Interactive Practice Section */}
+        <div style={{ marginTop: '20px', padding: '16px', background: '#0f172a', borderRadius: '10px', border: '1px solid #1e293b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontWeight: 700, fontSize: '14px' }}>
+              <Sparkles size={16} />
+              <span>Phonics Practice & Action Words (Class 1 Mridang)</span>
+            </div>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Tap any word to practice sound</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+            {[
+              { word: 'CLAP', phonics: '/kl/ · /æ/ · /p/', meaning: 'Two little hands', sound: 'clap' },
+              { word: 'TAP', phonics: '/t/ · /æ/ · /p/', meaning: 'Two little feet', sound: 'tap' },
+              { word: 'SMILE', phonics: '/sm/ · /aɪ/ · /l/', meaning: 'One happy mouth', sound: 'smile' },
+              { word: 'CLEAN', phonics: '/kl/ · /iː/ · /n/', meaning: 'Wash with water', sound: 'clean' }
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                    const u = new SpeechSynthesisUtterance(p.word);
+                    u.lang = 'en-IN';
+                    u.rate = 0.8;
+                    window.speechSynthesis.speak(u);
+                  }
+                }}
+                style={{
+                  background: '#1e293b',
+                  border: '1px solid #334155',
+                  borderRadius: '8px',
+                  padding: '10px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  color: '#f8fafc',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <div style={{ fontSize: '15px', fontWeight: 800, color: '#facc15' }}>{p.word}</div>
+                <div style={{ fontSize: '12px', color: '#38bdf8', fontFamily: 'monospace' }}>{p.phonics}</div>
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>{p.meaning}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Interactive Quick Comprehension Check with Corrective Feedback */}
+        <div style={{ marginTop: '14px', padding: '16px', background: '#0f172a', borderRadius: '10px', border: '1px solid #1e293b' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>
+            Quick Phonics Check: Which action do our feet do in the song?
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['Tap, tap, tap', 'Fly in the sky', 'Sleep all day'].map((opt, optIdx) => (
+              <button
+                key={optIdx}
+                type="button"
+                onClick={() => setPhonicsQuestionAnswer(optIdx)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  border: phonicsQuestionAnswer === optIdx ? '2px solid #38bdf8' : '1px solid #334155',
+                  background: phonicsQuestionAnswer === optIdx ? '#0369a1' : '#1e293b',
+                  color: '#fff',
+                  cursor: 'pointer'
+                }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          {phonicsQuestionAnswer !== null && (
+            <div style={{ marginTop: '10px', fontSize: '12px', color: phonicsQuestionAnswer === 0 ? '#4ade80' : '#f87171' }}>
+              {phonicsQuestionAnswer === 0
+                ? '⭐ Correct! "Two little feet go tap, tap, tap!"'
+                : '💡 Look again: In the song, our feet tap softly on the floor!'}
+            </div>
+          )}
         </div>
       </div>
     </div>

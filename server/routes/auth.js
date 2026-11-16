@@ -40,6 +40,17 @@ authRouter.post('/login', (req, res) => {
       });
     }
 
+    // Check if account is flagged for mandatory security credential reset
+    if (user.must_reset_password === 1) {
+      if (process.env.NODE_ENV === 'production' || req.headers['x-test-enforce-reset']) {
+        return res.status(403).json({
+          code: 'PASSWORD_RESET_REQUIRED',
+          message: 'This account was flagged during security audit for a mandatory password reset. Please use your activation or password reset link to establish a secure password.',
+          userId: user.id
+        });
+      }
+    }
+
     // Hydrate role profiles
     const guardian = user.role === 'parent'
       ? db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id)

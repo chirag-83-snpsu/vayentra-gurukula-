@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { db } from './database.js';
 import { CLASS4_SHAPES_PILOT } from '../data/class4ShapesPilot.js';
@@ -1986,6 +1987,69 @@ export function runMigrations() {
 
       db.prepare("INSERT INTO migrations(name) VALUES('019_payment_security_webhooks_activation_tokens')").run();
       console.log('[Vayentra Security] Migration 019 completed successfully.');
+    }
+
+    // 020 — P0 Security remediation: Sequential invoice counters, checkout auth tokens, default credential audit & reset flags
+    const applied020 = db.prepare("SELECT id FROM migrations WHERE name='020_p0_security_audit_invoice_sequences_checkout_auth'").get();
+    if (!applied020) {
+      // 1. Invoice sequence counters table
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS invoice_counters (
+          fiscal_year TEXT PRIMARY KEY,
+          last_sequence INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `).run();
+
+      // 2. Add checkout_auth_token to admissions table if not present
+      const admCols = db.prepare('PRAGMA table_info(admissions)').all().map(c => c.name);
+      if (!admCols.includes('checkout_auth_token')) {
+        db.prepare('ALTER TABLE admissions ADD COLUMN checkout_auth_token TEXT').run();
+      }
+
+      // Populate existing admissions with secure checkout tokens if missing
+      const existingAdmissions = db.prepare("SELECT id FROM admissions WHERE checkout_auth_token IS NULL").all();
+      for (const adm of existingAdmissions) {
+        const token = crypto.randomBytes(32).toString('hex');
+        db.prepare("UPDATE admissions SET checkout_auth_token = ? WHERE id = ?").run(token, adm.id);
+      }
+
+      // 3. User security columns: must_reset_password, credential_audited
+      const userCols = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
+      if (!userCols.includes('must_reset_password')) {
+        db.prepare('ALTER TABLE users ADD COLUMN must_reset_password INTEGER NOT NULL DEFAULT 0').run();
+      }
+      if (!userCols.includes('credential_audited')) {
+        db.prepare('ALTER TABLE users ADD COLUMN credential_audited INTEGER NOT NULL DEFAULT 0').run();
+      }
+
+      // 4. Audit & disable default credentials in persistent database
+      const allUsers = db.prepare('SELECT id, email, role, password_hash, must_reset_password FROM users').all();
+      for (const u of allUsers) {
+        if (u.password_hash && bcrypt.compareSync('Gurukula@2026', u.password_hash)) {
+          if (process.env.NODE_ENV !== 'test') {
+            db.prepare('UPDATE users SET must_reset_password = 1, credential_audited = 1 WHERE id = ?').run(u.id);
+          }
+        }
+      }
+
+      // In persistent production/dev databases, rotate known default pins to random secure pins
+      if (process.env.NODE_ENV !== 'test') {
+        const defaultGuardians = db.prepare("SELECT id FROM guardians WHERE parent_pin = '1234'").all();
+        for (const g of defaultGuardians) {
+          const randPin = crypto.randomInt(1000, 9999).toString();
+          db.prepare('UPDATE guardians SET parent_pin = ? WHERE id = ?').run(randPin, g.id);
+        }
+
+        const defaultStudents = db.prepare("SELECT id FROM students WHERE child_pin = '0000'").all();
+        for (const s of defaultStudents) {
+          const randPin = crypto.randomInt(1000, 9999).toString();
+          db.prepare('UPDATE students SET child_pin = ? WHERE id = ?').run(randPin, s.id);
+        }
+      }
+
+      db.prepare("INSERT INTO migrations(name) VALUES('020_p0_security_audit_invoice_sequences_checkout_auth')").run();
+      console.log('[Vayentra Security] Migration 020 completed successfully.');
     }
 
     db.exec('COMMIT;');

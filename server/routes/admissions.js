@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import crypto, { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { db } from '../db/database.js';
-import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { authenticateToken, requireRole, JWT_SECRET } from '../middleware/auth.js';
 import { ANNUAL_PRICE_INR } from '../services/subscriptionService.js';
 
 export const admissionsRouter = Router();
@@ -223,16 +224,21 @@ admissionsRouter.post('/apply', (req, res) => {
       ) VALUES (?, ?, ?, ?, 'student_activation', ?, 0)
     `).run(activationToken, studentUserId, studentId, guardian.id, activationExpiresAt);
 
-    // 8. Record in admissions table
+    // 8. Generate secure one-time checkout authorization token
+    const checkoutToken = crypto.randomBytes(32).toString('hex');
+
+    // 9. Record in admissions table
     db.prepare(`
       INSERT INTO admissions (
         id, guardian_id, guardian_name, guardian_phone, guardian_email,
         student_id, student_name, grade, board, medium, school_name,
-        academic_year, consent_given, consent_ip, verification_status, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '2026-27', 1, ?, 'verified', 'payment_pending')
+        academic_year, consent_given, consent_ip, verification_status, status,
+        checkout_auth_token
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '2026-27', 1, ?, 'verified', 'payment_pending', ?)
     `).run(
       admissionId, guardian.id, guardianName, phone, email || null,
-      studentId, studentName, grade, board, medium, schoolName, ip
+      studentId, studentName, grade, board, medium, schoolName, ip,
+      checkoutToken
     );
 
     db.exec('COMMIT');
@@ -250,7 +256,8 @@ admissionsRouter.post('/apply', (req, res) => {
       academicYear: '2026-27',
       annualFeeInr: ANNUAL_PRICE_INR,
       status: 'payment_pending',
-      checkoutUrl: `/checkout?admissionId=${admissionId}`,
+      checkoutToken,
+      checkoutUrl: `/checkout?admissionId=${admissionId}&token=${checkoutToken}`,
       activation: {
         token: activationToken,
         expiresAt: activationExpiresAt,
@@ -288,12 +295,68 @@ admissionsRouter.get('/:id', (req, res) => {
       return res.status(404).json({ code: 'ADMISSION_NOT_FOUND', message: 'Admission reference not found.' });
     }
 
+    // Authorization & Ownership Verification
+    let isAuthorized = false;
+    let isMasked = false;
+
+    // Check JWT Bearer token if provided
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+        if (decoded.role === 'admin') {
+          isAuthorized = true;
+        } else if (decoded.role === 'parent' && (decoded.guardianId === record.guardian_id || decoded.userId === record.guardian_id)) {
+          isAuthorized = true;
+        }
+      } catch (e) {}
+    }
+
+    // Check checkout auth token (query param ?token=... or header X-Checkout-Token)
+    const token = req.query.token || req.query.checkoutToken || req.headers['x-checkout-token'];
+    if (token && record.checkout_auth_token && token === record.checkout_auth_token) {
+      isAuthorized = true;
+      isMasked = true; // Mask sensitive contact details for token-based checkout view
+    }
+
+    if (!isAuthorized) {
+      // Sensitive Admission Lookup Restriction:
+      // Anonymous users or prospective parents without checkout token can only view public non-sensitive admission status.
+      // Sensitive contact information (guardian phone, email, credentials, student canonical ID) is strictly stripped.
+      return res.json({
+        admission: {
+          id: record.id,
+          studentName: record.student_name,
+          enrollmentNumber: record.enrollment_number,
+          grade: record.grade,
+          board: record.board,
+          medium: record.medium,
+          schoolName: record.school_name,
+          academicYear: record.academic_year,
+          status: record.status,
+          verificationStatus: record.verification_status,
+          entitlementStatus: record.entitlement_status,
+          subscriptionStatus: record.subscription_status,
+          subscriptionExpiry: record.subscription_expiry,
+          annualFeeInr: ANNUAL_PRICE_INR,
+          isPublicView: true
+        }
+      });
+    }
+
+    const maskedPhone = record.guardian_phone
+      ? (record.guardian_phone.length > 4 ? '******' + record.guardian_phone.slice(-4) : '******')
+      : null;
+    const maskedEmail = record.guardian_email
+      ? record.guardian_email.replace(/^([^@]{1,2})[^@]*(@.*)$/, '$1***$2')
+      : null;
+
     res.json({
       admission: {
         id: record.id,
-        guardianName: record.guardian_name,
-        guardianPhone: record.guardian_phone,
-        guardianEmail: record.guardian_email,
+        guardianName: isMasked ? (record.guardian_name ? record.guardian_name.split(' ')[0] + ' (Guardian)' : 'Guardian') : record.guardian_name,
+        guardianPhone: isMasked ? maskedPhone : record.guardian_phone,
+        guardianEmail: isMasked ? maskedEmail : record.guardian_email,
         studentId: record.student_id,
         studentName: record.student_name,
         enrollmentNumber: record.enrollment_number,

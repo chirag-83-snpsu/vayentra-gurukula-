@@ -29,7 +29,7 @@ export function getBillingTaxConfig() {
       annualPriceInr: ANNUAL_PRICE_INR,
       annualPricePaise: ANNUAL_PRICE_PAISE,
       currency: 'INR',
-      legalName: process.env.BUSINESS_LEGAL_NAME || 'Vayentra Gurukula Private Limited',
+      legalName: process.env.BUSINESS_LEGAL_NAME || 'Vayentra Ventures Pvt. Ltd.',
       gstin: null,
       sacCode: '9992',
       gstRatePercent: null,
@@ -41,7 +41,7 @@ export function getBillingTaxConfig() {
   const gstin = process.env.BUSINESS_GSTIN;
   const sacCode = process.env.BUSINESS_SAC_CODE || '9992';
   const gstRate = Number(process.env.GST_RATE_PERCENT || 18);
-  const legalName = process.env.BUSINESS_LEGAL_NAME || 'Vayentra Gurukula Private Limited';
+  const legalName = process.env.BUSINESS_LEGAL_NAME || 'Vayentra Ventures Pvt. Ltd.';
   const billingAddress = process.env.BUSINESS_BILLING_ADDRESS || 'Bengaluru, Karnataka, India';
   const stateCode = process.env.BUSINESS_STATE_CODE || '29 (Karnataka)';
 
@@ -103,8 +103,8 @@ export function buildReceiptOrInvoice({ payment, guardian, student, forceOfficia
       serviceDescription: 'Vayentra Gurukula Annual Foundation Learning Pass (Classes 1-10 Digital Access)',
       sacCode: taxConfig.sacCode,
       supplier: {
-        name: taxConfig.legalName || 'Vayentra Gurukula Private Limited',
-        legalName: taxConfig.legalName || 'Vayentra Gurukula Private Limited',
+        name: taxConfig.legalName || 'Vayentra Ventures Pvt. Ltd.',
+        legalName: taxConfig.legalName || 'Vayentra Ventures Pvt. Ltd.',
         address: taxConfig.billingAddress,
         gstin: taxConfig.gstin,
         stateCode: taxConfig.stateCode
@@ -151,8 +151,8 @@ export function buildReceiptOrInvoice({ payment, guardian, student, forceOfficia
     disclaimer: 'PROVISIONAL FEE RECEIPT — GSTIN and tax breakdown are currently under formal verification with company chartered accountants. Official GST Tax Invoice will be issued upon tax configuration sign-off.',
     serviceDescription: 'Vayentra Gurukula Annual Foundation Learning Pass (Classes 1-10 Digital Access)',
     supplier: {
-      name: taxConfig.legalName || 'Vayentra Gurukula Private Limited',
-      legalName: taxConfig.legalName || 'Vayentra Gurukula Private Limited',
+      name: taxConfig.legalName || 'Vayentra Ventures Pvt. Ltd.',
+      legalName: taxConfig.legalName || 'Vayentra Ventures Pvt. Ltd.',
       status: 'Tax details pending formal accountant sign-off'
     },
     recipient: {
@@ -182,3 +182,31 @@ export function buildReceiptOrInvoice({ payment, guardian, student, forceOfficia
     }
   };
 }
+
+/**
+ * Generate unique, gapless, sequential invoice numbering across fiscal years
+ * E.g., VG-INV-2026-00001, VG-INV-2026-00002
+ */
+export function getNextSequentialInvoiceNumber(dbInstance, fiscalYear = '2026-27') {
+  dbInstance.prepare(`
+    CREATE TABLE IF NOT EXISTS invoice_counters (
+      fiscal_year TEXT PRIMARY KEY,
+      last_sequence INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `).run();
+
+  const yearPrefix = fiscalYear.split('-')[0] || '2026';
+  const row = dbInstance.prepare(`
+    INSERT INTO invoice_counters (fiscal_year, last_sequence, updated_at)
+    VALUES (?, 1, datetime('now'))
+    ON CONFLICT(fiscal_year) DO UPDATE SET
+      last_sequence = last_sequence + 1,
+      updated_at = datetime('now')
+    RETURNING fiscal_year, last_sequence
+  `).get(fiscalYear);
+
+  const seq = String(row.last_sequence).padStart(5, '0');
+  return `VG-INV-${yearPrefix}-${seq}`;
+}
+

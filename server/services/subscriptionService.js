@@ -3,9 +3,9 @@ import { db, withTransaction } from '../db/database.js';
 import { ANNUAL_PRICE_INR, ANNUAL_PRICE_PAISE } from './billingConfig.js';
 
 export { ANNUAL_PRICE_INR, ANNUAL_PRICE_PAISE };
-export const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_vayentra_gurukula';
-export const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'vayentra_razorpay_secret_test_2026';
-export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'vayentra_webhook_secret_test_2026';
+export const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || (process.env.NODE_ENV === 'test' ? 'rzp_test_fixture_key' : '');
+export const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || (process.env.NODE_ENV === 'test' ? 'fixture_secret_test_2026' : '');
+export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || (process.env.NODE_ENV === 'test' ? 'fixture_webhook_test_2026' : '');
 
 /**
  * Check whether a student has an active paid subscription or pilot grant.
@@ -95,28 +95,40 @@ export function checkStudentEntitlement(studentId) {
  * Validate Razorpay payment signature via HMAC SHA-256
  */
 export function verifyRazorpaySignature(orderId, paymentId, signature, secret = RAZORPAY_KEY_SECRET) {
-  if (!orderId || !paymentId || !signature) return false;
-  const hmac = crypto.createHmac('sha256', secret);
-  hmac.update(`${orderId}|${paymentId}`);
-  const digest = hmac.digest('hex');
-  const bufA = Buffer.from(digest);
-  const bufB = Buffer.from(signature);
-  if (bufA.length !== bufB.length) return false;
-  return crypto.timingSafeEqual(bufA, bufB);
+  if (!orderId || !paymentId || !signature || !secret || typeof secret !== 'string' || !secret.trim()) {
+    return false;
+  }
+  try {
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(`${orderId}|${paymentId}`);
+    const digest = hmac.digest('hex');
+    const bufA = Buffer.from(digest);
+    const bufB = Buffer.from(signature);
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Validate Razorpay webhook signature
  */
 export function verifyWebhookSignature(rawBody, signature, secret = RAZORPAY_WEBHOOK_SECRET) {
-  if (!rawBody || !signature) return false;
-  const hmac = crypto.createHmac('sha256', secret);
-  hmac.update(rawBody);
-  const digest = hmac.digest('hex');
-  const bufA = Buffer.from(digest);
-  const bufB = Buffer.from(signature);
-  if (bufA.length !== bufB.length) return false;
-  return crypto.timingSafeEqual(bufA, bufB);
+  if (!rawBody || !signature || !secret || typeof secret !== 'string' || !secret.trim()) {
+    return false;
+  }
+  try {
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(rawBody);
+    const digest = hmac.digest('hex');
+    const bufA = Buffer.from(digest);
+    const bufB = Buffer.from(signature);
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  } catch {
+    return false;
+  }
 }
 
 /**

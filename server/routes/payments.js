@@ -16,8 +16,13 @@ import {
 import {
   getBillingTaxConfig,
   isTaxConfigApproved,
-  buildReceiptOrInvoice
+  buildReceiptOrInvoice,
+  getNextSequentialInvoiceNumber
 } from '../services/billingConfig.js';
+import {
+  createGatewayOrder,
+  fetchGatewayPayment
+} from '../services/razorpayClient.js';
 
 export const paymentsRouter = Router();
 
@@ -65,7 +70,7 @@ paymentsRouter.get('/config', (_req, res) => {
  * 2. Create Razorpay Order
  * Accessible by Parents, Admins, or prospective parents during admission
  */
-function handleCreateOrder(req, res, authenticatedGuardianId = null, role = null) {
+async function handleCreateOrder(req, res, authenticatedGuardianId = null, role = null) {
   const { studentId, admissionId } = req.body;
   let guardianId = authenticatedGuardianId || req.body.guardianId;
 
@@ -84,6 +89,20 @@ function handleCreateOrder(req, res, authenticatedGuardianId = null, role = null
     if (!admission) {
       return res.status(404).json({ code: 'ADMISSION_NOT_FOUND', message: 'Admission record not found.' });
     }
+
+    // Require valid admission ownership or secure one-time checkout authorization
+    const checkoutToken = req.body.checkoutToken || req.headers['x-checkout-token'] || req.query.token;
+    const isOwnerGuardian = role === 'parent' && guardianId && admission.guardian_id === guardianId;
+    const isAdmin = role === 'admin';
+    const hasValidToken = Boolean(checkoutToken && admission.checkout_auth_token && checkoutToken === admission.checkout_auth_token);
+
+    if (!isOwnerGuardian && !isAdmin && !hasValidToken) {
+      return res.status(403).json({
+        code: 'CHECKOUT_UNAUTHORIZED',
+        message: 'Valid checkout authorization token or guardian sign-in is required to purchase this admission subscription.'
+      });
+    }
+
     student = {
       id: admission.student_id,
       guardian_id: admission.guardian_id,
@@ -97,12 +116,24 @@ function handleCreateOrder(req, res, authenticatedGuardianId = null, role = null
   }
 
   try {
-    const orderId = `order_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
-    const invoiceNumber = `VG-INV-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+    const invoiceNumber = getNextSequentialInvoiceNumber(db);
     const taxConfig = getBillingTaxConfig();
     const gstInr = taxConfig.approved ? taxConfig.gstInr : 0;
     const baseInr = taxConfig.approved ? taxConfig.baseInr : ANNUAL_PRICE_INR;
 
+    // Create order through gateway adapter (official Razorpay API or verified sandbox)
+    const gatewayOrder = await createGatewayOrder({
+      amountPaise: ANNUAL_PRICE_PAISE,
+      currency: 'INR',
+      receipt: invoiceNumber,
+      notes: {
+        studentId: student.id,
+        guardianId: guardianId || 'par-001',
+        admissionId: admissionId || ''
+      }
+    });
+
+    const orderId = gatewayOrder.orderId;
     const paymentRecordId = `payrec-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
     db.prepare(`
       INSERT INTO payments (
@@ -150,7 +181,7 @@ paymentsRouter.post('/orders', (req, res) => {
 /**
  * Atomic transaction helper for payment capture and subscription activation
  */
-function captureAndActivate({ paymentRecordId, razorpay_payment_id, razorpay_signature, studentId, guardianId, orderId, amountInr }) {
+function captureAndActivate({ paymentRecordId, razorpay_payment_id, razorpay_signature, studentId, guardianId, orderId, amountInr, admissionId }) {
   return withTransaction(() => {
     db.prepare(`
       UPDATE payments
@@ -171,7 +202,28 @@ function captureAndActivate({ paymentRecordId, razorpay_payment_id, razorpay_sig
       method: 'razorpay'
     });
 
-    db.prepare("UPDATE admissions SET status = 'enrolled' WHERE student_id = ?").run(studentId);
+    if (admissionId) {
+      db.prepare(`
+        UPDATE admissions
+        SET status = 'enrolled',
+            updated_at = datetime('now')
+        WHERE id = ?
+      `).run(admissionId);
+    } else {
+      db.prepare(`
+        UPDATE admissions
+        SET status = 'enrolled',
+            updated_at = datetime('now')
+        WHERE student_id = ? AND status = 'payment_pending'
+      `).run(studentId);
+    }
+
+    db.prepare(`
+      UPDATE one_memberships
+      SET entitlement_status = 'enabled',
+          updated_at = datetime('now')
+      WHERE student_id = ?
+    `).run(studentId);
 
     return activation;
   });
@@ -180,8 +232,8 @@ function captureAndActivate({ paymentRecordId, razorpay_payment_id, razorpay_sig
 /**
  * 3. Verify Razorpay Payment Signature & Activate Subscription
  */
-function handleVerifyPayment(req, res, authUser = null) {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, studentId } = req.body;
+async function handleVerifyPayment(req, res, authUser = null) {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, studentId, admissionId } = req.body;
 
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !studentId) {
     return res.status(400).json({
@@ -205,15 +257,18 @@ function handleVerifyPayment(req, res, authUser = null) {
     });
   }
 
-  // 2. Fetch payment record
+  // 2. Fetch payment record & verify server pricing
   const payment = db.prepare('SELECT * FROM payments WHERE order_id = ?').get(razorpay_order_id);
   if (!payment) {
     return res.status(404).json({ code: 'PAYMENT_RECORD_NOT_FOUND', message: 'Matching order record not found.' });
   }
 
-  const guardianId = authUser?.guardianId || payment.guardian_id || 'par-001';
+  // Verify student match
+  if (payment.student_id !== studentId) {
+    return res.status(400).json({ code: 'STUDENT_MISMATCH', message: 'Payment order belongs to a different student.' });
+  }
 
-  // 3. Strict backend amount check (Must match server trusted pricing)
+  // Strict backend amount check (Must match server trusted pricing)
   if (payment.amount_inr !== ANNUAL_PRICE_INR) {
     return res.status(400).json({
       code: 'WRONG_PAYMENT_AMOUNT',
@@ -221,7 +276,52 @@ function handleVerifyPayment(req, res, authUser = null) {
     });
   }
 
-  // 4. Idempotency Check: if already captured for this exact order & paymentId, return existing active state
+  // 3. Independently retrieve payment from Gateway (Never activate based only on HMAC callback)
+  const gatewayPayment = await fetchGatewayPayment(razorpay_payment_id);
+  if (!gatewayPayment) {
+    return res.status(400).json({
+      code: 'GATEWAY_PAYMENT_NOT_FOUND',
+      message: 'Payment record could not be confirmed with the payment gateway.'
+    });
+  }
+
+  if (gatewayPayment.status !== 'captured' && gatewayPayment.captured !== true) {
+    db.prepare(`
+      UPDATE payments
+      SET status = 'failed', failure_reason = ?, razorpay_payment_id = ?
+      WHERE order_id = ?
+    `).run(`Gateway payment status is ${gatewayPayment.status}, not captured`, razorpay_payment_id, razorpay_order_id);
+
+    return res.status(400).json({
+      code: 'GATEWAY_PAYMENT_NOT_CAPTURED',
+      message: `Gateway reports payment status as '${gatewayPayment.status}'. Subscriptions can only be activated for captured payments.`
+    });
+  }
+
+  if (gatewayPayment.amount !== ANNUAL_PRICE_PAISE) {
+    return res.status(400).json({
+      code: 'GATEWAY_AMOUNT_MISMATCH',
+      message: 'Payment amount does not match server pricing.'
+    });
+  }
+
+  if (gatewayPayment.currency && gatewayPayment.currency !== 'INR') {
+    return res.status(400).json({
+      code: 'GATEWAY_CURRENCY_MISMATCH',
+      message: 'Payment currency must be INR.'
+    });
+  }
+
+  if (gatewayPayment.order_id && gatewayPayment.order_id !== razorpay_order_id) {
+    return res.status(400).json({
+      code: 'GATEWAY_ORDER_MISMATCH',
+      message: 'Gateway payment is attached to a different order.'
+    });
+  }
+
+  const guardianId = authUser?.guardianId || payment.guardian_id || 'par-001';
+
+  // 5. Idempotency Check: if already captured for this exact order & paymentId, return existing active state
   if (payment.status === 'Captured' && payment.payment_id === razorpay_payment_id) {
     const entitlement = checkStudentEntitlement(studentId);
     return res.json({
@@ -237,7 +337,7 @@ function handleVerifyPayment(req, res, authUser = null) {
     });
   }
 
-  // 5. Prevent Replay Attack: check if this razorpay_payment_id was already captured on ANY other order
+  // 6. Prevent Replay Attack: check if this razorpay_payment_id was already captured on ANY other order
   const alreadyUsedPayment = db.prepare(`
     SELECT id, order_id, status FROM payments 
     WHERE razorpay_payment_id = ? AND status = 'Captured' AND id != ?
@@ -250,7 +350,7 @@ function handleVerifyPayment(req, res, authUser = null) {
     });
   }
 
-  // 6. Execute atomic capture & subscription activation
+  // 7. Execute atomic capture & subscription activation
   try {
     const activation = captureAndActivate({
       paymentRecordId: payment.id,
@@ -259,7 +359,8 @@ function handleVerifyPayment(req, res, authUser = null) {
       studentId,
       guardianId,
       orderId: razorpay_order_id,
-      amountInr: payment.amount_inr
+      amountInr: payment.amount_inr,
+      admissionId: admissionId || null
     });
 
     const student = db.prepare('SELECT id, name, grade, board, enrollment_number FROM students WHERE id = ?').get(studentId);
@@ -324,6 +425,20 @@ function webhookCapture({ paymentRecordId, paymentId, eventId, method, studentId
         amountInr,
         method
       });
+
+      db.prepare(`
+        UPDATE admissions
+        SET status = 'enrolled',
+            updated_at = datetime('now')
+        WHERE student_id = ? AND status = 'payment_pending'
+      `).run(studentId);
+
+      db.prepare(`
+        UPDATE one_memberships
+        SET entitlement_status = 'enabled',
+            updated_at = datetime('now')
+        WHERE student_id = ?
+      `).run(studentId);
     }
   });
 }
@@ -333,19 +448,27 @@ function webhookCapture({ paymentRecordId, paymentId, eventId, method, studentId
  */
 paymentsRouter.post('/webhook', (req, res) => {
   const signature = req.headers['x-razorpay-signature'];
+  if (!signature) {
+    return res.status(400).json({ code: 'MISSING_WEBHOOK_SIGNATURE', message: 'x-razorpay-signature header is mandatory.' });
+  }
+
+  const rawBody = req.rawBody;
+  if (!rawBody || typeof rawBody !== 'string') {
+    return res.status(400).json({ code: 'RAW_BODY_MISSING', message: 'Raw request body is required for cryptographic HMAC verification.' });
+  }
+
   const event = req.body?.event;
   const payload = req.body?.payload?.payment?.entity;
 
-  if (!signature || !event) {
-    return res.status(400).json({ code: 'INVALID_WEBHOOK_PAYLOAD', message: 'Incomplete webhook notification.' });
+  if (!event) {
+    return res.status(400).json({ code: 'INVALID_WEBHOOK_PAYLOAD', message: 'Incomplete webhook notification event.' });
   }
 
   // Strict HMAC signature check on raw request body
-  const rawBody = req.rawBody || JSON.stringify(req.body);
   const isValid = verifyWebhookSignature(rawBody, signature);
   if (!isValid) {
     console.warn('[Razorpay Webhook] Invalid webhook signature detected.');
-    return res.status(400).json({ code: 'INVALID_WEBHOOK_SIGNATURE' });
+    return res.status(400).json({ code: 'INVALID_WEBHOOK_SIGNATURE', message: 'Webhook signature validation failed.' });
   }
 
   const orderId = payload?.order_id || req.body?.payload?.order?.entity?.id;
@@ -446,10 +569,26 @@ paymentsRouter.post('/webhook', (req, res) => {
 });
 
 /**
- * 5. Get Student Subscription Status
+ * 5. Get Student Subscription Status (Protected by Family Ownership Boundary)
  */
 paymentsRouter.get('/student/:studentId/status', authenticateToken, (req, res) => {
   const { studentId } = req.params;
+  const user = req.user;
+
+  if (user.role === 'parent') {
+    const student = db.prepare('SELECT guardian_id FROM students WHERE id = ?').get(studentId);
+    if (!student || student.guardian_id !== user.guardianId) {
+      return res.status(403).json({ code: 'STUDENT_ACCESS_DENIED', message: 'You can only view status for your linked children.' });
+    }
+  } else if (user.role === 'student') {
+    const link = db.prepare('SELECT student_id FROM one_student_account_links WHERE user_id = ?').get(user.id);
+    if (!link || link.student_id !== studentId) {
+      return res.status(403).json({ code: 'STUDENT_ACCESS_DENIED', message: 'You can only view your own status.' });
+    }
+  } else if (user.role !== 'admin') {
+    return res.status(403).json({ code: 'ACCESS_DENIED' });
+  }
+
   const status = checkStudentEntitlement(studentId);
   res.json(status);
 });
@@ -539,6 +678,13 @@ paymentsRouter.get('/receipt/:paymentId', authenticateToken, (req, res) => {
       return res.status(403).json({ code: 'RECEIPT_ACCESS_DENIED' });
     }
 
+    if (req.user.role === 'student') {
+      const link = db.prepare('SELECT student_id FROM one_student_account_links WHERE user_id = ?').get(req.user.id);
+      if (!link || link.student_id !== payment.student_id) {
+        return res.status(403).json({ code: 'RECEIPT_ACCESS_DENIED' });
+      }
+    }
+
     const receipt = buildReceiptOrInvoice({
       payment,
       guardian: { name: payment.guardian_name, email: payment.guardian_email, mobile: payment.guardian_phone },
@@ -576,6 +722,13 @@ paymentsRouter.get('/invoice/:paymentId', authenticateToken, (req, res) => {
 
     if (req.user.role === 'parent' && req.user.guardianId && req.user.guardianId !== payment.guardian_id) {
       return res.status(403).json({ code: 'INVOICE_ACCESS_DENIED' });
+    }
+
+    if (req.user.role === 'student') {
+      const link = db.prepare('SELECT student_id FROM one_student_account_links WHERE user_id = ?').get(req.user.id);
+      if (!link || link.student_id !== payment.student_id) {
+        return res.status(403).json({ code: 'INVOICE_ACCESS_DENIED' });
+      }
     }
 
     try {
