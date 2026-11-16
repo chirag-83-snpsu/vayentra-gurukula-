@@ -58,13 +58,13 @@ export function initDatabase() {
     CREATE TABLE IF NOT EXISTS guardians (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL UNIQUE,
-      parent_pin TEXT NOT NULL DEFAULT '1234',
+      parent_pin TEXT NOT NULL DEFAULT 'DISABLED_UNSET_PIN',
       subscription_status TEXT NOT NULL DEFAULT 'Active',
       plan_name TEXT NOT NULL DEFAULT 'Annual Gurukula Pro + AI Tutor',
       renewal_date TEXT NOT NULL DEFAULT '2027-04-10',
       outstanding_fee REAL NOT NULL DEFAULT 0.0,
       emergency_phone TEXT,
-      verified_adult INTEGER NOT NULL DEFAULT 1,
+      verified_adult INTEGER NOT NULL DEFAULT 0,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
@@ -77,12 +77,12 @@ export function initDatabase() {
       board TEXT NOT NULL DEFAULT 'CBSE',
       medium TEXT NOT NULL DEFAULT 'English',
       school_name TEXT NOT NULL DEFAULT 'Vayentra Gurukula Academy',
-      child_pin TEXT NOT NULL DEFAULT '0000',
+      child_pin TEXT NOT NULL DEFAULT 'DISABLED_UNSET_PIN',
       daily_time_limit_mins INTEGER NOT NULL DEFAULT 45,
       minutes_used_today INTEGER NOT NULL DEFAULT 22,
       bedtime_lock TEXT NOT NULL DEFAULT '21:30',
-      has_consent INTEGER NOT NULL DEFAULT 1,
-      consent_timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+      has_consent INTEGER NOT NULL DEFAULT 0,
+      consent_timestamp TEXT,
       streak_days INTEGER NOT NULL DEFAULT 5,
       stars_earned INTEGER NOT NULL DEFAULT 42,
       points INTEGER NOT NULL DEFAULT 1250,
