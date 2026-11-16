@@ -24,7 +24,7 @@ export const PricingPage: React.FC<PricingProps> = ({
   const faqs = [
     {
       q: 'Is ₹599 for the entire academic year?',
-      a: 'Yes, absolutely. ₹599 covers 365 full calendar days of complete syllabus access, interactive picture scenes, AI thinking courses, and practice assessments for one student. There are zero recurring monthly debits and zero hidden upsells.'
+      a: 'The planned annual pass is ₹599 for 365 days. Paid subscriptions are currently paused during the security review. The pilot will initially focus on reviewed Classes 1–2 content; access and complete coverage will be confirmed before any sale.'
     },
     {
       q: 'Can I enroll multiple children in my family?',
@@ -32,7 +32,7 @@ export const PricingPage: React.FC<PricingProps> = ({
     },
     {
       q: 'Which school boards and classes are supported?',
-      a: 'We support Classes 1 to 10 for both CBSE and Karnataka State Board. Every chapter aligns with official NCERT and KTBS textbooks.'
+      a: 'Classes 1–2 are being prepared for a controlled foundational pilot. Class 3 is under development; Classes 4–10 remain in development. Chapter coverage varies by board and will be listed before enrollment.'
     },
     {
       q: 'How does payment work? Is it secure?',
@@ -81,10 +81,10 @@ export const PricingPage: React.FC<PricingProps> = ({
           <button
             type="button"
             className="btn btn-teal"
-            onClick={() => onAdmissions()}
+            disabled={true} onClick={() => {}}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '8px 16px' }}
           >
-            Enrol Now (₹599) <ArrowRight size={14} />
+            Paid Enrolment Paused
           </button>
         </div>
       </header>
@@ -99,7 +99,7 @@ export const PricingPage: React.FC<PricingProps> = ({
           <Sparkles size={14} /> DEMOCRATIZING QUALITY EDUCATION ACROSS KARNATAKA & INDIA
         </div>
         <h1 style={{ fontSize: '42px', fontWeight: 800, color: 'var(--color-navy-primary)', maxWidth: '780px', margin: '0 auto 16px', lineHeight: 1.2 }}>
-          World-Class Concept Learning for Every Child at Just ₹599 / Year.
+          Foundational Learning Pilot — Classes 1 & 2
         </h1>
         <p style={{ fontSize: '18px', color: 'var(--color-text-subtle)', maxWidth: '640px', margin: '0 auto 32px' }}>
           No ₹50,000 tuition fees. No high-pressure sales calls. Just crystal-clear concepts, verified board textbooks, and child-safe technology.
@@ -119,7 +119,7 @@ export const PricingPage: React.FC<PricingProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
             <div>
               <span className="chip chip-navy" style={{ fontWeight: 700, fontSize: '11px' }}>ANNUAL FOUNDATION PASS</span>
-              <h3 style={{ fontSize: '24px', fontWeight: 800, marginTop: '6px', color: 'var(--color-navy-primary)' }}>Classes 1 to 10</h3>
+              <h3 style={{ fontSize: '24px', fontWeight: 800, marginTop: '6px', color: 'var(--color-navy-primary)' }}>Classes 1–2 Pilot</h3>
               <p style={{ fontSize: '13px', color: 'var(--color-text-subtle)' }}>CBSE & Karnataka State Board</p>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -138,7 +138,7 @@ export const PricingPage: React.FC<PricingProps> = ({
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
             {[
-              'Full Textbook Curriculum (Maths, Science, English, Hindi, Kannada, EVS)',
+              'Selected foundational academic lessons; confirmed coverage shown before launch',
               'Vayentra Original AI & Digital Thinking Enrichment Course',
               'Vayentra Original Financial Literacy & Money Management',
               'Deterministic, child-safe interactive visual scenes (Zero open chatbots)',
@@ -157,10 +157,10 @@ export const PricingPage: React.FC<PricingProps> = ({
           <button
             type="button"
             className="btn btn-teal"
-            onClick={() => onAdmissions()}
+            disabled={true} onClick={() => {}}
             style={{ width: '100%', padding: '14px', fontSize: '16px', fontWeight: 700, justifyContent: 'center' }}
           >
-            Start Student Admission (₹599) <ArrowRight size={18} />
+            Paid Enrolment Paused
           </button>
         </div>
       </section>
