@@ -50,7 +50,7 @@ paymentsRouter.get('/config', (_req, res) => {
       priceInr: ANNUAL_PRICE_INR,
       billingPeriod: 'Annual (365 Days)',
       features: [
-        'Full CBSE & Karnataka State Board curriculum (Classes 1-10)',
+        'Foundational classes 1-2 pilot content only; paid enrolment paused pending security verification',
         'AI & Digital Thinking Enrichment Course',
         'Financial Literacy & Practical Money Skills',
         'On-device read-aloud audio narration (English, Hindi, Kannada)',
@@ -163,6 +163,7 @@ async function handleCreateOrder(req, res, authenticatedGuardianId = null, role 
 }
 
 paymentsRouter.post('/orders', (req, res) => {
+  if (process.env.NODE_ENV !== 'test') return res.status(503).json({ code: 'PAYMENTS_PAUSED_SECURITY_REVIEW', message: 'Paid orders are disabled until security and content release checks are complete.' });
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     authenticateToken(req, res, () => {
