@@ -6,6 +6,19 @@ import { JWT_SECRET, authenticateToken, requireRole } from '../middleware/auth.j
 
 export const authRouter = Router();
 
+// Never serialize child/guardian secrets to the browser, even to the owning account.
+const publicGuardian = guardian => {
+  if (!guardian) return null;
+  const { parent_pin, ...safe } = guardian;
+  return safe;
+};
+const publicStudent = student => {
+  if (!student) return null;
+  const { child_pin, ...safe } = student;
+  return safe;
+};
+
+
 // In-memory challenge store for mobile OTP with TTL
 const otpChallenges = new Map();
 
@@ -96,9 +109,9 @@ authRouter.post('/login', (req, res) => {
         avatar: user.avatar,
         role: user.role
       },
-      guardian,
-      children,
-      activeChild: children[0] || student || null
+      guardian: publicGuardian(guardian),
+      children: children.map(publicStudent),
+      activeChild: publicStudent(children[0] || student)
     });
   } catch (err) {
     console.error('[Auth Login Error]:', err);
@@ -176,9 +189,9 @@ authRouter.get('/me', authenticateToken, (req, res) => {
     res.json({
       success: true,
       user,
-      guardian,
-      children,
-      activeChild: children[0] || student || null
+      guardian: publicGuardian(guardian),
+      children: children.map(publicStudent),
+      activeChild: publicStudent(children[0] || student)
     });
   } catch (err) {
     console.error('[Auth /me Error]:', err);
@@ -204,7 +217,7 @@ authRouter.post('/pin/verify', authenticateToken, (req, res) => {
     return res.status(404).json({ success: false, authorized: false, message: 'Guardian profile not found.' });
   }
 
-  if (pin === guardian.parent_pin) {
+  if (typeof pin === 'string' && /^\d{4}$/.test(pin) && guardian.parent_pin?.startsWith('$2') && bcrypt.compareSync(pin, guardian.parent_pin)) {
     return res.json({ success: true, authorized: true });
   }
 
@@ -368,7 +381,7 @@ authRouter.post('/parent/set-student-credentials', authenticateToken, requireRol
     if (!/^\d{4}$/.test(String(childPin))) {
       return res.status(400).json({ code: 'INVALID_PIN', message: 'Child PIN must be a 4-digit numeric code.' });
     }
-    db.prepare('UPDATE students SET child_pin = ? WHERE id = ?').run(String(childPin), studentId);
+    db.prepare('UPDATE students SET child_pin = ? WHERE id = ?').run(bcrypt.hashSync(String(childPin), 10), studentId);
     updates.push('child_pin');
   }
 
