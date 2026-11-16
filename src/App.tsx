@@ -14,6 +14,9 @@ import { PublicView } from './views/PublicView';
 import { LandingPage } from './views/LandingPage';
 import { StudentLoginPage } from './views/StudentLoginPage';
 import { AdmissionsPage } from './views/AdmissionsPage';
+import { PricingPage } from './views/PricingPage';
+import { CheckoutPage } from './views/CheckoutPage';
+import { LegalPages } from './views/LegalPages';
 
 import { 
   BookOpen, 
@@ -98,40 +101,67 @@ export const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   // Public routes are distinct from the authenticated application shell.
   // Never grant portal access based only on a URL parameter or class selector.
-  const [page, setPage] = useState<'home'|'login'|'explore'|'portal'|'admissions'>(() => {
+  const parsePageFromPath = (): 'home'|'login'|'explore'|'portal'|'admissions'|'pricing'|'checkout'|'terms'|'privacy'|'refund' => {
+    if (typeof window === 'undefined') return 'home';
     const path = window.location.pathname;
     if (path === '/login') return 'login';
     if (path === '/admissions') return 'admissions';
     if (path === '/explore') return 'explore';
+    if (path === '/pricing') return 'pricing';
+    if (path === '/checkout') return 'checkout';
+    if (path === '/terms') return 'terms';
+    if (path === '/privacy') return 'privacy';
+    if (path === '/refund' || path === '/cancellation') return 'refund';
     if (path === '/app') return 'portal';
     return 'home';
-  });
-  const navigate = (next: 'home'|'login'|'explore'|'portal'|'admissions', grade?: number) => {
-    const path = next === 'home' ? '/' : next === 'portal' ? '/app' : '/' + next;
-    const search = next === 'admissions' && grade && grade >= 1 && grade <= 10 ? '?class='+grade : '';
-    window.history.pushState({}, '', path+search);
-    setPage(next);
-    window.scrollTo({top:0});
   };
+
+  const [page, setPage] = useState<'home'|'login'|'explore'|'portal'|'admissions'|'pricing'|'checkout'|'terms'|'privacy'|'refund'>(parsePageFromPath);
+
+  const navigate = (next: 'home'|'login'|'explore'|'portal'|'admissions'|'pricing'|'checkout'|'terms'|'privacy'|'refund', extra?: number | string) => {
+    let path = next === 'home' ? '/' : next === 'portal' ? '/app' : '/' + next;
+    let search = '';
+    if (next === 'admissions' && typeof extra === 'number' && extra >= 1 && extra <= 10) {
+      search = '?class=' + extra;
+    } else if (next === 'checkout' && typeof extra === 'string' && extra.trim()) {
+      search = (extra.startsWith('ADM-') || extra.startsWith('adm-') ? '?admissionId=' : '?studentId=') + encodeURIComponent(extra.trim());
+    }
+    window.history.pushState({}, '', path + search);
+    setPage(next);
+    window.scrollTo({ top: 0 });
+  };
+
   useEffect(() => {
     const onPop = () => {
-      const path = window.location.pathname;
-      setPage(path === '/login' ? 'login' : path === '/explore' ? 'explore' : path === '/app' ? 'portal' : path === '/admissions' ? 'admissions' : 'home');
+      setPage(parsePageFromPath());
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  // Synchronize active workspace role with logged in role
+  useEffect(() => {
+    if (currentUser?.role && role !== currentUser.role) {
+      if (['student', 'parent', 'teacher', 'reviewer', 'admin', 'safeguarding'].includes(currentUser.role)) {
+        setRole(currentUser.role as any);
+      }
+    }
+  }, [currentUser?.role]);
 
-  const navItems = [
-    { id: 'student', label: 'Learn Hub', icon: BookOpen },
-    { id: 'parent', label: 'Family Hub', icon: Users },
-    { id: 'teacher', label: 'Teacher Studio', icon: GraduationCap },
-    { id: 'reviewer', label: 'Reviewer Desk', icon: ClipboardCheck },
-    { id: 'admin', label: 'Admin Console', icon: SlidersHorizontal },
-    { id: 'safeguarding', label: 'Safeguarding', icon: ShieldCheck },
-    { id: 'tech_learner', label: 'Tech Academy', icon: Sparkles }
+  // Priority 2: Strict role-based navigation sidebar
+  // Students only see Learn Hub; parents see Family Hub; staff see assigned desks.
+  const allNavItems = [
+    { id: 'student', label: 'Learn Hub', icon: BookOpen, roles: ['student', 'admin'] },
+    { id: 'parent', label: 'Family Hub', icon: Users, roles: ['parent', 'admin'] },
+    { id: 'teacher', label: 'Teacher Studio', icon: GraduationCap, roles: ['teacher', 'admin'] },
+    { id: 'reviewer', label: 'Reviewer Desk', icon: ClipboardCheck, roles: ['reviewer', 'admin'] },
+    { id: 'admin', label: 'Admin Console', icon: SlidersHorizontal, roles: ['admin'] },
+    { id: 'safeguarding', label: 'Safeguarding', icon: ShieldCheck, roles: ['safeguarding', 'admin'] }
   ];
+
+  const navItems = currentUser
+    ? allNavItems.filter(item => item.roles.includes(currentUser.role))
+    : [];
 
   const hasAccess = (allowedRoles: string[]) => {
     if (!isAuthenticated || !currentUser) return false;
@@ -224,13 +254,72 @@ export const App: React.FC = () => {
     }
   };
 
-  if (page === 'home') return <LandingPage onLogin={() => navigate('login')} onExplore={() => navigate('explore')} onAdmissions={grade => navigate('admissions',grade)} />;
-  if (page === 'admissions') return <AdmissionsPage onBack={() => navigate('home')} onLogin={() => navigate('login')} />;
+  if (page === 'home') {
+    return (
+      <LandingPage
+        onLogin={() => navigate('login')}
+        onExplore={() => navigate('explore')}
+        onAdmissions={grade => navigate('admissions', grade)}
+        onPricing={() => navigate('pricing')}
+        onLegal={type => navigate(type as any)}
+      />
+    );
+  }
+  if (page === 'pricing') {
+    return (
+      <PricingPage
+        onBack={() => navigate('home')}
+        onAdmissions={grade => navigate('admissions', grade)}
+        onLogin={() => navigate('login')}
+        onNavigateLegal={type => navigate(type as any)}
+      />
+    );
+  }
+  if (page === 'admissions') {
+    return (
+      <AdmissionsPage
+        onBack={() => navigate('home')}
+        onLogin={() => navigate('login')}
+        onPricing={() => navigate('pricing')}
+        onCheckout={admId => navigate('checkout', admId)}
+      />
+    );
+  }
+  if (page === 'checkout') {
+    const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const admissionIdParam = searchParams.get('admissionId') || undefined;
+    const studentIdParam = searchParams.get('studentId') || undefined;
+    return (
+      <CheckoutPage
+        admissionId={admissionIdParam}
+        studentId={studentIdParam}
+        onBack={() => navigate('pricing')}
+        onSuccess={() => {
+          // Handled within CheckoutPage with credentials display and receipt download
+        }}
+        onFailed={(err) => {
+          console.warn('[Checkout Failure Alert]:', err);
+        }}
+      />
+    );
+  }
+  if (page === 'terms' || page === 'privacy' || page === 'refund') {
+    return (
+      <LegalPages
+        type={page}
+        onBack={() => navigate('home')}
+        onNavigate={r => navigate(r as any)}
+      />
+    );
+  }
   if (page === 'login') return <StudentLoginPage onBack={() => navigate('home')} onSuccess={() => navigate('portal')} />;
   if (page === 'explore') return <div className="vg-public-explore">
     <header style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:15,padding:'18px 28px',borderBottom:'1px solid #e4e8f1',background:'#fff'}}>
       <button className="ghost" onClick={() => navigate('home')}><Home size={17}/> Back to Home</button>
-      <button className="btn btn-navy" onClick={() => navigate('login')}>Student Login</button>
+      <div style={{display:'flex',gap:10,alignItems:'center'}}>
+        <button className="ghost" onClick={() => navigate('pricing')}>Plans (₹599)</button>
+        <button className="btn btn-navy" onClick={() => navigate('login')}>Student Login</button>
+      </div>
     </header>
     <PublicView />
   </div>;

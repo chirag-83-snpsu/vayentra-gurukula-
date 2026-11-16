@@ -48,12 +48,29 @@ paymentsRouter.get('/config', (_req, res) => {
 });
 
 /**
+ * Test signature generator for non-production environments
+ */
+paymentsRouter.post('/test-signature', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ code: 'TEST_ENDPOINT_FORBIDDEN_IN_PRODUCTION' });
+  }
+  const { orderId, paymentId } = req.body;
+  if (!orderId || !paymentId) {
+    return res.status(400).json({ code: 'MISSING_PARAMS', message: 'orderId and paymentId are required.' });
+  }
+  const hmac = crypto.createHmac('sha256', RAZORPAY_KEY_SECRET);
+  hmac.update(`${orderId}|${paymentId}`);
+  const signature = hmac.digest('hex');
+  res.json({ success: true, signature });
+});
+
+/**
  * 2. Create Razorpay Order
  * Accessible by Parents, Admins, or prospective parents during admission
  */
-paymentsRouter.post('/orders', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
+function handleCreateOrder(req, res, authenticatedGuardianId = null, role = null) {
   const { studentId, admissionId } = req.body;
-  const guardianId = req.user.guardianId || req.body.guardianId || 'par-001';
+  let guardianId = authenticatedGuardianId || req.body.guardianId;
 
   let student;
   if (studentId) {
@@ -61,10 +78,10 @@ paymentsRouter.post('/orders', authenticateToken, requireRole(['parent', 'admin'
     if (!student) {
       return res.status(404).json({ code: 'STUDENT_NOT_FOUND', message: 'Student record not found.' });
     }
-    // Verify guardian ownership if caller is parent
-    if (req.user.role === 'parent' && student.guardian_id !== guardianId) {
+    if (role === 'parent' && guardianId && student.guardian_id !== guardianId) {
       return res.status(403).json({ code: 'STUDENT_ACCESS_DENIED', message: 'You can only purchase subscriptions for your linked children.' });
     }
+    guardianId = guardianId || student.guardian_id;
   } else if (admissionId) {
     const admission = db.prepare('SELECT * FROM admissions WHERE id = ?').get(admissionId);
     if (!admission) {
@@ -77,6 +94,7 @@ paymentsRouter.post('/orders', authenticateToken, requireRole(['parent', 'admin'
       grade: admission.grade,
       board: admission.board
     };
+    guardianId = admission.guardian_id;
   } else {
     return res.status(400).json({ code: 'MISSING_STUDENT_ID', message: 'studentId or admissionId is required.' });
   }
@@ -93,7 +111,7 @@ paymentsRouter.post('/orders', authenticateToken, requireRole(['parent', 'admin'
         id, guardian_id, student_id, plan_id, amount_inr, gst_inr,
         status, order_id, razorpay_order_id, payment_id, invoice_number, currency
       ) VALUES (?, ?, ?, 'plan-annual-599', ?, ?, 'created', ?, ?, 'pending', ?, 'INR')
-    `).run(paymentRecordId, guardianId, student.id, ANNUAL_PRICE_INR, gstInr, orderId, orderId, invoiceNumber);
+    `).run(paymentRecordId, guardianId || 'par-001', student.id, ANNUAL_PRICE_INR, gstInr, orderId, orderId, invoiceNumber);
 
     res.json({
       success: true,
@@ -113,14 +131,29 @@ paymentsRouter.post('/orders', authenticateToken, requireRole(['parent', 'admin'
     console.error('[Payments Create Order Error]:', err);
     res.status(500).json({ code: 'ORDER_CREATION_FAILED', message: 'Unable to initialize payment order.' });
   }
+}
+
+paymentsRouter.post('/orders', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    authenticateToken(req, res, () => {
+      if (req.user.role === 'student') {
+        return res.status(403).json({ code: 'STUDENT_ACCESS_DENIED', message: 'Students cannot initiate checkout orders.' });
+      }
+      handleCreateOrder(req, res, req.user.guardianId, req.user.role);
+    });
+  } else if (req.body.admissionId) {
+    handleCreateOrder(req, res, null, null);
+  } else {
+    return res.status(401).json({ code: 'UNAUTHORIZED', message: 'Authentication or valid admissionId is required.' });
+  }
 });
 
 /**
  * 3. Verify Razorpay Payment Signature & Activate Subscription
  */
-paymentsRouter.post('/verify', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
+function handleVerifyPayment(req, res, authUser = null) {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, studentId } = req.body;
-  const guardianId = req.user.guardianId || req.body.guardianId || 'par-001';
 
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !studentId) {
     return res.status(400).json({
@@ -132,7 +165,6 @@ paymentsRouter.post('/verify', authenticateToken, requireRole(['parent', 'admin'
   // 1. Cryptographic HMAC-SHA256 signature verification
   const isValid = verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
   if (!isValid) {
-    // Record failed attempt
     db.prepare(`
       UPDATE payments
       SET status = 'failed', failure_reason = 'Signature verification mismatch', razorpay_signature = ?
@@ -150,6 +182,8 @@ paymentsRouter.post('/verify', authenticateToken, requireRole(['parent', 'admin'
   if (!payment) {
     return res.status(404).json({ code: 'PAYMENT_RECORD_NOT_FOUND', message: 'Matching order record not found.' });
   }
+
+  const guardianId = authUser?.guardianId || payment.guardian_id || 'par-001';
 
   // 3. Strict backend amount check (Must be ₹599)
   if (payment.amount_inr !== ANNUAL_PRICE_INR) {
@@ -196,6 +230,13 @@ paymentsRouter.post('/verify', authenticateToken, requireRole(['parent', 'admin'
     method: 'razorpay'
   });
 
+  // 7. Update admission status if linked
+  db.prepare("UPDATE admissions SET status = 'enrolled' WHERE student_id = ?").run(studentId);
+
+  // Student credential lookup
+  const student = db.prepare('SELECT id, name, grade, board, enrollment_number FROM students WHERE id = ?').get(studentId);
+  const link = db.prepare('SELECT u.email FROM one_student_account_links l JOIN users u ON u.id = l.user_id WHERE l.student_id = ?').get(studentId);
+
   res.json({
     success: true,
     paymentId: razorpay_payment_id,
@@ -204,9 +245,27 @@ paymentsRouter.post('/verify', authenticateToken, requireRole(['parent', 'admin'
     amountInr: payment.amount_inr,
     gstInr: payment.gst_inr,
     subscription: activation.subscription,
+    studentName: student?.name,
+    studentEmail: link?.email,
+    enrollmentNumber: student?.enrollment_number,
     receiptUrl: `/api/v1/payments/receipt/${payment.id}`,
     message: 'Subscription successfully activated for 365 days.'
   });
+}
+
+paymentsRouter.post('/verify', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    authenticateToken(req, res, () => {
+      if (req.user.role === 'student') {
+        return res.status(403).json({ code: 'STUDENT_ACCESS_DENIED', message: 'Students cannot verify payments.' });
+      }
+      handleVerifyPayment(req, res, req.user);
+    });
+  } else {
+    // Authorized via HMAC signature
+    handleVerifyPayment(req, res, null);
+  }
 });
 
 /**

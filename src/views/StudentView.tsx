@@ -195,13 +195,6 @@ export const StudentView: React.FC = () => {
         </button>
         <button
           type="button"
-          className={activeTab === 'doubts' ? 'btn btn-teal' : 'ghost'}
-          onClick={() => setActiveTab('doubts')}
-        >
-          <HelpCircle size={16} /> Ask AI Tutor
-        </button>
-        <button
-          type="button"
           className={activeTab === 'map' ? 'btn btn-teal' : 'ghost'}
           onClick={() => setActiveTab('map')}
         >
@@ -608,65 +601,6 @@ export const StudentView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: DOUBTS & CHILD-SAFE AI TUTOR (Matching Wireframe 22 & 41 / Diagram 15 & 45) */}
-      {activeTab === 'doubts' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="b">
-            <div className="h2">AI Doubt Tutor</div>
-            <div className="t-muted">
-              Ask questions about your chapter. Answers are grounded in certified syllabus notes only.
-            </div>
-          </div>
-
-          {/* Doubt Input Box */}
-          <form onSubmit={handleSendDoubt} className="b" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <textarea
-              rows={3}
-              placeholder="Ask your doubt (e.g., Why does -5 × -2 equal +10?)..."
-              value={doubtText}
-              onChange={(e) => setDoubtText(e.target.value)}
-              style={{ resize: 'none' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="t-tiny">
-                🔒 Safe Guardrails: No active exam answers • PII Redacted
-              </span>
-              <button type="submit" className="btn btn-teal" disabled={!doubtText.trim()}>
-                <Send size={16} /> Ask Tutor
-              </button>
-            </div>
-          </form>
-
-          {/* Previous Doubts Stream */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {doubts.map(d => (
-              <div key={d.id} className="b" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className="chip chip-teal">{d.subject}</span>
-                  <div className="t-tiny">{d.timestamp}</div>
-                </div>
-
-                <div className="h3" style={{ fontSize: '15px' }}>
-                  🙋 "{d.questionText}"
-                </div>
-
-                {d.aiAnswer && (
-                  <div style={{
-                    padding: '12px',
-                    borderRadius: '8px',
-                    background: 'var(--color-paper-subtle)',
-                    borderLeft: '4px solid var(--color-teal-primary)',
-                    fontSize: '14px',
-                    lineHeight: 1.5
-                  }}>
-                    <strong>Tutor Explanation:</strong> {d.aiAnswer}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* TAB 4: CONCEPT MAP (Matching Wireframe 38 / Diagram 25) */}
       {activeTab === 'map' && (

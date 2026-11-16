@@ -33,7 +33,10 @@ import {
   Layers,
   MapPin,
   ShieldCheck,
-  Check
+  Check,
+  Download,
+  RefreshCw,
+  CreditCard
 } from 'lucide-react';
 
 interface StudentData {
@@ -155,6 +158,19 @@ export const AdminView: React.FC = () => {
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [attendanceViewMode, setAttendanceViewMode] = useState<'batch' | 'monthly'>('batch');
   const [expandedBatchId, setExpandedBatchId] = useState<string | null>(null);
+
+  // Financial Ledger & Collections State
+  const [ledgerData, setLedgerData] = useState<{
+    metrics: {
+      totalCollectedInr: number;
+      activeSubscriptions: number;
+      expiredSubscriptions: number;
+      failedTransactions: number;
+      annualPlanRate: number;
+    };
+    transactions: any[];
+  } | null>(null);
+  const [ledgerLoading, setLedgerLoading] = useState(false);
 
   // Modals State
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -336,6 +352,21 @@ export const AdminView: React.FC = () => {
     }
   };
 
+  const fetchLedger = async () => {
+    setLedgerLoading(true);
+    try {
+      const res = await fetch('/api/v1/payments/admin/ledger', { headers: fetchHeaders });
+      const data = await res.json();
+      if (res.ok && data.metrics) {
+        setLedgerData(data);
+      }
+    } catch (e) {
+      console.error('Error fetching admin ledger:', e);
+    } finally {
+      setLedgerLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchStudents();
     fetchBatches();
@@ -346,6 +377,8 @@ export const AdminView: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'attendance') {
       fetchAttendanceReports();
+    } else if (activeTab === 'finance') {
+      fetchLedger();
     }
   }, [activeTab]);
 
@@ -1429,25 +1462,144 @@ export const AdminView: React.FC = () => {
       {/* 6. COLLECTIONS & LEDGER TAB */}
       {/* ======================================================== */}
       {activeTab === 'finance' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="h2">Collections & Fee Settlement Reconciliation</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-            <div className="b">
-              <div className="t-muted">Total Collections Today</div>
-              <div className="h1" style={{ color: 'var(--color-teal-primary)' }}>₹4,82,500</div>
-              <div className="t-tiny">32 Settlements via Razorpay</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div className="h2">Collections & Fee Settlement Reconciliation</div>
+              <div className="t-muted">Real-time ledger of Razorpay digital learning subscriptions (₹599) and GST tax invoices.</div>
             </div>
-            <div className="b">
-              <div className="t-muted">Pending Ageing Dues</div>
-              <div className="h1" style={{ color: 'var(--color-saffron)' }}>₹36,000</div>
-              <div className="t-tiny">3 Accounts in Grace Period</div>
-            </div>
-            <div className="b">
-              <div className="t-muted">GST Remittance (18%)</div>
-              <div className="h1">₹73,600</div>
-              <div className="t-tiny">SAC 9992 Educational Tech</div>
-            </div>
+            <button
+              type="button"
+              className="ghost"
+              onClick={fetchLedger}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}
+            >
+              <RefreshCw size={15} /> Refresh Ledger
+            </button>
           </div>
+
+          {ledgerLoading ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-text-subtle)' }}>
+              Loading financial metrics & transactions…
+            </div>
+          ) : (
+            <>
+              {/* Metric Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                <div className="b">
+                  <div className="t-muted">Total Collections</div>
+                  <div className="h1" style={{ color: 'var(--color-teal-primary)' }}>
+                    ₹{(ledgerData?.metrics.totalCollectedInr || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
+                  <div className="t-tiny">Captured Subscriptions</div>
+                </div>
+
+                <div className="b">
+                  <div className="t-muted">Active Subscriptions</div>
+                  <div className="h1" style={{ color: '#16a34a' }}>
+                    {ledgerData?.metrics.activeSubscriptions || 0}
+                  </div>
+                  <div className="t-tiny">365-Day Entitlements Enabled</div>
+                </div>
+
+                <div className="b">
+                  <div className="t-muted">GST Remittance (18%)</div>
+                  <div className="h1" style={{ color: '#0284c7' }}>
+                    ₹{((ledgerData?.metrics.totalCollectedInr || 0) * (91.37 / 599.00)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                  </div>
+                  <div className="t-tiny">SAC 9992 Educational Tech</div>
+                </div>
+
+                <div className="b">
+                  <div className="t-muted">Failed / Rejected</div>
+                  <div className="h1" style={{ color: (ledgerData?.metrics.failedTransactions || 0) > 0 ? '#dc2626' : 'var(--color-text-muted)' }}>
+                    {ledgerData?.metrics.failedTransactions || 0}
+                  </div>
+                  <div className="t-tiny">Gateway Declines / Retries</div>
+                </div>
+              </div>
+
+              {/* Transactions Ledger Table */}
+              <div className="b" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 700, fontSize: '15px' }}>Razorpay Payment Transactions</div>
+                  <div className="t-tiny">Rate: ₹599.00 / student / year</div>
+                </div>
+
+                {ledgerData?.transactions && ledgerData.transactions.length > 0 ? (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>
+                          <th style={{ padding: '8px 12px' }}>Date & Time</th>
+                          <th style={{ padding: '8px 12px' }}>Order ID</th>
+                          <th style={{ padding: '8px 12px' }}>Invoice No.</th>
+                          <th style={{ padding: '8px 12px' }}>Student</th>
+                          <th style={{ padding: '8px 12px' }}>Amount</th>
+                          <th style={{ padding: '8px 12px' }}>Status</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ledgerData.transactions.map((tx: any) => (
+                          <tr key={tx.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                              {new Date(tx.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                            </td>
+                            <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: '12px' }}>
+                              {tx.orderId || '—'}
+                            </td>
+                            <td style={{ padding: '10px 12px', fontWeight: 600 }}>
+                              {tx.invoiceNumber || '—'}
+                            </td>
+                            <td style={{ padding: '10px 12px' }}>
+                              {tx.studentName}
+                            </td>
+                            <td style={{ padding: '10px 12px', fontWeight: 700 }}>
+                              ₹{tx.amountInr.toFixed(2)}
+                            </td>
+                            <td style={{ padding: '10px 12px' }}>
+                              <span className={tx.status === 'Captured' ? 'chip chip-success' : 'chip chip-error'}>
+                                {tx.status}
+                              </span>
+                              {tx.failureReason && (
+                                <div className="t-tiny" style={{ color: '#dc2626', marginTop: '2px' }}>
+                                  {tx.failureReason}
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                              {tx.status === 'Captured' && (
+                                <a
+                                  href={`/api/v1/payments/receipt/${tx.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    color: 'var(--color-teal-primary)',
+                                    fontWeight: 600,
+                                    textDecoration: 'none'
+                                  }}
+                                >
+                                  <Download size={14} /> Receipt
+                                </a>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                    No payment records in ledger yet.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
 

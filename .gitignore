@@ -59,6 +59,7 @@ server/db/*.sqlite-shm
 server/private-uploads/
 private-uploads/
 student-exports/
+backups/
 *.sqlite
 *.sqlite-journal
 *.db

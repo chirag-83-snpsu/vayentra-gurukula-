@@ -10,7 +10,13 @@ import { ClassDiscoveryPanel } from '../components/ClassDiscoveryPanel';
 import { OnePromiseSection } from '../components/OnePromiseSection';
 import '../styles/premium-home.css';
 
-interface Props { onLogin: () => void; onExplore: () => void; onAdmissions: (grade?: number) => void; }
+interface Props {
+  onLogin: () => void;
+  onExplore: () => void;
+  onAdmissions: (grade?: number) => void;
+  onPricing?: () => void;
+  onLegal?: (type: 'terms' | 'privacy' | 'refund') => void;
+}
 type DemoKey = 'math' | 'science' | 'english';
 type BandKey = 'foundation' | 'middle' | 'board';
 type SchoolBoard = 'CBSE' | 'STATE';
@@ -80,7 +86,7 @@ const questions = [
   {q:'What happens after students sign in?', a:'Students select their class and board, then enter the appropriate authorised learning space. Access to private student records is controlled by the registered account, not by the class selected on screen.'}
 ];
 
-export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions}) => {
+export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions, onPricing, onLegal}) => {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [demoKey, setDemoKey] = useState<DemoKey>('math');
   const [selection, setSelection] = useState<number | null>(null);
@@ -118,6 +124,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions})
           <button onClick={()=>jumpTo('why-vayentra')}>Our difference</button>
           <button onClick={()=>jumpTo('our-programmes')}>Programmes</button>
           <button onClick={()=>jumpTo('vayentra-one')}>Vayentra ONE</button>
+          {onPricing && <button onClick={()=>onPricing()} style={{color: '#e7b867', fontWeight: 600}}>Plans (₹599)</button>}
           <button onClick={()=>jumpTo('the-experience')}>Student experience</button>
           <button onClick={()=>jumpTo('common-questions')}>FAQs</button>
           <button onClick={()=>onAdmissions()}>Admissions</button>
@@ -249,6 +256,27 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions})
 
       <section className="vgp-closing"><div className="vgp-container vgp-closing-inner"><div className="vgp-closing-mark">✦</div><div className="vgp-kicker">A DIFFERENT KIND OF LEARNING JOURNEY</div><h2>Here's to the moment<br/><em>it all makes sense.</em></h2><p>Discover Vayentra Gurukula, where understanding comes first.</p><div className="vgp-closing-actions"><button className="vgp-cta vgp-cta-gold" onClick={onLogin}>Student login <ArrowUpRight size={18}/></button><button className="vgp-cta vgp-cta-outline" onClick={()=>onAdmissions()}>Enquire about admissions <MoveRight size={18}/></button></div></div></section>
     </main>
-    <footer className="vgp-footer"><div className="vgp-container vgp-footer-inner"><div><div className="vgp-footer-brand"><span>✦</span> VAYENTRA <b>GURUKULA</b></div><p>Concept-based academic coaching for Classes 1–10, Bengaluru.</p></div><div className="vgp-footer-right"><span>An initiative of Vayentra Ventures Pvt. Ltd.</span><span>© {new Date().getFullYear()} Vayentra Gurukula</span></div></div></footer>
+    <footer className="vgp-footer">
+      <div className="vgp-container vgp-footer-inner" style={{flexWrap: 'wrap', gap: 20}}>
+        <div>
+          <div className="vgp-footer-brand"><span>✦</span> VAYENTRA <b>GURUKULA</b></div>
+          <p>Concept-based academic coaching for Classes 1–10, Bengaluru.</p>
+        </div>
+        <div style={{display:'flex', gap: 20, alignItems: 'center', fontSize: 13}}>
+          {onPricing && <button className="vgp-text-link" onClick={onPricing} style={{background:'none',border:'none',color:'#a0aec0',cursor:'pointer'}}>Annual Pass (₹599)</button>}
+          {onLegal && (
+            <>
+              <button className="vgp-text-link" onClick={() => onLegal('terms')} style={{background:'none',border:'none',color:'#a0aec0',cursor:'pointer'}}>Terms of Service</button>
+              <button className="vgp-text-link" onClick={() => onLegal('privacy')} style={{background:'none',border:'none',color:'#a0aec0',cursor:'pointer'}}>Privacy Policy</button>
+              <button className="vgp-text-link" onClick={() => onLegal('refund')} style={{background:'none',border:'none',color:'#a0aec0',cursor:'pointer'}}>Cancellation & Refund</button>
+            </>
+          )}
+        </div>
+        <div className="vgp-footer-right">
+          <span>An initiative of Vayentra Ventures Pvt. Ltd.</span>
+          <span>© {new Date().getFullYear()} Vayentra Gurukula</span>
+        </div>
+      </div>
+    </footer>
   </div>;
 };

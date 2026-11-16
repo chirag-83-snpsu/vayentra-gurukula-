@@ -61,6 +61,187 @@ oneContentRouter.get('/students/:studentId/outline',requireRole(['parent','admin
  }catch(err){console.error('[ONE content private outline]',err);return fail(res,'CONTENT_LOAD_FAILED',500);}
 });
 
+/**
+ * UNIFIED LEARNING PROGRESS ENGINE (Classes 1–10)
+ * Stores and retrieves persistent lesson attempts and concept mastery by canonical learner ID.
+ */
+oneContentRouter.get('/progress', requireRole(['student', 'parent', 'admin']), (req, res) => {
+  try {
+    let studentId = req.user.studentId;
+    if (req.user.role === 'parent' || req.user.role === 'admin') {
+      const targetId = req.query.studentId;
+      if (targetId) {
+        if (req.user.role === 'parent') {
+          const student = db.prepare('SELECT id, guardian_id FROM students WHERE id = ?').get(targetId);
+          if (!student || student.guardian_id !== req.user.guardianId) {
+            return fail(res, 'STUDENT_ACCESS_DENIED', 403, 'You can only view progress for your linked children.');
+          }
+        }
+        studentId = targetId;
+      }
+    }
+
+    if (!studentId) {
+      return fail(res, 'STUDENT_ID_REQUIRED', 400, 'Student profile identifier is required.');
+    }
+
+    const masteryRows = db.prepare(`
+      SELECT concept_id, mastery, updated_at
+      FROM one_concept_mastery
+      WHERE student_id = ?
+    `).all(studentId);
+
+    const foundationAttempts = db.prepare(`
+      SELECT id, unit_id, correct_count, total_count, created_at
+      FROM one_foundation_attempts
+      WHERE student_id = ?
+      ORDER BY created_at DESC
+      LIMIT 100
+    `).all(studentId);
+
+    const testAttempts = db.prepare(`
+      SELECT id, test_id as unit_id, score_percent, correct_count, total_questions as total_count, submitted_at as created_at
+      FROM test_attempts
+      WHERE student_id = ?
+      ORDER BY submitted_at DESC
+      LIMIT 100
+    `).all(studentId);
+
+    const completedLessonIds = Array.from(new Set([
+      ...masteryRows.map(m => m.concept_id),
+      ...foundationAttempts.map(a => a.unit_id),
+      ...testAttempts.map(t => t.unit_id)
+    ]));
+
+    return res.json({
+      success: true,
+      studentId,
+      completedLessonIds,
+      mastery: masteryRows,
+      recentAttempts: [...testAttempts, ...foundationAttempts].slice(0, 100)
+    });
+  } catch (err) {
+    console.error('[Unified Progress GET Error]:', err);
+    return fail(res, 'PROGRESS_FETCH_FAILED', 500);
+  }
+});
+
+oneContentRouter.post('/progress', requireRole(['student', 'parent', 'admin']), (req, res) => {
+  try {
+    const { lessonId, score, totalQuestions, answers, idempotencyKey } = req.body;
+    let studentId = req.user.studentId;
+
+    if (req.user.role === 'parent' || req.user.role === 'admin') {
+      if (req.body.studentId) {
+        if (req.user.role === 'parent') {
+          const student = db.prepare('SELECT id, guardian_id FROM students WHERE id = ?').get(req.body.studentId);
+          if (!student || student.guardian_id !== req.user.guardianId) {
+            return fail(res, 'STUDENT_ACCESS_DENIED', 403, 'You can only record progress for your linked children.');
+          }
+        }
+        studentId = req.body.studentId;
+      }
+    }
+
+    if (!studentId) {
+      return fail(res, 'STUDENT_ID_REQUIRED', 400, 'Student account link required.');
+    }
+
+    if (!lessonId) {
+      return fail(res, 'LESSON_ID_REQUIRED', 400, 'Lesson identifier is required.');
+    }
+
+    // Verify student entitlement status
+    const membership = db.prepare('SELECT entitlement_status FROM one_memberships WHERE student_id = ?').get(studentId);
+    const subscription = db.prepare(`
+      SELECT status, expires_at FROM student_subscriptions
+      WHERE student_id = ? AND expires_at > datetime('now')
+    `).get(studentId);
+
+    const isEntitled = req.user.role === 'admin' ||
+      (membership && membership.entitlement_status === 'enabled') ||
+      (subscription && subscription.status === 'active');
+
+    if (!isEntitled) {
+      return fail(res, 'ENTITLEMENT_REQUIRED', 403, 'An active ₹599 annual learning entitlement is required to save persistent progress.');
+    }
+
+    const key = idempotencyKey || ('att-' + randomUUID());
+    const existing = db.prepare('SELECT id FROM one_foundation_attempts WHERE student_id = ? AND idempotency_key = ?').get(studentId, key);
+    if (existing) {
+      return res.json({ success: true, idempotent: true, attemptId: existing.id });
+    }
+
+    const total = Number.isInteger(totalQuestions) && totalQuestions > 0 ? totalQuestions : 1;
+    const computedScore = typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 100;
+    const correctCount = Math.round((computedScore / 100) * total);
+    const attemptId = 'one-att-' + randomUUID();
+
+    db.exec('BEGIN IMMEDIATE;');
+    try {
+      // 1. Universally persist attempt to test_attempts (compatible with all Classes 1–10)
+      db.prepare(`
+        INSERT INTO test_attempts (
+          id, student_id, test_id, title, score_percent,
+          correct_count, total_questions, answers_json, passed, duration_secs, submitted_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 60, datetime('now'))
+      `).run(
+        attemptId,
+        studentId,
+        lessonId,
+        req.body.lessonTitle || lessonId,
+        computedScore,
+        correctCount,
+        total,
+        JSON.stringify(answers || {}),
+        computedScore >= 60 ? 1 : 0
+      );
+
+      // 2. If unit exists in one_foundation_units, also record in one_foundation_attempts
+      const fUnit = db.prepare('SELECT id FROM one_foundation_units WHERE id = ?').get(lessonId);
+      if (fUnit) {
+        db.prepare(`
+          INSERT INTO one_foundation_attempts (
+            id, student_id, unit_id, attempted_by, idempotency_key,
+            answers_json, correct_count, total_count, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        `).run(attemptId, studentId, lessonId, req.user.id, key, JSON.stringify(answers || []), correctCount, total);
+      }
+
+      // 3. If concept exists in one_concepts, record mastery
+      const cConcept = db.prepare('SELECT id FROM one_concepts WHERE id = ?').get(lessonId);
+      if (cConcept) {
+        const masteryLevel = computedScore >= 60 ? 'practising' : 'needs_help';
+        db.prepare(`
+          INSERT INTO one_concept_mastery (student_id, concept_id, mastery, updated_at)
+          VALUES (?, ?, ?, datetime('now'))
+          ON CONFLICT(student_id, concept_id) DO UPDATE SET
+            mastery = excluded.mastery,
+            updated_at = datetime('now')
+        `).run(studentId, lessonId, masteryLevel);
+      }
+
+      db.exec('COMMIT;');
+
+      return res.json({
+        success: true,
+        attemptId,
+        studentId,
+        lessonId,
+        score: computedScore,
+        mastery: computedScore >= 60 ? 'mastered' : 'practicing',
+        message: 'Progress securely saved to learner profile.'
+      });
+    } catch (saveErr) {
+      db.exec('ROLLBACK;');
+      throw saveErr;
+    }
+  } catch (err) {
+    console.error('[Unified Progress POST Error]:', err);
+    return fail(res, 'PROGRESS_SAVE_FAILED', 500);
+  }
+});
+
 oneContentRouter.use('/admin',requireRole('admin'));
 // Authoring state, visible only to the institutional administrator.
 oneContentRouter.get('/admin/tracks/:trackId/map',(req,res)=>{

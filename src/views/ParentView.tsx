@@ -208,6 +208,8 @@ export const ParentView: React.FC = () => {
   const [screenTimeSaved, setScreenTimeSaved] = useState<boolean>(false);
   const [deleteNotice, setDeleteNotice] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentHistory, setPaymentHistory] = useState<{ payments: any[]; subscriptions: any[] } | null>(null);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
 
   // 1. Fetch unified parent dashboard for active child
   const fetchDashboard = useCallback(() => {
@@ -240,6 +242,27 @@ export const ParentView: React.FC = () => {
   useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);
+
+  const fetchPaymentHistory = useCallback(() => {
+    setIsLoadingPayments(true);
+    fetch('/api/v1/payments/history', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.payments) {
+          setPaymentHistory(data);
+        }
+      })
+      .catch(err => console.warn('[Payment History Load Error]:', err))
+      .finally(() => setIsLoadingPayments(false));
+  }, [token]);
+
+  useEffect(() => {
+    if (activeTab === 'fees') {
+      fetchPaymentHistory();
+    }
+  }, [activeTab, fetchPaymentHistory]);
 
   // 2. Fetch guardian communication preferences
   const fetchPreferences = useCallback(() => {
@@ -1495,45 +1518,175 @@ export const ParentView: React.FC = () => {
       {/* 7. FEES & SUBSCRIPTION TAB                              */}
       {/* ======================================================== */}
       {activeTab === 'fees' && (
-        <div className="b" style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '650px' }}>
-          <div className="h2">Tuition Fee Ledger & Plan</div>
-          <div className="t-muted">
-            Manage your annual Gurukula coaching plan and view fee settlements.
+        <div className="b" style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '850px' }}>
+          <div>
+            <div className="h2">Tuition Fee Ledger & Digital Subscriptions</div>
+            <div className="t-muted">
+              Manage your annual Gurukula coaching plan, digital learning passes, and GST tax invoices.
+            </div>
           </div>
 
-          <div style={{ padding: '16px', background: 'var(--color-paper-subtle)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Card 1: Physical Classroom Tuition Plan */}
+          <div style={{ padding: '20px', background: 'var(--color-paper-subtle)', borderRadius: '12px', border: '1px solid var(--color-border-subtle)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Plan: <strong>{parent.planName}</strong></span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <GraduationCap size={18} color="var(--color-teal-primary)" />
+                <span style={{ fontWeight: 700, fontSize: '15px' }}>Classroom Tuition Plan: {parent.planName}</span>
+              </div>
               <span className="chip chip-success">{parent.subscriptionStatus}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Renewal Date:</span>
-              <strong>{parent.renewalDate}</strong>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '14px' }}>
+              <div>Renewal Date: <strong>{parent.renewalDate}</strong></div>
+              <div>
+                Outstanding Tuition Balance:{' '}
+                <strong style={{ color: parent.outstandingFee > 0 ? 'var(--color-error)' : 'var(--color-teal-primary)' }}>
+                  ₹{parent.outstandingFee}
+                </strong>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Outstanding Balance:</span>
-              <strong style={{ color: parent.outstandingFee > 0 ? 'var(--color-error)' : 'var(--color-teal-primary)' }}>
-                ₹{parent.outstandingFee}
-              </strong>
-            </div>
+
+            {paymentSuccess && (
+              <div style={{ padding: '12px', background: 'var(--color-teal-light)', color: 'var(--color-teal-primary)', borderRadius: '6px', fontSize: '13px' }}>
+                Fee settlement successfully processed via UPI / Razorpay gateway.
+              </div>
+            )}
+
+            {parent.outstandingFee > 0 && (
+              <button
+                type="button"
+                className="btn btn-teal"
+                onClick={handlePayFee}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                Pay Outstanding Tuition Fee
+              </button>
+            )}
           </div>
 
-          {paymentSuccess && (
-            <div style={{ padding: '12px', background: 'var(--color-teal-light)', color: 'var(--color-teal-primary)', borderRadius: '6px', fontSize: '13px' }}>
-              Fee settlement successfully processed via UPI / Razorpay gateway.
+          {/* Card 2: Digital Learning Subscriptions (₹599 / Year) */}
+          <div style={{ padding: '20px', background: '#ffffff', borderRadius: '12px', border: '1px solid var(--color-border-subtle)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CreditCard size={18} color="var(--color-teal-primary)" />
+                  <span style={{ fontWeight: 700, fontSize: '15px' }}>Digital Learning Pass (₹599 / Year)</span>
+                </div>
+                <div className="t-tiny" style={{ marginTop: '4px' }}>
+                  Unlocks all Classes 1–10 interactive visual lessons, audio narration, and mastery progress.
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-teal"
+                onClick={() => { window.location.href = `/checkout?studentId=${encodeURIComponent(activeChild.id)}`; }}
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                Renew / Extend Pass (₹599)
+              </button>
             </div>
-          )}
 
-          {parent.outstandingFee > 0 && (
-            <button
-              type="button"
-              className="btn btn-teal"
-              onClick={handlePayFee}
-              style={{ alignSelf: 'flex-start' }}
-            >
-              Pay Outstanding Fee
-            </button>
-          )}
+            {isLoadingPayments ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-subtle)' }}>
+                Loading digital subscription details…
+              </div>
+            ) : paymentHistory?.subscriptions && paymentHistory.subscriptions.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
+                {paymentHistory.subscriptions.map((sub: any) => (
+                  <div key={sub.id} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'var(--color-paper-subtle)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <strong style={{ fontSize: '14px' }}>{sub.student_name}</strong>
+                      <span className={sub.status === 'active' ? 'chip chip-success' : 'chip chip-error'}>
+                        {sub.status === 'active' ? 'Active' : 'Expired'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-subtle)', marginBottom: '4px' }}>
+                      Class {sub.grade} ({sub.board})
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-subtle)' }}>
+                      Expires: <strong>{new Date(sub.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', fontSize: '13px', color: 'var(--color-text-subtle)' }}>
+                Active student: <strong>{activeChild.name}</strong> (Class {activeChild.grade}). Click 'Renew / Extend Pass' to activate 365 days of full curriculum access.
+              </div>
+            )}
+          </div>
+
+          {/* Card 3: Invoices & Receipts Ledger (SAC 9992) */}
+          <div style={{ padding: '20px', background: '#ffffff', borderRadius: '12px', border: '1px solid var(--color-border-subtle)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontWeight: 700, fontSize: '15px' }}>Official GST Tax Invoices (SAC 9992)</span>
+                <div className="t-tiny" style={{ marginTop: '2px' }}>
+                  Compliant with GST regulations. Usable for corporate education reimbursements.
+                </div>
+              </div>
+              <button
+                type="button"
+                className="ghost"
+                onClick={fetchPaymentHistory}
+                style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <RefreshCw size={14} /> Refresh
+              </button>
+            </div>
+
+            {paymentHistory?.payments && paymentHistory.payments.length > 0 ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>
+                      <th style={{ padding: '8px 12px' }}>Date</th>
+                      <th style={{ padding: '8px 12px' }}>Invoice No.</th>
+                      <th style={{ padding: '8px 12px' }}>Student</th>
+                      <th style={{ padding: '8px 12px' }}>Amount (Incl. GST)</th>
+                      <th style={{ padding: '8px 12px' }}>Status</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Invoice</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentHistory.payments.map((p: any) => (
+                      <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '10px 12px' }}>{new Date(p.createdAt).toLocaleDateString('en-IN')}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{p.invoiceNumber || '—'}</td>
+                        <td style={{ padding: '10px 12px' }}>{p.studentName || 'Student'}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700 }}>₹{p.amountInr.toFixed(2)}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span className={p.status === 'Captured' ? 'chip chip-success' : 'chip chip-error'}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                          <a
+                            href={`/api/v1/payments/receipt/${p.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              color: 'var(--color-teal-primary)',
+                              fontWeight: 600,
+                              textDecoration: 'none'
+                            }}
+                          >
+                            <Download size={14} /> Receipt
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                No past transactions recorded for this guardian account yet.
+              </div>
+            )}
+          </div>
         </div>
       )}
 

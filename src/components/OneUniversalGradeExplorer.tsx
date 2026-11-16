@@ -40,6 +40,12 @@ export interface ConceptLesson {
   visualModelType?: 'formula' | 'diagram' | 'table' | 'geometry' | 'circuit';
   offlineActivity: string;
   guidedSteps: string[];
+  // Priority 4: Premium Educational Media Foundation
+  videoUrl?: string;
+  videoThumbnail?: string;
+  videoDurationSec?: number;
+  audioNarrationUrl?: string;
+  transcriptText?: string;
   questions: Array<{
     id: string;
     prompt: string;
@@ -1207,6 +1213,23 @@ export const OneUniversalGradeExplorer: React.FC<{
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [speaking, setSpeaking] = useState<boolean>(false);
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+
+  // Priority 3: Load persistent learning progress from backend on mount
+  useEffect(() => {
+    const token = localStorage.getItem('vayentra_token') || localStorage.getItem('vayentra_auth_token');
+    if (!token) return;
+    fetch('/api/v1/one-content/progress', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.completedLessonIds)) {
+          setCompletedLessons(new Set(data.completedLessonIds));
+        }
+      })
+      .catch(err => console.warn('[Load Progress Error]:', err));
+  }, []);
 
   useEffect(() => {
     if (initialSubjectName && subjects.includes(initialSubjectName)) {
@@ -1226,6 +1249,38 @@ export const OneUniversalGradeExplorer: React.FC<{
     setSubmitted(true);
     // Track concept mastery
     recordConceptUnderstood(selectedLesson.id);
+
+    // Priority 3: Unified Learning Progress persistence to SQLite
+    const totalQuestions = selectedLesson.questions.length;
+    const correctCount = selectedLesson.questions.filter(q => answers[q.id] === q.correctIndex).length;
+    const score = Math.round((correctCount / totalQuestions) * 100);
+
+    const token = localStorage.getItem('vayentra_token') || localStorage.getItem('vayentra_auth_token');
+    if (token) {
+      fetch('/api/v1/one-content/progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          lessonId: selectedLesson.id,
+          score,
+          totalQuestions,
+          answers
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setCompletedLessons(prev => new Set([...prev, selectedLesson.id]));
+          }
+        })
+        .catch(err => console.warn('[Unified Progress Save Error]:', err));
+    } else {
+      // Local fallback
+      setCompletedLessons(prev => new Set([...prev, selectedLesson.id]));
+    }
 
     // Confetti celebration
     confetti({
@@ -1330,6 +1385,25 @@ export const OneUniversalGradeExplorer: React.FC<{
               {selectedLesson.storyHook}
             </p>
           </div>
+
+          {/* Priority 4: Premium Educational Media Foundation */}
+          {selectedLesson.videoUrl && (
+            <div style={{ margin: '16px 0', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#0f172a' }}>
+              <video
+                controls
+                poster={selectedLesson.videoThumbnail}
+                src={selectedLesson.videoUrl}
+                style={{ width: '100%', maxHeight: '420px', display: 'block' }}
+              >
+                Your browser does not support HTML5 video playback.
+              </video>
+              {selectedLesson.transcriptText && (
+                <div style={{ padding: '12px 16px', background: '#1e293b', color: '#cbd5e1', fontSize: '13px' }}>
+                  <strong>Video Transcript:</strong> {selectedLesson.transcriptText}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Deep Concept Breakdown: The Why */}
           <div className="vg1-story">
@@ -1507,19 +1581,38 @@ export const OneUniversalGradeExplorer: React.FC<{
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <strong>{l.lessonTitle}</strong>
-                        <span
-                          style={{
-                            background: '#ecfdf5',
-                            color: '#065f46',
-                            border: '1px solid #a7f3d0',
-                            borderRadius: '12px',
-                            padding: '2px 8px',
-                            fontSize: '11px',
-                            fontWeight: 700
-                          }}
-                        >
-                          Concept Class Available
-                        </span>
+                        {completedLessons.has(l.id) ? (
+                          <span
+                            style={{
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #86efac',
+                              borderRadius: '12px',
+                              padding: '2px 8px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Check size={12} /> Mastered & Completed
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              background: '#ecfdf5',
+                              color: '#065f46',
+                              border: '1px solid #a7f3d0',
+                              borderRadius: '12px',
+                              padding: '2px 8px',
+                              fontSize: '11px',
+                              fontWeight: 700
+                            }}
+                          >
+                            Concept Class Available
+                          </span>
+                        )}
                       </div>
                       <small>Chapter {l.chapterNumber}: {l.chapterTitle} • 10-12 mins</small>
                     </div>
