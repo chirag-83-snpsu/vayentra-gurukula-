@@ -81,6 +81,10 @@ admissionsRouter.post('/enquiries', (req, res) => {
  * Generates unique ADM-2026-XXXXX, creates provisional student & membership
  */
 admissionsRouter.post('/apply', (req, res) => {
+  // P0: Public paid admissions stay closed until an independent release audit.
+  if (process.env.NODE_ENV !== 'test') {
+    return res.status(503).json({ code: 'ADMISSIONS_PAUSED_SECURITY_REVIEW', message: 'Online paid admissions are temporarily unavailable while security checks are completed. Please use the enquiry form.' });
+  }
   const body = req.body;
   if (!body || typeof body !== 'object') {
     return res.status(400).json({ code: 'INVALID_PAYLOAD', message: 'Invalid admission request.' });
@@ -143,7 +147,7 @@ admissionsRouter.post('/apply', (req, res) => {
       `).run(userId, guardianName, phone, email || null, passwordHash);
 
       const guardianId = `par-${Date.now().toString(36)}`;
-      const initialParentPin = Math.floor(1000 + Math.random() * 9000).toString();
+      const initialParentPin = bcrypt.hashSync(crypto.randomBytes(24).toString('hex'), 10);
       db.prepare(`
         INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, outstanding_fee, emergency_phone)
         VALUES (?, ?, ?, 'Active', 'Annual Gurukula Foundation Pass', 0.0, ?)
@@ -154,7 +158,7 @@ admissionsRouter.post('/apply', (req, res) => {
       guardian = db.prepare('SELECT id, user_id FROM guardians WHERE user_id = ?').get(user.id);
       if (!guardian) {
         const guardianId = `par-${Date.now().toString(36)}`;
-        const initialParentPin = Math.floor(1000 + Math.random() * 9000).toString();
+        const initialParentPin = bcrypt.hashSync(crypto.randomBytes(24).toString('hex'), 10);
         db.prepare(`
           INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, outstanding_fee, emergency_phone)
           VALUES (?, ?, ?, 'Active', 'Annual Gurukula Foundation Pass', 0.0, ?)
@@ -167,7 +171,7 @@ admissionsRouter.post('/apply', (req, res) => {
     const shortStudentId = Math.random().toString(36).substring(2, 7);
     const studentId = `stu-adm-${shortStudentId}`;
     const enrollmentNumber = `VG-ONE-2026-${shortStudentId.toUpperCase()}`;
-    const childSecurePin = Math.floor(1000 + Math.random() * 9000).toString();
+    const childSecurePin = bcrypt.hashSync(crypto.randomBytes(24).toString('hex'), 10);
 
     db.prepare(`
       INSERT INTO students (
