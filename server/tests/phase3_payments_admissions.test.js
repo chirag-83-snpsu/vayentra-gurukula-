@@ -369,7 +369,7 @@ test('Vayentra Gurukula — Phase 3 Admissions, ₹599 Subscription & Razorpay T
 
     // Expired subscription in the past
     db.prepare(`
-      INSERT INTO student_subscriptions (id, student_id, guardian_id, plan_id, amount_inr, status, starts_at, expires_at)
+      INSERT OR REPLACE INTO student_subscriptions (id, student_id, guardian_id, plan_id, amount_inr, status, starts_at, expires_at)
       VALUES ('sub-exp-test', ?, 'par-001', 'plan-annual-599', 599.0, 'active', datetime('now', '-400 days'), datetime('now', '-35 days'))
     `).run(expStudentId);
 

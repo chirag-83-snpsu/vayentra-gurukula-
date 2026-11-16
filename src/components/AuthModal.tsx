@@ -110,10 +110,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
     }
   };
 
-  // Quick dev pill helper
+  // Quick account selector helper
   const handleSelectDevAccount = (email: string) => {
     setLoginEmail(email);
-    setLoginPassword('Gurukula@2026');
+    setLoginPassword('');
     setAuthError(null);
   };
 

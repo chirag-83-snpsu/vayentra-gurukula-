@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { randomUUID } from 'node:crypto';
+import crypto, { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { db } from '../db/database.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
@@ -180,7 +180,8 @@ adminRouter.post('/students', (req, res) => {
 
       if (!user) {
         const newUserId = `usr-par-${Date.now()}`;
-        const defaultPwdHash = bcrypt.hashSync('Gurukula@2026', 10);
+        const unguessableSecret = crypto.randomBytes(32).toString('hex');
+        const defaultPwdHash = bcrypt.hashSync(unguessableSecret, 10);
         db.prepare(`
           INSERT INTO users (id, email, mobile, name, role, password_hash)
           VALUES (?, ?, ?, ?, 'parent', ?)
@@ -193,10 +194,11 @@ adminRouter.post('/students', (req, res) => {
       let guardian = db.prepare('SELECT * FROM guardians WHERE user_id = ?').get(user.id);
       if (!guardian) {
         resolvedGuardianId = `par-${Date.now()}`;
+        const initialParentPin = crypto.randomInt(1000, 9999).toString();
         db.prepare(`
           INSERT INTO guardians (id, user_id, parent_pin, subscription_status, plan_name, emergency_phone)
-          VALUES (?, ?, '1234', 'Active', 'Annual Gurukula Pro + AI Tutor', ?)
-        `).run(resolvedGuardianId, user.id, guardianPhone || '+91 98450 12345');
+          VALUES (?, ?, ?, 'Active', 'Annual Gurukula Pro + AI Tutor', ?)
+        `).run(resolvedGuardianId, user.id, initialParentPin, guardianPhone || '+91 98450 12345');
       } else {
         resolvedGuardianId = guardian.id;
       }
@@ -213,12 +215,13 @@ adminRouter.post('/students', (req, res) => {
     const studentId = `stu-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const countRow = db.prepare('SELECT COUNT(*) as count FROM students').get();
     const enrollmentNumber = `VG-2026-${String(countRow.count + 1).padStart(4, '0')}`;
+    const initialChildPin = crypto.randomInt(1000, 9999).toString();
 
     db.prepare(`
       INSERT INTO students (
         id, enrollment_number, guardian_id, name, avatar, grade, board, medium,
         school_name, status, dob, notes, child_pin, daily_time_limit_mins, bedtime_lock, has_consent
-      ) VALUES (?, ?, ?, ?, '🦊', ?, ?, ?, ?, 'active', ?, ?, '0000', 45, '21:30', 1)
+      ) VALUES (?, ?, ?, ?, '🦊', ?, ?, ?, ?, 'active', ?, ?, ?, 45, '21:30', 1)
     `).run(
       studentId,
       enrollmentNumber,
@@ -229,7 +232,8 @@ adminRouter.post('/students', (req, res) => {
       medium,
       schoolName,
       dob || null,
-      notes || null
+      notes || null,
+      initialChildPin
     );
 
     // Enroll in initial batches if requested (with conflict detection)
@@ -468,11 +472,16 @@ adminRouter.post('/teachers', (req, res) => {
     qualification = 'B.Ed, Subject Certified',
     specialization = 'Concept Mastery',
     phone,
-    password = 'Gurukula@2026'
+    password
   } = req.body;
 
   if (!name || !name.trim() || !email || !email.trim()) {
     return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Faculty name and institutional email are required.' });
+  }
+
+  // Password complexity check if password provided
+  if (password && (typeof password !== 'string' || password.length < 8)) {
+    return res.status(400).json({ code: 'WEAK_PASSWORD', message: 'Password must be at least 8 characters long.' });
   }
 
   db.exec('BEGIN TRANSACTION;');
@@ -485,7 +494,8 @@ adminRouter.post('/teachers', (req, res) => {
 
     const userId = `usr-tch-${Date.now()}`;
     const teacherId = `tch-${Date.now()}`;
-    const passwordHash = bcrypt.hashSync(password, 10);
+    const teacherSecret = password || crypto.randomBytes(32).toString('hex');
+    const passwordHash = bcrypt.hashSync(teacherSecret, 10);
 
     db.prepare(`
       INSERT INTO users (id, email, name, role, mobile, password_hash)

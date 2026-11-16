@@ -46,6 +46,7 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
   const [error, setError] = useState('');
   const [orderData, setOrderData] = useState<any>(null);
   const [details, setDetails] = useState<any>(null);
+  const [checkoutToken, setCheckoutToken] = useState<string>('');
   const [paymentSuccess, setPaymentSuccess] = useState<any>(null);
 
   useEffect(() => {
@@ -53,10 +54,24 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
       setLoading(true);
       setError('');
       try {
-        if (admissionId) {
-          const res = await fetch(`/api/v1/admissions/${encodeURIComponent(admissionId)}`);
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('token') || urlParams.get('checkoutToken') || '';
+        if (tokenFromUrl) setCheckoutToken(tokenFromUrl);
+
+        const targetAdmissionId = admissionId || urlParams.get('admissionId');
+        const targetStudentId = studentId || urlParams.get('studentId');
+
+        if (targetAdmissionId) {
+          const authBearer = localStorage.getItem('vayentra_token') || localStorage.getItem('vayentra_auth_token');
+          const tokenParam = tokenFromUrl ? `?token=${encodeURIComponent(tokenFromUrl)}` : '';
+          const res = await fetch(`/api/v1/admissions/${encodeURIComponent(targetAdmissionId)}${tokenParam}`, {
+            headers: {
+              ...(authBearer ? { Authorization: `Bearer ${authBearer}` } : {}),
+              ...(tokenFromUrl ? { 'X-Checkout-Token': tokenFromUrl } : {})
+            }
+          });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.message || 'Admission record not found.');
+          if (!res.ok) throw new Error(data.message || 'Admission record not found or access unauthorized.');
           setDetails({
             studentId: data.admission.studentId,
             studentName: data.admission.studentName,
@@ -64,49 +79,23 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
             board: data.admission.board,
             guardianName: data.admission.guardianName,
             guardianPhone: data.admission.guardianPhone,
-            admissionId: data.admission.id
+            admissionId: data.admission.id,
+            checkoutToken: tokenFromUrl
           });
-        } else if (studentId) {
+        } else if (targetStudentId) {
           const token = localStorage.getItem('vayentra_token') || localStorage.getItem('vayentra_auth_token');
-          const res = await fetch(`/api/v1/payments/student/${encodeURIComponent(studentId)}/status`, {
+          const res = await fetch(`/api/v1/payments/student/${encodeURIComponent(targetStudentId)}/status`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}
           });
           const data = await res.json();
           setDetails({
-            studentId,
+            studentId: targetStudentId,
             studentName: data.subscription?.student_name || 'Enrolled Student',
             grade: data.subscription?.grade || 1,
             board: data.subscription?.board || 'CBSE'
           });
         } else {
-          // Check query parameters as fallback
-          const urlParams = new URLSearchParams(window.location.search);
-          const qAdm = urlParams.get('admissionId');
-          const qStu = urlParams.get('studentId');
-          if (qAdm) {
-            const res = await fetch(`/api/v1/admissions/${encodeURIComponent(qAdm)}`);
-            const data = await res.json();
-            if (res.ok && data.admission) {
-              setDetails({
-                studentId: data.admission.studentId,
-                studentName: data.admission.studentName,
-                grade: data.admission.grade,
-                board: data.admission.board,
-                guardianName: data.admission.guardianName,
-                guardianPhone: data.admission.guardianPhone,
-                admissionId: data.admission.id
-              });
-            }
-          } else if (qStu) {
-            setDetails({
-              studentId: qStu,
-              studentName: 'Enrolled Student',
-              grade: 1,
-              board: 'CBSE'
-            });
-          } else {
-            setError('No admission ID or student account specified for checkout.');
-          }
+          setError('No admission ID or student account specified for checkout.');
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unable to load checkout summary.');
@@ -128,11 +117,13 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: 'Bearer ' + token } : {})
+          ...(token ? { Authorization: 'Bearer ' + token } : {}),
+          ...(checkoutToken ? { 'X-Checkout-Token': checkoutToken } : {})
         },
         body: JSON.stringify({
           studentId: details.studentId,
-          admissionId: details.admissionId
+          admissionId: details.admissionId,
+          checkoutToken: checkoutToken || details.checkoutToken
         })
       });
 
@@ -200,9 +191,13 @@ export const CheckoutPage: React.FC<CheckoutProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: 'Bearer ' + token } : {})
+          ...(token ? { Authorization: 'Bearer ' + token } : {}),
+          ...(checkoutToken ? { 'X-Checkout-Token': checkoutToken } : {})
         },
-        body: JSON.stringify(verifyPayload)
+        body: JSON.stringify({
+          ...verifyPayload,
+          checkoutToken: checkoutToken || details?.checkoutToken
+        })
       });
 
       const result = await verifyRes.json();

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -273,6 +274,6 @@ test('PRODUCTION INTEGRATION VERIFICATION SUITE', async (t) => {
     assert.ok(receiptRes.json.invoice);
     assert.equal(receiptRes.json.invoice.sacCode, '9992');
     assert.equal(receiptRes.json.invoice.pricing.totalInr, 599);
-    assert.equal(receiptRes.json.invoice.supplier.name, 'Vayentra Gurukula Private Limited');
+    assert.equal(receiptRes.json.invoice.supplier.name, 'Vayentra Ventures Pvt. Ltd.');
   });
 });
